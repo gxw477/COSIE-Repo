@@ -4,7 +4,7 @@ close all
 
 %Image Analysis
 
-topDir = 'PhantomExperimentsL74_QuadInterp/QASpeckle2/';
+topDir = 'PhantomExperimentsL74_QuadInterp/Speckle/';
 
 %saveDir = 'PhantomExperimentsL74_QuadInterp/QApht_angle/';
 saveDir = topDir;
@@ -110,8 +110,20 @@ for iImage = 1:nImages
     %kCount = kCount + nKsInAverage; 
     %rayCount = rayCount + length(kIdxs{iImage});
 
-
     save([saveDir,'\COSIEinput',num2str(iImage),'.mat'],'cohAll','spectAll','fVals','rayIdxs')
+
+
+    %% Envelope statistics calculations 
+
+    %fullIM
+    fullEnv = abs(envelope(fullIM(rayIdxs,axIdxs)));
+    
+    envMean = mean(fullEnv,2);
+    envStd = std(fullEnv,0,2);
+    
+    save([saveDir,'\EnvStats',num2str(iImage),'.mat'],'envMean','envStd')
+
+    mean(envMean./envStd)
 
 end
 

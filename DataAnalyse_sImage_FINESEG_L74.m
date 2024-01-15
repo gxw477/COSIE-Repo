@@ -3,13 +3,13 @@
 % I will now make this fifty pence piece... disappear
 
 for  sumIdx = 1:33
-    for iImage = 1:3
+    for iImage = 1:2
     
         clearvars -except iImage sumData sumIdx
         close all 
         
         %topDir = [uigetdir(cd,'Select Analysis directory'),'\'];
-        topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\QASpeckle2\\'];
+        topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\QAPht\\'];
         
         adaptBool = 1;%input('Adaptive grid sizing? : ');
         
@@ -87,16 +87,6 @@ for  sumIdx = 1:33
         segBool = cohSum > speckleCOSIE.EML(1,iSegPct) & cohSum < speckleCOSIE.EML(2,iSegPct);
         
         outSeg = (1-length(find(segBool))/length(segBool))*100;
-        
-        %currently a bit off, should be jumping where we can't make a full
-        %kernel widthwise
-        %spectOut = spectAveraging(spectAll(segBool), kWidth, oLap);
-        
-        compImage2 = log(abs(compImage'));
-        
-        compImage2(isinf(compImage2(:))) = 0;
-        
-        compImage2 = compImage2.*tGCM';
         
         
         %% 3. Plot BSC/b-mode image
@@ -185,16 +175,18 @@ for  sumIdx = 1:33
         subplot(3,1,2)
         
         
-        focusEnv = abs(envelope(fullIM(:,axIdxs)'));
+        focusEnv = abs(envelope(fullIM(rayIdxs,axIdxs)'));
         mEnv = mean(focusEnv,1);
-        sEnv = std(mEnv,1);
-        plot(mEnv,'-.','Color','k')
-        set(gca,'YScale','log')
-        yticks(linspace(min(mEnv)*0.5,max(mEnv)*1.1,5));
-        ylim([min(mEnv)*0.5 max(mEnv)*1.1])
+        sEnv = std(focusEnv,0,1);
+        plot(rayIdxs,mEnv./sEnv,'-.','Color','k')
+        set(gca,'YScale','log')       
+        ylim([1 3])
+        hold on 
+        plot([1 size(fullIM,1)],1.91.*[1 1],'-','Color','red')
+        ylabel('\mu/\sigma')
         
         xlabel('Rayline')
-        ylabel('Mean envelope Amplitude at focus')
+        %ylabel('Mean envelope Amplitude at focus')
         xlim([1 128])
         
         
@@ -216,7 +208,9 @@ for  sumIdx = 1:33
         savefig(fname2)
         saveas(gcf,fname2,'png')
         
-        
+        %% 6. 
+
+
         %% 7. Repeat 5. for more seg pctgs 
         outSegPrev = 0; 
         
