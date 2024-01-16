@@ -21,13 +21,11 @@ oLap = .80;
 lWidthF = lambda*(vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1)) ;
 
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample + 1;
-   
 
 %already defined, but to remind you
 rVals = lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
 
 [~, bscFocIdx] = min(abs(rVals - vsxParams.TX(1).focus*lambda));
-
 
 
 %% Define coherence kernel properties 
