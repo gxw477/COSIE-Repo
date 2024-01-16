@@ -244,7 +244,7 @@ for iKernels = 1:nKernels
 end
 
 
-powf0 = spectAll(kIdxs{:},nF);
+powf0 = spectAll(:,nF);
 
 bscEstimate_COH = COVsegmentation(cohSum,speckleCOSIE.EML,powf0,kWidth,oLap,nPossibleKernels);
 bscEstimate_ENV = COVsegmentation(snrEnv,speckleEnvelope.EML,powf0,kWidth,oLap,nPossibleKernels);
