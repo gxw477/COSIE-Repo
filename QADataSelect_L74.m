@@ -102,8 +102,8 @@ for iImage = 1:nImages
     
     for iLine2 = 1:length(rayIdxs)
         
-       cohAll(iLine2 ,:) = CoherenceAnalysisFN_new(squeeze(channelStack(rayIdxs(iLine2),axIdxs,:)));
-       spectAll(iLine2 , :) = spect(iLine2,:);
+        cohAll(iLine2,:) = CoherenceAnalysisFN_new(squeeze(channelStack(rayIdxs(iLine2),axIdxs,:)));
+        spectAll(iLine2,:) = spect(iLine2,:);
 
     end
     

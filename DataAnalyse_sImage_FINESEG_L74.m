@@ -2,9 +2,11 @@
 
 % I will now make this fifty pence piece... disappear
 
-for  sumIdx = 1:33
-    for iImage = 1:2
-    
+
+
+        sumIdx = 33;
+        iImage = 1;
+        
         clearvars -except iImage sumData sumIdx
         close all 
         
@@ -69,7 +71,7 @@ for  sumIdx = 1:33
         %This step is for interest only, just want to see how the EML's differ
         cosieParams.dTH= 0.1;
         cosieParams.APsize = sumIdx;
-        [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE(cohSum,powf0,cosieParams);
+        [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(cohSum,powf0,cosieParams);
         
         
         transpData = zeros(size(fullIM));
@@ -89,7 +91,16 @@ for  sumIdx = 1:33
         outSeg = (1-length(find(segBool))/length(segBool))*100;
         
         
-        %% 3. Plot BSC/b-mode image
+
+        %% 3. Compute texture at focus
+        
+        % get envelope data at focus
+
+
+
+
+
+        %% 4. Plot BSC/b-mode image
         lWidth = (Trans.ElementPos(2,1)-Trans.ElementPos(1,1))*lambda;
         ax1 = axes;
         
@@ -135,14 +146,11 @@ for  sumIdx = 1:33
         fname2 = [imgDir,'/ParametricImage'];
         savefig(fname2)
         saveas(gcf,fname2,'png')
-        
-        
-        
+      
         cohValues2 = sum(RMat(:,:,1:sumIdx),3);
         F = griddedInterpolant(xQcoh,yQcoh,cohValues2);
         CoherenceQ = F(xQbm,yQbm);
-            
-        
+
         figure 
         imagesc(lWidth.*(1:128) , yVals, CoherenceQ');
         xlabel('Lateral Position (m)')
@@ -158,7 +166,7 @@ for  sumIdx = 1:33
         savefig(fname2)
         saveas(gcf,fname2,'png')
         
-        %% 4. Plot beam features at the focus
+        %% 5. Plot beam features at the focus
         
         figure
         subplot(3,1,1)
@@ -211,7 +219,9 @@ for  sumIdx = 1:33
         %% 6. 
 
 
-        %% 7. Repeat 5. for more seg pctgs 
+
+        
+        %% 6. Repeat 5. for more seg pctgs 
         outSegPrev = 0; 
         
         
@@ -316,5 +326,5 @@ for  sumIdx = 1:33
         savefig(fname2)
         saveas(gcf,fname2,'png')
         
-    end
-end
+%    end
+%end
