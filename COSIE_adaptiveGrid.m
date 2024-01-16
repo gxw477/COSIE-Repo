@@ -3,7 +3,6 @@ function [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2,params] = COSIE_adapt
     % [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2,params] = COSIE(cohValues,bscValues,params)
     %   cohValues : [1 x nlines] vector of coherence values
     %   bscValues : [1 x nlines] vector of bsc values 
-    %   params.dTH : coherence threshold increment
     %   params.APSize : aperture size used
     
 

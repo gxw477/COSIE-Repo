@@ -95,7 +95,7 @@ for iImage = 1:nImages
     bscLines = fullIM(kIdxs{iImage},axIdxs);
 
     spect = fft(bscLines,[],2);
-    
+
     
     spectAv = spectAveraging(spect,kWidth_BSC_lines,oLap);
 
@@ -108,6 +108,7 @@ for iImage = 1:nImages
         
        cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN_new(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxs,:)));
        spectAll(iLine2 + rayCount, :) = spect(iLine2,:);
+       envAll(iLine2 + rayCount,:) = abs(envelope(bscLines(iLine2,:)));
 
     end
     
@@ -116,8 +117,10 @@ for iImage = 1:nImages
 
 end
 
-avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
 
+save([topDir,'envData.mat'],'envAll')
+
+avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
 
 powf0 = abs(spectAll(:,nF));
 

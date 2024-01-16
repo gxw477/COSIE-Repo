@@ -1,6 +1,6 @@
 
 
-% I will now make this fifty pence piece... disappear
+% I will now make me and this fifty pence piece... disappear
 
 
 
@@ -10,8 +10,8 @@
         clearvars -except iImage sumData sumIdx
         close all 
         
-        %topDir = [uigetdir(cd,'Select Analysis directory'),'\'];
-        topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\QAPht\\'];
+        topDir = [uigetdir(cd,'Select Analysis directory'),'\'];
+        %topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\QAPht\\'];
         
         adaptBool = 1;%input('Adaptive grid sizing? : ');
         
@@ -73,7 +73,6 @@
         cosieParams.APsize = sumIdx;
         [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(cohSum,powf0,cosieParams);
         
-        
         transpData = zeros(size(fullIM));
         colorData = nan.*zeros(size(fullIM));
         
@@ -90,17 +89,7 @@
         
         outSeg = (1-length(find(segBool))/length(segBool))*100;
         
-        
-
-        %% 3. Compute texture at focus
-        
-        % get envelope data at focus
-
-
-
-
-
-        %% 4. Plot BSC/b-mode image
+        %% 3. Plot BSC/b-mode image
         lWidth = (Trans.ElementPos(2,1)-Trans.ElementPos(1,1))*lambda;
         ax1 = axes;
         
@@ -166,7 +155,7 @@
         savefig(fname2)
         saveas(gcf,fname2,'png')
         
-        %% 5. Plot beam features at the focus
+        %% 4. Plot beam features at the focus
         
         figure
         subplot(3,1,1)
@@ -174,21 +163,18 @@
         hold on
         plot([1 128],[speckleCOSIE.EML(2,1) speckleCOSIE.EML(2,1)],'-','Color','red')
         plot([1 128],[speckleCOSIE.EML(1,1) speckleCOSIE.EML(1,1)],'-','Color','red')
-        ylim([-1.5*max(speckleCOSIE.EML(2,1)) 1.5*max(speckleCOSIE.EML(2,1))])
+        errorbar(120,mean(speckleCOSIE.thVector),std(speckleCOSIE.thVector),'.','Color','red')
+        ylim([0 1.5*max(speckleCOSIE.EML(2,1))])
         xlabel('Rayline')
         ylabel('Summed Coherence')
         xlim([1 128])
         
         
-        subplot(3,1,2)
-        
-        
+        subplot(3,1,2) 
         focusEnv = abs(envelope(fullIM(rayIdxs,axIdxs)'));
         mEnv = mean(focusEnv,1);
         sEnv = std(focusEnv,0,1);
         plot(rayIdxs,mEnv./sEnv,'-.','Color','k')
-        set(gca,'YScale','log')       
-        ylim([1 3])
         hold on 
         plot([1 size(fullIM,1)],1.91.*[1 1],'-','Color','red')
         ylabel('\mu/\sigma')
@@ -196,6 +182,7 @@
         xlabel('Rayline')
         %ylabel('Mean envelope Amplitude at focus')
         xlim([1 128])
+        ylim([0 2.5])
         
         
         subplot(3,1,3)
@@ -216,12 +203,10 @@
         savefig(fname2)
         saveas(gcf,fname2,'png')
         
-        %% 6. 
-
-
+  
 
         
-        %% 6. Repeat 5. for more seg pctgs 
+        %% 5. Repeat 4. for more seg pctgs 
         outSegPrev = 0; 
         
         
