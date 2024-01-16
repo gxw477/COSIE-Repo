@@ -1,0 +1,34 @@
+
+function bscEstimate = COVsegmentation(vble,EML,powf0,kWidth,oLap,nPossibleKernels)
+    
+    segPctIdx = 1;
+    segPct = 0;
+    
+    bscEstimate(:,1) = [mean(powf0) ;std(powf0); 0];
+
+
+    while segPct < 50
+    
+        segBool = vble > EML(1,segPctIdx) & vble < EML(2,segPctIdx);
+        
+        segIdxs = find(segBool);
+        
+        kIdxs = idxClustering(segIdxs,kWidth,oLap);
+    
+        nKernels = size(kIdxs,2);
+    
+        bscValuesIK = zeros(1,nKernels);
+    
+        for iKernels = 1:nKernels
+            bscValuesIK(iKernels) = abs(mean(powf0(kIdxs{iKernels})));
+        end
+    
+        segPct =  100*(1- nKernels/nPossibleKernels);
+    
+        bscEstimate(:,segPctIdx) = [mean(bscValuesIK) ;std(bscValuesIK);segPct];
+        
+        segPctIdx = segPctIdx+1;
+    
+    end    
+    
+end

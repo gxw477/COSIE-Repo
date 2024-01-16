@@ -116,13 +116,18 @@ for iImage = 1:nImages
 end
 
 
-[bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2,params] = COSIE_adaptiveGrid(envAll,powf0,cosieParams);
+powf0 = abs(spectAll(:,nF));
 
-save([topDir,'envData.mat'],'envAll')
+mEnv = mean(envAll,2);
+sEnv = std(envAll,0,2);
+snr = mEnv./sEnv;
+
+[bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(snr,powf0);
+
+save([topDir,'envData_COSIE.mat'],'snr','EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface')
 
 avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
 
-powf0 = abs(spectAll(:,nF));
 
 cohMubCorr = zeros(1,size(cohAll,2));
 
@@ -134,11 +139,11 @@ for sumIdx = 1:size(cohAll,2)
     cosieParams.dTH = sumIdx/0.5e3;
     cosieParams.GT = (mean(powf0));
     
-    [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2,params] = COSIE_adaptiveGrid(cohSum,powf0,cosieParams);
+    [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(cohSum,powf0);
     
     thVector = sort(cohSum);
 
-    save([topDir,'COSIEoutput_adaptive/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','params','thVector')
+    save([topDir,'COSIEoutput_adaptive/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector')
 
     R = corrcoef(cohSum,abs(powf0));
 

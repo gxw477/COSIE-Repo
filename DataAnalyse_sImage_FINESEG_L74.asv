@@ -182,15 +182,12 @@ ylabel('P(Coherence)')
 
 
 subplot(2,2,3) 
-
+segBool = cohSum > speckleCOSIE.EML(1,iSegPct) & cohSum < speckleCOSIE.EML(2,iSegPct);
+outSeg = (1-length(find(segBool))/length(segBool))*100;
 focusEnv = abs(envelope(fullIM(rayIdxs,axIdxs)'));
 mEnv = mean(focusEnv,1);
 sEnv = std(focusEnv,0,1);
 snrEnv = mEnv./sEnv;
-
-segBool = snrEnv > speckleEnvelope.EML(1,iSegPct) & snrEnv < speckleEnvelope.EML(2,iSegPct);
-outSeg = (1-length(find(segBool))/length(segBool))*100;
-
 
 plot(lWidth.*rayIdxs,snrEnv,'-')
 hold on 
@@ -198,8 +195,6 @@ plot(lWidth.*[1 128],[speckleEnvelope.EML(2,1) speckleEnvelope.EML(2,1)],'-','Co
 plot(lWidth.*[1 128],[speckleEnvelope.EML(1,1) speckleEnvelope.EML(1,1)],'-','Color','red')
 plot(lWidth.*[1 size(fullIM,1)],1.91.*[1 1],'-','Color','red')
 ylabel('SNR')
-title(['SNR Seg.: ',num2str(outSeg)])
-
 
 xlabel('Rayline')
 %ylabel('Mean envelope Amplitude at focus')
@@ -243,13 +238,92 @@ for iKernels = 1:nKernels
     bscValuesIK(iKernels) = abs(mean(spectAll(kIdxs{iKernels},nF)));
 end
 
+segPct =  100*(1- nKernels/nPossibleKernels);
+    
+bscEstimate2(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0];
 
-powf0 = spectAll(kIdxs{:},nF);
+segPct = 0;
+segPctIdx = 2;
 
-bscEstimate_COH = COVsegmentation(cohSum,speckleCOSIE.EML,powf0,kWidth,oLap,nPossibleKernels);
-bscEstimate_ENV = COVsegmentation(snrEnv,speckleEnvelope.EML,powf0,kWidth,oLap,nPossibleKernels);
+while segPct < 50
+
+    if segPct > 8 && segPct < 9
+        segPct;
+    end
+
+    segBool = cohSum > speckleCOSIE.EML(1,segPctIdx) & cohSum < speckleCOSIE.EML(2,segPctIdx);
+    
+    segIdxs = find(segBool);
+    
+    kIdxs = idxClustering(segIdxs,kWidth,oLap);
+
+    nKernels = size(kIdxs,2);
+
+    bscValuesIK = zeros(1,nKernels);
+    stdValuesIK = zeros(1,nKernels);
+
+    for iKernels = 1:nKernels
+        bscValuesIK(iKernels) = abs(mean(spectAll(kIdxs{iKernels},nF)));
+    end
+
+    segPct =  100*(1- nKernels/nPossibleKernels);
+
+    bscEstimate2(:,segPctIdx) = [mean(bscValuesIK) ;std(bscValuesIK);segPct];
+    
+    segPctIdx = segPctIdx+1;
+
+end
 
 
-plotCOVfigure(bscEstimate_COH)
-plotCOVfigure(bscEstimate_ENV)
+nValues = bscEstimate2(3,:) * length(cohSum);
 
+figure 
+subplot(1,3,1)
+errorbar(bscEstimate2(3,:),bscEstimate2(1,:),bscEstimate2(2,:),'-.')
+set(gca,'YScale','log')
+xlabel('Segmentation %')
+ylabel('Backscattered power (a.u.)')
+title('Power')
+xlim([-5 max(bscEstimate2(3,:))+10])
+yMax = max(bscEstimate2(1,:));
+yMin = min(bscEstimate2(1,:));
+ylim([yMin*0.5 yMax*4])
+tickVector = round(10.^linspace(log10(10),log10(4*yMax),10));
+yticks(tickVector)
+
+subplot(1,3,2)
+plot(bscEstimate2(3,:),bscEstimate2(2,:),'-x')
+set(gca,'YScale','log')
+xlabel('Segmentation %')
+ylabel('Standard Deviation of BSC (a.u.)')
+title('Standard Deviation')
+xlim([-5 max(bscEstimate2(3,:))+10])
+yMax = max(bscEstimate2(2,:));
+yMin = min(bscEstimate2(2,:));
+ylim([yMin*0.5 yMax*4])
+tickVector = round(10.^linspace(log10(10),log10(4*yMax),10));
+yticks(tickVector)
+
+
+subplot(1,3,3)
+COV = bscEstimate2(2,:)./bscEstimate2(1,:);
+plot(bscEstimate2(3,:),COV,'-x')
+set(gca,'YScale','log')
+xlabel('Segmentation %')
+ylabel('C.O.V.')
+title('Coefficient of Variation')
+xlim([-5 max(bscEstimate2(3,:))+10])
+xlim([-5 max(bscEstimate2(3,:))+10])
+yMax = max(COV);
+yMin = min(COV);
+ylim([yMin*0.5 yMax*2])
+
+tickVector = linspace(0,3,12);
+yticks(tickVector)
+
+fname2 = [imgDir,'\VariabilityEstimates'];
+savefig(fname2)
+saveas(gcf,fname2,'png')
+
+%    end
+%end
