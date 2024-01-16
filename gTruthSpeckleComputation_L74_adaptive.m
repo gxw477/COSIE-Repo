@@ -116,6 +116,8 @@ for iImage = 1:nImages
 end
 
 
+[bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2,params] = COSIE_adaptiveGrid(envAll,powf0,cosieParams);
+
 save([topDir,'envData.mat'],'envAll')
 
 avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
@@ -143,3 +145,6 @@ for sumIdx = 1:size(cohAll,2)
     cohMubCorr(sumIdx) = R(2);
 
 end
+
+
+
