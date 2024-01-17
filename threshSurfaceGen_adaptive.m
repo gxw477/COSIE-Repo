@@ -1,4 +1,4 @@
-function [bscSurface,segmentSurface] = threshSurfaceGen_adaptive(cohValues,bscValues,params)
+function [bscSurface,segmentSurface] = threshSurfaceGen_adaptive(cohValues,bscValues)
 %threshSurfaceGen Generates BSC surface in coherence threshold space
 %   cohValues : [1 x nlines] vector of coherence values
 %   bscValues : [1 x nlines] vector of bsc values 

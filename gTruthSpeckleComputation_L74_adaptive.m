@@ -21,13 +21,11 @@ oLap = .80;
 lWidthF = lambda*(vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1)) ;
 
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample + 1;
-   
 
 %already defined, but to remind you
 rVals = lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
 
 [~, bscFocIdx] = min(abs(rVals - vsxParams.TX(1).focus*lambda));
-
 
 
 %% Define coherence kernel properties 
@@ -95,7 +93,7 @@ for iImage = 1:nImages
     bscLines = fullIM(kIdxs{iImage},axIdxs);
 
     spect = fft(bscLines,[],2);
-    
+
     
     spectAv = spectAveraging(spect,kWidth_BSC_lines,oLap);
 
@@ -108,6 +106,7 @@ for iImage = 1:nImages
         
        cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN_new(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxs,:)));
        spectAll(iLine2 + rayCount, :) = spect(iLine2,:);
+       envAll(iLine2 + rayCount,:) = abs(envelope(bscLines(iLine2,:)));
 
     end
     
@@ -116,10 +115,19 @@ for iImage = 1:nImages
 
 end
 
-avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
-
 
 powf0 = abs(spectAll(:,nF));
+
+mEnv = mean(envAll,2);
+sEnv = std(envAll,0,2);
+snr = mEnv./sEnv;
+
+[bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(snr,powf0);
+
+save([topDir,'envData_COSIE.mat'],'snr','EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface')
+
+avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
+
 
 cohMubCorr = zeros(1,size(cohAll,2));
 
@@ -131,14 +139,17 @@ for sumIdx = 1:size(cohAll,2)
     cosieParams.dTH = sumIdx/0.5e3;
     cosieParams.GT = (mean(powf0));
     
-    [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2,params] = COSIE_adaptiveGrid(cohSum,powf0,cosieParams);
+    [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(cohSum,powf0);
     
     thVector = sort(cohSum);
 
-    save([topDir,'COSIEoutput_adaptive/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','params','thVector')
+    save([topDir,'COSIEoutput_adaptive/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector')
 
     R = corrcoef(cohSum,abs(powf0));
 
     cohMubCorr(sumIdx) = R(2);
 
 end
+
+
+
