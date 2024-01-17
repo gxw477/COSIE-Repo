@@ -1,9 +1,9 @@
 
-function [] = plotCOVfigure(bscEstimate)
-    
-
+function [] = plotCOVfigure(bscEstimate,tString)
+   
 
     figure 
+    sgtitle(tString)
     subplot(1,3,1)
     errorbar(bscEstimate(3,:),bscEstimate(1,:),bscEstimate(2,:),'-.')
     set(gca,'YScale','log')
@@ -16,7 +16,7 @@ function [] = plotCOVfigure(bscEstimate)
     ylim([yMin*0.5 yMax*4])
     tickVector = round(10.^linspace(log10(10),log10(4*yMax),10));
     yticks(tickVector)
-    
+
     subplot(1,3,2)
     plot(bscEstimate(3,:),bscEstimate(2,:),'-x')
     set(gca,'YScale','log')
@@ -30,7 +30,9 @@ function [] = plotCOVfigure(bscEstimate)
     tickVector = round(10.^linspace(log10(10),log10(4*yMax),10));
     yticks(tickVector)
     
-    
+ 
+
+
     subplot(1,3,3)
     COV = bscEstimate(2,:)./bscEstimate(1,:);
     plot(bscEstimate(3,:),COV,'-x')
@@ -39,11 +41,12 @@ function [] = plotCOVfigure(bscEstimate)
     ylabel('C.O.V.')
     title('Coefficient of Variation')
     xlim([-5 max(bscEstimate(3,:))+10])
-    xlim([-5 max(bscEstimate(3,:))+10])
     yMax = max(COV);
     yMin = min(COV);
     ylim([yMin*0.5 yMax*2])
     
+
+
     tickVector = linspace(0,3,12);
     yticks(tickVector)
 

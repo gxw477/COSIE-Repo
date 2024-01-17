@@ -15,7 +15,7 @@ function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,nPossibleKe
 
     bscEstimate(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0];
 
-
+    
     while segPct < 50
     
         segBool = vble > EML(1,segPctIdx) & vble < EML(2,segPctIdx);

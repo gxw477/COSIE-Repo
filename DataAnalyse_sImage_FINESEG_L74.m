@@ -182,7 +182,6 @@ ylabel('P(Coherence)')
 
 
 subplot(2,2,3) 
-
 focusEnv = abs(envelope(fullIM(rayIdxs,axIdxs)'));
 mEnv = mean(focusEnv,1);
 sEnv = std(focusEnv,0,1);
@@ -239,8 +238,8 @@ stdValuesIK = zeros(1,nKernels);
 nPossibleKernels = size(idxClustering(1:length(cohSum),kWidth,oLap),2);
 
 
-for iKernels = 1:nKernels
-    bscValuesIK(iKernels) = abs(mean(spectAll(kIdxs{iKernels},nF)));
+for iKernel = 1:nKernels
+    bscValuesIK(iKernel) = abs(mean(spectAll(kIdxs{iKernel},nF)));
 end
 
 
@@ -250,6 +249,20 @@ bscEstimate_COH = COVsegmentation(cohSum,speckleCOSIE.EML,powf0,kWidth,oLap,nPos
 bscEstimate_ENV = COVsegmentation(snrEnv,speckleEnvelope.EML,powf0,kWidth,oLap,nPossibleKernels);
 
 
-plotCOVfigure(bscEstimate_COH)
-plotCOVfigure(bscEstimate_ENV)
+bscEstimates_weighted_COH = COVWeighting(cohSum,binCentreCoh,pCoh,powf0,kWidth,oLap);
+bscEstimates_weighted_SNR = COVWeighting(snrEnv,binCentreEnv,pEnv,powf0,kWidth,oLap);
+
+
+tString = 'BSC: Coherence analysis (COSIE)';
+plotCOVfigure(bscEstimate_COH,tString)
+
+tString = 'BSC: SNR analysis (COSIE)';
+plotCOVfigure(bscEstimate_ENV,tString)
+
+tString = 'BSC: Coherence analysis (weighting)';
+plotCOVfigure(bscEstimates_weighted_COH,tString)
+
+tString = 'BSC: SNR analysis (weighting)';
+plotCOVfigure(bscEstimates_weighted_SNR,tString)
+
 
