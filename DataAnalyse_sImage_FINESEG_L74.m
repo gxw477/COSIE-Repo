@@ -245,8 +245,8 @@ bscEstimate_COH = COVsegmentation(cohSum,speckleCOSIE.EML,powf0,kWidth,oLap,nPos
 bscEstimate_ENV = COVsegmentation(snrEnv,speckleEnvelope.EML,powf0,kWidth,oLap,nPossibleKernels);
 
 
-bscEstimates_weighted_COH = COVWeighting(cohSum,binCentreCoh,pCoh,powf0,kWidth,oLap);
-bscEstimates_weighted_SNR = COVWeighting(snrEnv,binCentreEnv,pEnv,powf0,kWidth,oLap);
+bscEstimate_weighted_COH = COVWeighting(cohSum,binCentreCoh,pCoh,powf0,kWidth,oLap);
+bscEstimate_weighted_SNR = COVWeighting(snrEnv,binCentreEnv,pEnv,powf0,kWidth,oLap);
 
 
 normDistData =  normrnd(zeros(1,1e5),ones(1,1e5));
@@ -265,8 +265,7 @@ l.Position = [0.1482 0.7849 0.2185 0.1214];
 sgtitle('Statistics of Coherence and Texture Distributions')
 
 tString = 'BSC: Coherence analysis (COSIE)';
-%plotKurtfigure(bscEstimate_COH,tString)
-plotCOVfigure(bscEstimate_COH,tString)
+plotOptions(bscEstimate_COH,tString,1)
 fname3 = [imgDir,'\VariabilityCOSIEcoh',];
 savefig(fname3)
 saveas(gcf,fname3,'png')
@@ -274,24 +273,21 @@ saveas(gcf,fname3,'png')
 
 
 tString = 'BSC: SNR analysis (COSIE)';
-%plotKurtfigure(bscEstimate_ENV,tString)
-plotCOVfigure(bscEstimate_ENV,tString)
+plotOptions(bscEstimate_weighted_COH,tString,1)
 fname4= [imgDir,'\VariabilityCOSIEsnr',];
 savefig(fname4)
 saveas(gcf,fname4,'png')
 
 
 tString = 'BSC: Coherence analysis (weighting)';
-%plotKurtfigure(bscEstimates_weighted_COH,tString)
-plotCOVfigure(bscEstimates_weighted_COH,tString)
+plotOptions(bscEstimate_ENV,tString,2)
 fname5 = [imgDir,'\VariabilityWeightcoh',];
 savefig(fname5)
 saveas(gcf,fname5,'png')
 
 
 tString = 'BSC: SNR analysis (weighting)';
-%plotKurtfigure(bscEstimates_weighted_SNR,tString)
-plotCOVfigure(bscEstimates_weighted_SNR,tString)
+plotOptions(bscEstimate_weighted_SNR,tString,2)
 fname6 = [imgDir,'\VariabilityWeightsnr',];
 savefig(fname6)
 saveas(gcf,fname6,'png')
