@@ -7,10 +7,10 @@ function [bscEstimate] = COVWeighting(inVble,binCentre,pDist,powf0,kWidth,oLap)
 %   inVble : coherence or texture 
 %   pDist  : probability distribution of the variable
 %
-%   bscEstimate : 3x2 vector : Mean , SD , seg %
+%   bscEstimate : 5x2 vector : Mean , SD , seg %, skewness, kurtosis
 
 
-    bscEstimate = zeros(3,2);
+    bscEstimate = zeros(5,2);
         
     pPoints = interp1(binCentre,pDist,inVble);
     pPoints(isnan(pPoints))= 0;
@@ -58,7 +58,7 @@ function [bscEstimate] = COVWeighting(inVble,binCentre,pDist,powf0,kWidth,oLap)
     
     
     %mean value across kernels
-    bscEstimate(:,2) = [mean(bscValuesIK) ;std(bscValuesIK);segPct];
+bscEstimate(:,2) = [mean(bscValuesIK) ;std(bscValuesIK);segPct;skewness(bscValuesIK);kurtosis(bscValuesIK)];
       
 
 end

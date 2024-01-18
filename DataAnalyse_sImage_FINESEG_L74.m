@@ -2,8 +2,8 @@
 
 % I will now make me and this fifty pence piece... disappear
 
-sumIdx = 33;
-iImage = 2;
+sumIdx = 32;
+iImage = 1;
 
 clearvars -except iImage sumData sumIdx
 close all 
@@ -22,7 +22,7 @@ end
 speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\Speckle\'];
 
 vsxParams = load([topDir,'\VSXoutput.mat']);
-vsxParams2 = load([topDir,'\VSXoutput.mat']);
+vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 isequal(vsxParams.TGC,vsxParams2.TGC)
 
@@ -162,7 +162,7 @@ plot(lWidth.*[1 128],[speckleCOSIE.EML(2,1) speckleCOSIE.EML(2,1)],'-','Color','
 plot(lWidth.*[1 128],[speckleCOSIE.EML(1,1) speckleCOSIE.EML(1,1)],'-','Color','red')
 errorbar(lWidth.*120,mean(speckleCOSIE.thVector),std(speckleCOSIE.thVector),'.','Color','red')
 ylim([-sumIdx/4 1.5*max(speckleCOSIE.EML(2,1))])
-xlabel('Rayline')
+xlabel('Lateral Position')
 ylabel('Summed Coherence')
 xlim(lWidth.*[1 128])
 title(['Coherence Seg.: ',num2str(outSeg)])
@@ -178,7 +178,7 @@ pPoints(isnan(pPoints))= 0;
 plot(lWidth.*rayIdxs,pPoints,'-','Color','k')
 ylim([-0.01 0.15])
 ylabel('P(Coherence)')
-
+xlabel('Lateral Position')
 
 
 subplot(2,2,3) 
@@ -197,13 +197,9 @@ plot(lWidth.*[1 128],[speckleEnvelope.EML(2,1) speckleEnvelope.EML(2,1)],'-','Co
 plot(lWidth.*[1 128],[speckleEnvelope.EML(1,1) speckleEnvelope.EML(1,1)],'-','Color','red')
 plot(lWidth.*[1 size(fullIM,1)],1.91.*[1 1],'-','Color','red')
 ylabel('SNR')
-title(['SNR Seg.: ',num2str(outSeg)])
-
-
-xlabel('Rayline')
-%ylabel('Mean envelope Amplitude at focus')
+xlabel('Lateral Position')
 xlim(lWidth.*[1 128])
-ylim([0 3])
+title(['SNR Seg.: ',num2str(outSeg)])
 errorbar(lWidth.*120,mean(snrEnv),std(snrEnv),'.','Color','red')
 
 subplot(2,2,4)
@@ -253,16 +249,46 @@ bscEstimates_weighted_COH = COVWeighting(cohSum,binCentreCoh,pCoh,powf0,kWidth,o
 bscEstimates_weighted_SNR = COVWeighting(snrEnv,binCentreEnv,pEnv,powf0,kWidth,oLap);
 
 
+normDistData =  normrnd(zeros(1,1e5),ones(1,1e5));
+
+figure
+plot([std(speckleCOSIE.thVector)/mean(speckleCOSIE.thVector), skewness(speckleCOSIE.thVector) ,kurtosis(speckleCOSIE.thVector)],'o','MarkerFaceColor','blue')
+hold on 
+plot([std(speckleEnvelope.snr)/mean(speckleEnvelope.snr), skewness(speckleEnvelope.snr) ,kurtosis(speckleEnvelope.snr)],'o','MarkerFaceColor','red')
+plot([nan, skewness(normDistData) ,kurtosis(normDistData)],'o','Color','white','MarkerFaceColor','k')
+xticks([1,2,3])
+xlim([0 4])
+xticklabels({'C.O.V.','Skew','Kurtosis'})
+ylabel('Value')
+l = legend({'Coherence','Texture','Normal distn.'});
+l.Position = [0.1482 0.7849 0.2185 0.1214];
+sgtitle('Statistics of Distributions')
+
 tString = 'BSC: Coherence analysis (COSIE)';
 plotCOVfigure(bscEstimate_COH,tString)
+fname3 = [imgDir,'\VariabilityCOSIEcoh',];
+savefig(fname3)
+saveas(gcf,fname3,'png')
+
+
 
 tString = 'BSC: SNR analysis (COSIE)';
 plotCOVfigure(bscEstimate_ENV,tString)
+fname4= [imgDir,'\VariabilityCOSIEsnr',];
+savefig(fname4)
+saveas(gcf,fname4,'png')
+
 
 tString = 'BSC: Coherence analysis (weighting)';
 plotCOVfigure(bscEstimates_weighted_COH,tString)
+fname5 = [imgDir,'\VariabilityWeightcoh',];
+savefig(fname5)
+saveas(gcf,fname5,'png')
+
 
 tString = 'BSC: SNR analysis (weighting)';
 plotCOVfigure(bscEstimates_weighted_SNR,tString)
-
+fname6 = [imgDir,'\VariabilityWeightsnr',];
+savefig(fname6)
+saveas(gcf,fname6,'png')
 
