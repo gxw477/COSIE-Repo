@@ -13,7 +13,7 @@ function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,nPossibleKe
         bscValuesIK(iKernels) = abs(mean(spectAll(kIdxs{iKernels})));
     end
 
-    bscEstimate(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0];
+    bscEstimate(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0; skewness(bscValuesIK);kurtosis(bscValuesIK)];
 
     
     while segPct < 50
@@ -34,7 +34,7 @@ function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,nPossibleKe
     
         segPct =  100*(1- nKernels/nPossibleKernels);
     
-        bscEstimate(:,segPctIdx) = [mean(bscValuesIK) ;std(bscValuesIK);segPct];
+        bscEstimate(:,segPctIdx) = [mean(bscValuesIK) ;std(bscValuesIK);segPct; skewness(bscValuesIK);kurtosis(bscValuesIK)];
         
         segPctIdx = segPctIdx+1;
     
