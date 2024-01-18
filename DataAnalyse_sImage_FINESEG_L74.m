@@ -262,9 +262,10 @@ xticklabels({'C.O.V.','Skew','Kurtosis'})
 ylabel('Value')
 l = legend({'Coherence','Texture','Normal distn.'});
 l.Position = [0.1482 0.7849 0.2185 0.1214];
-sgtitle('Statistics of Distributions')
+sgtitle('Statistics of Coherence and Texture Distributions')
 
 tString = 'BSC: Coherence analysis (COSIE)';
+%plotKurtfigure(bscEstimate_COH,tString)
 plotCOVfigure(bscEstimate_COH,tString)
 fname3 = [imgDir,'\VariabilityCOSIEcoh',];
 savefig(fname3)
@@ -273,6 +274,7 @@ saveas(gcf,fname3,'png')
 
 
 tString = 'BSC: SNR analysis (COSIE)';
+%plotKurtfigure(bscEstimate_ENV,tString)
 plotCOVfigure(bscEstimate_ENV,tString)
 fname4= [imgDir,'\VariabilityCOSIEsnr',];
 savefig(fname4)
@@ -280,6 +282,7 @@ saveas(gcf,fname4,'png')
 
 
 tString = 'BSC: Coherence analysis (weighting)';
+%plotKurtfigure(bscEstimates_weighted_COH,tString)
 plotCOVfigure(bscEstimates_weighted_COH,tString)
 fname5 = [imgDir,'\VariabilityWeightcoh',];
 savefig(fname5)
@@ -287,6 +290,7 @@ saveas(gcf,fname5,'png')
 
 
 tString = 'BSC: SNR analysis (weighting)';
+%plotKurtfigure(bscEstimates_weighted_SNR,tString)
 plotCOVfigure(bscEstimates_weighted_SNR,tString)
 fname6 = [imgDir,'\VariabilityWeightsnr',];
 savefig(fname6)

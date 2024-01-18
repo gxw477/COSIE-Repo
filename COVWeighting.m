@@ -29,7 +29,7 @@ function [bscEstimate] = COVWeighting(inVble,binCentre,pDist,powf0,kWidth,oLap)
         bscValuesIK(iKernels) = abs(mean(powf0(kIdxs1{iKernels})));
     end
 
-    bscEstimate(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0];
+    bscEstimate(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0; skewness(bscValuesIK);kurtosis(bscValuesIK)];
 
     idxsAll = 1:length(inVble);
     idxsAll = idxsAll(pPoints>0);
