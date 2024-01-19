@@ -4,7 +4,7 @@ close all
 
 %Image Analysis
 
-topDir = 'PhantomExperimentsL74_QuadInterp/Speckle/';
+topDir = 'PhantomExperimentsL74_QuadInterp/QA040GSE/pt7dB/';
 
 %saveDir = 'PhantomExperimentsL74_QuadInterp/QApht_angle/';
 saveDir = topDir;

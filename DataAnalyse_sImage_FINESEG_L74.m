@@ -7,7 +7,7 @@ clear
 
 %clearvars -except iImage sumData sumIdx
 
-topDir = [uigetdir(cd,'Select Analysis directory'),'\'];
+topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis directory'),'\'];
 sumIdx = 32;
 iImage = input('Image # : ');
 
@@ -25,7 +25,11 @@ speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperime
 vsxParams = load([topDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
-isequal(vsxParams.TGC,vsxParams2.TGC)
+tgcBool = isequal(vsxParams.TGC,vsxParams2.TGC)
+
+if ~tgcBool
+    error('TGC altered between Speckle and test image')
+end
 
 %iImage = 3;%input('Image # : ');
 
@@ -302,13 +306,28 @@ saveas(gcf,fname6,'png')
 %% 7. final boss figures
 
 figure 
-plot(bscEstimate_COH(3,:),bscEstimate_COH(5,:),'-o','Color','k','MarkerFaceColor','k')
+plot(bscEstimate_COH(3,:),bscEstimate_COH(2,:)./bscEstimate_COH(1,:),'-o','Color','k','MarkerFaceColor','k')
 hold on 
-plot(bscEstimate_weighted_COH(3,:),bscEstimate_weighted_COH(5,:),'-sq','Color','k','MarkerFaceColor','k')
-plot(bscEstimate_ENV(3,:),bscEstimate_ENV(5,:),'-o','Color','red','MarkerFaceColor','red')
-plot(bscEstimate_weighted_ENV(3,:),bscEstimate_weighted_ENV(5,:),'-sq','Color','red','MarkerFaceColor','red')
+plot(bscEstimate_weighted_COH(3,:),bscEstimate_weighted_COH(2,:)./bscEstimate_weighted_COH(1,:),'-sq','Color','k','MarkerFaceColor','k')
+plot(bscEstimate_ENV(3,:),bscEstimate_ENV(2,:)./bscEstimate_ENV(1,:),'-o','Color','red','MarkerFaceColor','red')
+plot(bscEstimate_weighted_ENV(3,:),bscEstimate_weighted_ENV(2,:)./bscEstimate_weighted_ENV(1,:),'-sq','Color','red','MarkerFaceColor','red')
+xlim padded
 xlabel('Seg %')
-ylabel('kurtosis of BSC')
+ylabel('C.O.V of BSC')
 legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
 
 
+if 0 
+    
+    figure 
+    plot(bscEstimate_COH(3,:),bscEstimate_COH(5,:),'-o','Color','k','MarkerFaceColor','k')
+    hold on 
+    plot(bscEstimate_weighted_COH(3,:),bscEstimate_weighted_COH(5,:),'-sq','Color','k','MarkerFaceColor','k')
+    plot(bscEstimate_ENV(3,:),bscEstimate_ENV(5,:),'-o','Color','red','MarkerFaceColor','red')
+    plot(bscEstimate_weighted_ENV(3,:),bscEstimate_weighted_ENV(5,:),'-sq','Color','red','MarkerFaceColor','red')
+    xlim padded
+    xlabel('Seg %')
+    ylabel('kurtosis of BSC')
+    legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
+
+end 

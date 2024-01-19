@@ -4,7 +4,7 @@ close all
 
 topDir = [uigetdir,'\'];
 
-for iFrame = 1:3
+for iFrame = 5
 
     VSXfileOption = 2 ;
     
@@ -212,7 +212,8 @@ for iFrame = 1:3
     endIdx = 1500; 
     %zPolar = zPolar - radius*lambda; 
     %zPolar2 = zPolar(:,startIdx:endIdx);
-    %xPolar2 = xPolar(:,startIdx:endIdx);
+    %xPolar2 = xPolar(:,startIdx:endIdx);.
+
 
     B = bmode(iq(:,startIdx:endIdx),20);
         
