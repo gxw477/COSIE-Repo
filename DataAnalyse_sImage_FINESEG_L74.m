@@ -344,6 +344,8 @@ plot(bscEstimate_ENV(3,:),bscEstimate_ENV(5,:),'-o','Color','red','MarkerFaceCol
 plot(bscEstimate_weighted_ENV(3,:),bscEstimate_weighted_ENV(5,:),'-sq','Color','red','MarkerFaceColor','red')
 xlim padded
 xlabel('Seg %')
-ylabel('kurtosis of BSC')
+ylabel('Kurtosis of BSC')
 legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
 
+
+%% 8. 
