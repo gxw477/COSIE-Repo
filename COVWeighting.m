@@ -56,9 +56,8 @@ function [bscEstimate] = COVWeighting(inVble,binCentre,pDist,powf0,kWidth,oLap)
 
     segPct =  100*(1- nKernels/nPossibleKernels);
     
-    
+ 
     %mean value across kernels
-bscEstimate(:,2) = [mean(bscValuesIK) ;std(bscValuesIK);segPct;skewness(bscValuesIK);kurtosis(bscValuesIK)];
-      
+    bscEstimate(:,2) = [mean(bscValuesIK);std(bscValuesIK);segPct;skewness(bscValuesIK);kurtosis(bscValuesIK)];   
 
 end

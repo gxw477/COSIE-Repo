@@ -12,6 +12,9 @@ sumIdx = 32;
 iImage = input('Image # : ');
 
 
+load([topDir,'BFimgData',num2str(iImage),'.mat'])
+
+
 adaptBool = 1;%input('Adaptive grid sizing? : ');
 
 if adaptBool 
@@ -25,6 +28,13 @@ speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperime
 vsxParams = load([topDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
+depthSelect = input('Depth of interest (mm) : ');
+
+speckleDir = [speckleDir,'Z',num2str(depthSelect),'\'];
+topDir = [topDir,'Z',num2str(depthSelect),'\'];
+load([topDir,'COSIEinput',num2str(iImage),'.mat'])
+
+
 tgcBool = isequal(vsxParams.TGC,vsxParams2.TGC)
 
 if ~tgcBool
@@ -33,9 +43,6 @@ end
 
 %iImage = 3;%input('Image # : ');
 
-load([topDir,'COSIEinput',num2str(iImage),'.mat'])
-load([topDir,'BFimgData',num2str(iImage),'.mat'])
-
 
 %% 1. Set up variables 
 
@@ -43,9 +50,9 @@ samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSampl
 
 yVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
 
-[~, bscFocIdx] = min(abs(yVals - vsxParams.TX(1).focus*vsxParams.lambda));
+[~, depthIdx] = min(abs(yVals - depthSelect*1e-3));
 kLength_BSC_samples = 120;
-axIdxs = bscFocIdx-round(kLength_BSC_samples/2) : bscFocIdx + round(kLength_BSC_samples/2) -1 ;
+axIdxs = depthIdx-round(kLength_BSC_samples/2) : depthIdx + round(kLength_BSC_samples/2) -1 ;
 
 fs = vsxParams.Trans.frequency*1e6*vsxParams.Receive(1).samplesPerWave;
 fVals = (0:length(axIdxs)-1).*fs/(length(axIdxs));
@@ -99,7 +106,7 @@ B80 = bmode(iq',80);
 
 imagesc(ax1,lWidth.*(1:128),yVals,B80);
 hold on 
-plot(ax1,lWidth.*[1 size(fullIM,1)],yVals(bscFocIdx).*[1 1],'-','color','red')
+plot(ax1,lWidth.*[1 size(fullIM,1)],yVals(depthIdx).*[1 1],'-','color','red')
 plot(ax1,lWidth.*120.*[1 1], [yVals(axIdxs(1)) yVals(axIdxs(end))],'-','color','red')
 xlabel('Lateral Position (m)')
 axis equal
@@ -134,9 +141,10 @@ title(ax1,['Seg = ',num2str(outSeg),'%'])
 axis tight 
 axis equal
 
-fname2 = [imgDir,'/ParametricImage'];
+fname2 = [imgDir,'/ParametricImage_COH'];
 savefig(fname2)
 saveas(gcf,fname2,'png')
+
 
 cohValues2 = sum(RMat(:,:,1:sumIdx),3);
 F = griddedInterpolant(xQcoh,yQcoh,cohValues2);
@@ -147,7 +155,7 @@ imagesc(lWidth.*(1:128) , yVals, CoherenceQ');
 xlabel('Lateral Position (m)')
 ylabel('Axial Position (m)')
 hold on 
-plot(lWidth.*[1 size(fullIM,1)],yVals(bscFocIdx).*[1 1],'-','color','red')
+plot(lWidth.*[1 size(fullIM,1)],yVals(depthIdx).*[1 1],'-','color','red')
 plot(lWidth.*120.*[1 1], [yVals(axIdxs(1)) yVals(axIdxs(end))],'-','color','red')
 colormap gray
 axis tight 
@@ -157,7 +165,7 @@ fname2 = [imgDir,'/CoherenceImage'];
 savefig(fname2)
 saveas(gcf,fname2,'png')
 
-%% 4. Plot beam features at the focus
+%% 5. Plot beam features at the focus
 
 figure
 subplot(2,2,1)
@@ -317,17 +325,14 @@ ylabel('C.O.V of BSC')
 legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
 
 
-if 0 
-    
-    figure 
-    plot(bscEstimate_COH(3,:),bscEstimate_COH(5,:),'-o','Color','k','MarkerFaceColor','k')
-    hold on 
-    plot(bscEstimate_weighted_COH(3,:),bscEstimate_weighted_COH(5,:),'-sq','Color','k','MarkerFaceColor','k')
-    plot(bscEstimate_ENV(3,:),bscEstimate_ENV(5,:),'-o','Color','red','MarkerFaceColor','red')
-    plot(bscEstimate_weighted_ENV(3,:),bscEstimate_weighted_ENV(5,:),'-sq','Color','red','MarkerFaceColor','red')
-    xlim padded
-    xlabel('Seg %')
-    ylabel('kurtosis of BSC')
-    legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
+figure 
+plot(bscEstimate_COH(3,:),bscEstimate_COH(5,:),'-o','Color','k','MarkerFaceColor','k')
+hold on 
+plot(bscEstimate_weighted_COH(3,:),bscEstimate_weighted_COH(5,:),'-sq','Color','k','MarkerFaceColor','k')
+plot(bscEstimate_ENV(3,:),bscEstimate_ENV(5,:),'-o','Color','red','MarkerFaceColor','red')
+plot(bscEstimate_weighted_ENV(3,:),bscEstimate_weighted_ENV(5,:),'-sq','Color','red','MarkerFaceColor','red')
+xlim padded
+xlabel('Seg %')
+ylabel('kurtosis of BSC')
+legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
 
-end 

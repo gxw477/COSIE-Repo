@@ -4,10 +4,8 @@ close all
 
 %Image Analysis
 
-topDir = 'PhantomExperimentsL74_QuadInterp/QA040GSE/pt7dB/';
+topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis Folder'),'/'];
 
-%saveDir = 'PhantomExperimentsL74_QuadInterp/QApht_angle/';
-saveDir = topDir;
 
 vsxParams = load([topDir,'/VSXoutput.mat']);
 
@@ -29,6 +27,10 @@ samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSampl
 
 %already defined, but to remind you
 rVals = lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
+lWidth = (vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1))*lambda;
+
+xVals = (1:128).*lWidth;
+
 
 [~, bscFocIdx] = min(abs(rVals - vsxParams.TX(1).focus*lambda));
 
@@ -48,11 +50,10 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 nImages =  12;
 kIdxs = cell(nImages,1);
 
-axIdxs = bscFocIdx-round(kLength_BSC_samples/2) : bscFocIdx + round(kLength_BSC_samples/2) -1 ;
 
 fs = vsxParams.Trans.frequency*1e6*vsxParams.Receive(1).samplesPerWave;
 
-fVals = (0:length(axIdxs)-1).*fs/(length(axIdxs));
+fVals = (0:kLength_BSC_samples-1).*fs/(length(kLength_BSC_samples));
 df = fVals(2)-fVals(1);
 nF = round(vsxParams.Trans.frequency*1e6/df);
  
@@ -69,29 +70,37 @@ for iImage = 1:nImages
 
     load([topDir,'BFimgData',num2str(iImage),'.mat'])
    
-    iq2 = iq(:,axIdxs);
-
+    
     figure
-    imagesc(log(abs(fullIM')),[2.5 11]); colormap gray 
+    imagesc(xVals,yVals,log(abs(fullIM')),[2.5 11]); colormap gray 
     hold on 
-    plot([1 size(fullIM,1)],bscFocIdx.*[1 1],'-','color','red')
-    plot(120.*[1 1], [axIdxs(1) axIdxs(end)],'-','color','red')
-    
-    
+    plot([xVals(1) xVals(end)],vsxParams.TX(1).focus*lambda.*[1 1],'-','color','red')
     colormap gray
+
+    lRl = 17;
+    rRl = 111;
+    rayIdxs = lRl:rRl;
 
     pause(0.5)
 
-    lRl = 17;%input('Left ray line: ');
-    rRl = 111;%input('Right ray line: ');
-
-    rayIdxs = lRl:rRl;
-
+    zSelect = input('Select depth of interest: ');
+    [~, zIdx] = min(abs(rVals - zSelect));
+    axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
+    
     if length(axIdxs) ~= kLength_BSC_samples
         error('check bsc kernel length')
     end
 
+    plot([xVals(1) xVals(end)],zSelect.*[1 1],'-','color','green')
+    plot(120*lWidth.*[1 1],[rVals(axIdxs(1)) rVals(axIdxs(end))],'-','color','green')
+    
+    saveDir = [topDir,'/Z',num2str(round(zSelect*1e3))];
+
     %% BSC + Coherence Calc
+
+    if ~exist(saveDir)
+        mkdir(saveDir)
+    end
 
     bscLines = fullIM(rayIdxs,axIdxs).*win;
 

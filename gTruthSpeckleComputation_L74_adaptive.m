@@ -42,7 +42,16 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 nImages =  12;
 kIdxs = cell(nImages,1);
 
-axIdxs = bscFocIdx-round(kLength_BSC_samples/2) : bscFocIdx + round(kLength_BSC_samples/2) -1 ;
+zSelect = input('Select depth of interest: ')/1e3;
+[~, zIdx] = min(abs(rVals - zSelect));
+axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
+
+saveDir = [topDir,'/Z',num2str(round(zSelect*1e3)),'/'];
+
+if ~exist(saveDir)
+    mkdir(saveDir)
+end
+
 
 fs = vsxParams.Trans.frequency*1e6*vsxParams.Receive(1).samplesPerWave;
 
@@ -54,35 +63,24 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 kCount = 1; 
 rayCount= 0; 
 
-rayIdxFname = [topDir,'/rayIdxs.mat'];
 
 for iImage = 1:nImages
 
     iImage
 
     load([topDir,'BFimgData',num2str(iImage),'.mat'])
-    
-    if 1 %~exist([rayIdxFname])
-        
-        bM = bmode(iq,30);
-    
-        imagesc(bM'); 
-        colormap gray; 
+     
+    bM = bmode(iq,30);
 
-        pause(0.5)
+    imagesc(bM'); 
+    colormap gray; 
 
-        lRl = 17;%input('Left ray line: ');
-        rRl = 111;%input('Right ray line: ');
+    pause(0.5)
 
-        kIdxs{iImage} = lRl:rRl;
-    
-    else
-        
-        load(rayIdxFname)
-        
-    end
+    lRl = 17;%input('Left ray line: ');
+    rRl = 111;%input('Right ray line: ');
 
-
+    kIdxs{iImage} = lRl:rRl;
    
     if length(axIdxs) ~= kLength_BSC_samples
         error('check bsc kernel length')
@@ -124,12 +122,19 @@ snr = mEnv./sEnv;
 
 [bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(snr,powf0);
 
-save([topDir,'envData_COSIE.mat'],'snr','EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface')
+save([saveDir,'envData_COSIE.mat'],'snr','EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface')
 
 avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
 
 
 cohMubCorr = zeros(1,size(cohAll,2));
+
+saveDir2 = [saveDir,'/COSIEoutput_adaptive'];
+
+if ~exist(saveDir2)
+    mkdir(saveDir2)
+end
+
 
 for sumIdx = 1:size(cohAll,2)
 
@@ -143,7 +148,7 @@ for sumIdx = 1:size(cohAll,2)
     
     thVector = sort(cohSum);
 
-    save([topDir,'COSIEoutput_adaptive/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector')
+    save([saveDir2,'/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector')
 
     R = corrcoef(cohSum,abs(powf0));
 
