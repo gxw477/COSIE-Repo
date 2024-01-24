@@ -4,10 +4,10 @@ close all
 
 %Image Analysis
 
-topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis Folder'),'/'];
+topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis Folder'),'\'];
 
 
-vsxParams = load([topDir,'/VSXoutput.mat']);
+vsxParams = load([topDir,'\VSXoutput.mat']);
 
 
 

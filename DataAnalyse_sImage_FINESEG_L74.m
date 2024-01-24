@@ -9,8 +9,19 @@ clear
 
 topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis directory'),'\'];
 sumIdx = 32;
+
+fileNames = ls(topDir)
+
 iImage = input('Image # : ');
 
+for iFile = 3:size(fileNames,1)
+    foldBool = isfolder([topDir,'\',fileNames(iFile,:)]);
+
+    if foldBool
+        [topDir,'\',fileNames(iFile,:)],
+        ls([topDir,'\',fileNames(iFile,:)])
+    end
+end
 
 load([topDir,'BFimgData',num2str(iImage),'.mat'])
 
