@@ -47,7 +47,7 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 
   
 %% 
-nImages =  12;
+nImages =  3;
 kIdxs = cell(nImages,1);
 
 
@@ -83,7 +83,7 @@ for iImage = 1:nImages
 
     pause(0.5)
 
-    zSelect = input('Select depth of interest: ');
+    zSelect = input('Select depth of interest (mm): ')*1e-3;
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
     
@@ -111,7 +111,7 @@ for iImage = 1:nImages
     
     for iLine2 = 1:length(rayIdxs)
         
-        cohAll(iLine2,:) = CoherenceAnalysisFN_new(squeeze(channelStack(rayIdxs(iLine2),axIdxs,:)));
+        cohAll(iLine2,:) = CoherenceAnalysisFN(squeeze(channelStack(rayIdxs(iLine2),axIdxs,:)));
         spectAll(iLine2,:) = spect(iLine2,:);
 
     end

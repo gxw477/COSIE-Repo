@@ -102,7 +102,7 @@ for iImage = 1:nImages
     
     for iLine2 = 1:length(kIdxs{iImage})
         
-       cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN_new(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxs,:)));
+       cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxs,:)));
        spectAll(iLine2 + rayCount, :) = spect(iLine2,:);
        envAll(iLine2 + rayCount,:) = abs(envelope(bscLines(iLine2,:)));
 

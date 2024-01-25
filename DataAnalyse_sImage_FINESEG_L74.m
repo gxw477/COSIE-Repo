@@ -1,13 +1,11 @@
 
 
 % I will now make me and this fifty pence piece... disappear
-close all 
+
 clear
 
-
-%clearvars -except iImage sumData sumIdx
-
 topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis directory'),'\'];
+
 sumIdx = 32;
 
 fileNames = ls(topDir)
@@ -39,7 +37,7 @@ speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperime
 vsxParams = load([topDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
-depthSelect = input('Depth of interest (mm) : ');
+depthSelect = 25;%input('Depth of interest (mm) : ');
 
 speckleDir = [speckleDir,'Z',num2str(depthSelect),'\'];
 topDir = [topDir,'Z',num2str(depthSelect),'\'];
@@ -52,7 +50,7 @@ if ~tgcBool
     error('TGC altered between Speckle and test image')
 end
 
-%iImage = 3;%input('Image # : ');
+
 
 
 %% 1. Set up variables 
@@ -77,7 +75,7 @@ powf0 = abs(spectAll(:,nF));
 
 %% 2. Compute segmentation based on EML
 
-imgDir = [topDir,'/SegResults_',num2str(iImage),adaptStr,'/SumIdx_',num2str(sumIdx)];
+imgDir = [topDir,'\SegResults_',num2str(iImage),adaptStr,'\SumIdx_',num2str(sumIdx)];
 
 if ~exist(imgDir)
     mkdir(imgDir)
@@ -91,7 +89,7 @@ cohSum = sum(cohAll(:,1:sumIdx),2);
 
 
 %This step is for interest only, just want to see how the EML's differ
-[bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(cohSum,powf0);
+%[bscSurface,segSurface,EML,pctSeg1,redEML,pctSeg2] = COSIE_adaptiveGrid(cohSum,powf0);
 
 transpData = zeros(size(fullIM));
 colorData = nan.*zeros(size(fullIM));
@@ -111,10 +109,23 @@ outSeg = (1-length(find(segBool))/length(segBool))*100;
 
 %% 3. Plot BSC/b-mode image
 lWidth = (Trans.ElementPos(2,1)-Trans.ElementPos(1,1))*lambda;
-ax1 = axes;
 
+ax0 = axes;
 B80 = bmode(iq',80);
+imagesc(ax0,lWidth.*(1:128),yVals,B80);
+hold on 
+plot(ax0,lWidth.*[1 size(fullIM,1)],yVals(depthIdx).*[1 1],'-','color','red')
+plot(ax0,lWidth.*120.*[1 1], [yVals(axIdxs(1)) yVals(axIdxs(end))],'-','color','red')
+xlabel('Lateral Position (m)')
+axis equal
+axis tight
+ylabel('Axial Position (m)')
+colormap(ax0,'gray') 
+fName1 =[imgDir,'/Bmode'];
+savefig(fName1)
+saveas(gcf,fName1,'png')
 
+ax1 = axes;
 imagesc(ax1,lWidth.*(1:128),yVals,B80);
 hold on 
 plot(ax1,lWidth.*[1 size(fullIM,1)],yVals(depthIdx).*[1 1],'-','color','red')
@@ -292,7 +303,7 @@ sgtitle('Statistics of Coherence and Texture Distributions')
 %% 6. Plots covariance/kurtosis data
 
 %kurtosis/cov switch , 1 = kurtosis, 2 = COV
-kCOVswitch = 1;
+kCOVswitch = 2;
 
 tString = 'BSC: Coherence analysis (COSIE)';
 plotOptions(bscEstimate_COH,tString,kCOVswitch)
@@ -334,6 +345,9 @@ xlim padded
 xlabel('Seg %')
 ylabel('C.O.V of BSC')
 legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
+fname7 = [imgDir,'\COVfigure',];
+savefig(fname7)
+saveas(gcf,fname7,'png')
 
 
 figure 
@@ -346,6 +360,10 @@ xlim padded
 xlabel('Seg %')
 ylabel('Kurtosis of BSC')
 legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
+fname8 = [imgDir,'\KurtosisFigure',];
+savefig(fname8)
+saveas(gcf,fname8,'png')
 
 
-%% 8. 
+save([imgDir,'\StatAttack.mat'],'bscEstimate_COH','bscEstimate_weighted_COH','bscEstimate_ENV','bscEstimate_weighted_ENV')
+
