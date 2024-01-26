@@ -47,7 +47,7 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 
   
 %% 
-nImages =  3;
+nImages =  12;
 kIdxs = cell(nImages,1);
 
 

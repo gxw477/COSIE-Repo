@@ -138,6 +138,8 @@ end
 
 for sumIdx = 1:size(cohAll,2)
 
+    sumIdx/size(cohAll,2)
+
     cohSum = sum(cohAll(:,1:sumIdx),2);
 
     cosieParams.APsize = sumIdx;

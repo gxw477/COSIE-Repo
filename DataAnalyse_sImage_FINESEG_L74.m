@@ -3,14 +3,32 @@
 % I will now make me and this fifty pence piece... disappear
 
 clear
+close all 
 
-topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis directory'),'\'];
+%topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis directory'),'\'];
+topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\Speckle\'];
+
 
 sumIdx = 32;
 
 fileNames = ls(topDir)
 
 iImage = input('Image # : ');
+
+
+load([topDir,'BFimgData',num2str(iImage),'.mat'])
+lWidth = (Trans.ElementPos(2,1)-Trans.ElementPos(1,1))*lambda;
+ax0 = axes;
+B80 = bmode(iq',80);
+imagesc(ax0,lWidth.*(1:128),yVals,B80);
+
+xlabel('Lateral Position (m)')
+axis equal
+axis tight
+ylabel('Axial Position (m)')
+colormap(ax0,'gray') 
+
+pause(0.5)
 
 for iFile = 3:size(fileNames,1)
     foldBool = isfolder([topDir,'\',fileNames(iFile,:)]);
@@ -21,7 +39,12 @@ for iFile = 3:size(fileNames,1)
     end
 end
 
-load([topDir,'BFimgData',num2str(iImage),'.mat'])
+
+depthSelect = input('Depth of interest (mm) : ');
+
+
+close all 
+
 
 
 adaptBool = 1;%input('Adaptive grid sizing? : ');
@@ -37,11 +60,10 @@ speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperime
 vsxParams = load([topDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
-depthSelect = 25;%input('Depth of interest (mm) : ');
 
 speckleDir = [speckleDir,'Z',num2str(depthSelect),'\'];
-topDir = [topDir,'Z',num2str(depthSelect),'\'];
-load([topDir,'COSIEinput',num2str(iImage),'.mat'])
+dataDir = [topDir,'Z',num2str(depthSelect),'\'];
+load([dataDir,'COSIEinput',num2str(iImage),'.mat'])
 
 
 tgcBool = isequal(vsxParams.TGC,vsxParams2.TGC)
@@ -49,8 +71,6 @@ tgcBool = isequal(vsxParams.TGC,vsxParams2.TGC)
 if ~tgcBool
     error('TGC altered between Speckle and test image')
 end
-
-
 
 
 %% 1. Set up variables 
@@ -75,11 +95,6 @@ powf0 = abs(spectAll(:,nF));
 
 %% 2. Compute segmentation based on EML
 
-imgDir = [topDir,'\SegResults_',num2str(iImage),adaptStr,'\SumIdx_',num2str(sumIdx)];
-
-if ~exist(imgDir)
-    mkdir(imgDir)
-end
 
 speckleCOSIE = load([speckleDir,'\COSIEoutput',adaptStr,'\COSIEoutput',num2str(sumIdx),'.mat']);
 speckleEnvelope = load([speckleDir,'\envData_COSIE.mat']);
@@ -108,8 +123,17 @@ segBool = cohSum > speckleCOSIE.EML(1,iSegPct) & cohSum < speckleCOSIE.EML(2,iSe
 outSeg = (1-length(find(segBool))/length(segBool))*100;
 
 %% 3. Plot BSC/b-mode image
-lWidth = (Trans.ElementPos(2,1)-Trans.ElementPos(1,1))*lambda;
 
+imgDir = [dataDir,'\SegResults_',num2str(iImage),adaptStr,'\SumIdx_',num2str(sumIdx)];
+
+if ~exist(imgDir)
+    mkdir(imgDir)
+end
+
+
+
+load([topDir,'BFimgData',num2str(iImage),'.mat'])
+lWidth = (Trans.ElementPos(2,1)-Trans.ElementPos(1,1))*lambda;
 ax0 = axes;
 B80 = bmode(iq',80);
 imagesc(ax0,lWidth.*(1:128),yVals,B80);
