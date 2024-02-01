@@ -43,22 +43,21 @@ while contBool
         
         mask = mask | maskCurrent;
 
-        contBool2 = input('Continue? : 1 for yes, 0 for no ');
+        contBool2 = input('Continue? : 1 for yes, 0 for no');
 
     end
     
-    close all
-
     lWidth = (vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1))*vsxParams.lambda;
-    xVals = (1:vsxParams.P.numRays).*lWidth; 
+    xVals = (1:vsxParams.P.numRays).*lWidth;
+    
     yVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,size(B80,1));%
    
     
-    [xQ , yQ] = meshgrid(xVals,yVals);
+    
+    
 
     
-    
-    save([imgDirName,'\Features',imgFName(length(imgFName)-4)],'mask')
+    save([imgDirName,'\Features',imgFName(length(imgFName)-4)],'xFeature2','yFeature2')
 
     contBool = input('Continue ? :');
 

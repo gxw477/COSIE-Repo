@@ -65,6 +65,8 @@ for i = 1:size(xFeature2,1)
 end
 
 
+xVals = (Trans.ElementPos(:,1)).*lambda;
+
 xFeature = xVals(round(xFeature2));
 yFeature = yVals(round(yFeature2));
  
@@ -81,25 +83,10 @@ kLength_BSC_samples = 120;
 kLength_LENGTH = 0.5 * kLength_BSC_samples/samplesPwavel*lambda;
 
 
-featuresAtDepth = abs(yFeature - depthSelect*1e-3) < kLength_LENGTH/2;
+featuresAtDepth = yFeature - depthSelect*1e-3 < kLength_LENGTH/2;
 
-nFeaturesAtDepth = length(find(featuresAtDepth));
+featureRayLines = round(xFeature2(featuresAtDepth,1)):round(xFeature2(featuresAtDepth,2));
 
-xFeature3 = round(xFeature2(featuresAtDepth,:));
-
-featureRayLines = [];
-
-for iFeature = 1:nFeaturesAtDepth 
-
-    featureRayLines = [featureRayLines, xFeature3(iFeature,1):xFeature3(iFeature,2)];
-
-end
-
-rVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,vsxParams.Receive(1).samplesPerWave);
-xVals = (vsxParams.Trans.ElementPos(:,1)).*lambda;
-
-yVals = lambda.*linspace(Receive(1).startDepth,Receive(1).endDepth,samplesPerAcq) ;%
-   
 
 [~, zIdx] = min(abs(rVals - zSelect));
 axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;

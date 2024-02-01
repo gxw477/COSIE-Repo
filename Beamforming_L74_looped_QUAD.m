@@ -202,7 +202,7 @@ for iFrame = 5
     
     %% Plots 
     
-    yVals = lambda.*linspace(Receive(1).startDepth,Receive(1).endDepth,samplesPerAcq) ;%
+    yVals = lambda.*linspace(Receive(1).startDepth,Receive(1).endDepth,samplesPerAcq);%
     
     
     %[rMeshed, thMeshed] = meshgrid(rVals,Angle);

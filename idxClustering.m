@@ -1,4 +1,4 @@
-function [kIdxs] = idxClustering(idxs,width,oLap)
+function [kIdxs, kIdxs2] = idxClustering(idxs,width,oLap)
 %idxClustering finds idxs within # of raylines `width' and overlap `oLap'
 
     kIdxs = cell(1,1);
@@ -23,6 +23,7 @@ function [kIdxs] = idxClustering(idxs,width,oLap)
         
         if all(compBool)
             kIdxs{kN} = vec;
+            kIdxs2(kN:(kN + length(vec) -1)) = vec;
             kN = kN+1;
         end
         
