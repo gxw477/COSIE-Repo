@@ -135,8 +135,8 @@ for iSumIdx = 32
         
         segIdxs = find(segBool);
         
-        [ kIdxs , kIdxs2] = idxClustering(segIdxs,kWidth,oLap);
-        
+        [kIdxs , kIdxs2] = idxClustering(segIdxs,kWidth,oLap);
+       
         nKernels = size(kIdxs,2);
         segPct =  100*(1- nKernels/nPossibleKernels);
         

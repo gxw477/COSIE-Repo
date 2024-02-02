@@ -23,12 +23,13 @@ function [kIdxs, kIdxs2] = idxClustering(idxs,width,oLap)
         
         if all(compBool)
             kIdxs{kN} = vec;
-            kIdxs2(kN:(kN + length(vec) -1)) = vec;
             kN = kN+1;
         end
         
         endRayline = endRayline + width - sepn;
 
     end
+    
+    kIdxs2 = unique(cell2mat(kIdxs));
 
 end
