@@ -37,10 +37,10 @@ speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperime
 vsxParams = load([topDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
-depthSelect = input('Depth of interest (mm) : ');
+zSelect = input('Depth of interest (mm) : ');
 
-speckleDir = [speckleDir,'Z',num2str(depthSelect),'\'];
-topDir2 = [topDir,'Z',num2str(depthSelect),'\'];
+speckleDir = [speckleDir,'Z',num2str(zSelect),'\'];
+topDir2 = [topDir,'Z',num2str(zSelect),'\'];
 testData = load([topDir2,'COSIEinput',num2str(iImage),'.mat']);
 
 
@@ -50,58 +50,34 @@ if ~tgcBool
     error('TGC altered between Speckle and test image')
 end
 
+
+lWidth = (vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1))*vsxParams.lambda;
+xVals = (1:vsxParams.P.numRays).*lWidth; 
+zVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,size(iq,2));%
+
+
 figure
+ax1 = axes;
 B80 = bmode(iq',80);
-imagesc(B80);colormap gray
+imagesc(ax1,xVals,zVals,B80);colormap(ax1,'gray');
+hold on 
 
 %% Load features 
 load([topDir,'/Features',num2str(iImage),'.mat'])
 
-
-hold on 
-for i = 1:size(xFeature2,1)
-    plot([xFeature2(i,1) xFeature2(i,2)],yFeature2(i).*[1 1],'-','Color','red')
-    hold on
-end
-
-
-xFeature = xVals(round(xFeature2));
-yFeature = yVals(round(yFeature2));
- 
-figure 
-imagesc(xVals,yVals,B80); colormap gray
-hold on 
-for i = 1:size(xFeature2,1)
-    plot([xFeature(i,1) xFeature(i,2)],yFeature(i).*[1 1],'-','Color','red')
-    hold on
-end
-
+ax2 = axes;
+colorData = B80;
+imagesc(ax2,xVals,zVals,colorData,'AlphaData',mask)
+colormap(ax2,'summer')
+ax2.Visible = 'off';
+ax2.XTick = [];
+ax2.YTick = [];
 
 kLength_BSC_samples = 120;
 kLength_LENGTH = 0.5 * kLength_BSC_samples/samplesPwavel*lambda;
 
 
-featuresAtDepth = abs(yFeature - depthSelect*1e-3) < kLength_LENGTH/2;
-
-nFeaturesAtDepth = length(find(featuresAtDepth));
-
-xFeature3 = round(xFeature2(featuresAtDepth,:));
-
-featureRayLines = [];
-
-for iFeature = 1:nFeaturesAtDepth 
-
-    featureRayLines = [featureRayLines, xFeature3(iFeature,1):xFeature3(iFeature,2)];
-
-end
-
-rVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,vsxParams.Receive(1).samplesPerWave);
-xVals = (vsxParams.Trans.ElementPos(:,1)).*lambda;
-
-yVals = lambda.*linspace(Receive(1).startDepth,Receive(1).endDepth,samplesPerAcq) ;%
-   
-
-[~, zIdx] = min(abs(rVals - zSelect));
+[~, zIdx] = min(abs(zVals - zSelect*1e-3));
 axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
     
 
@@ -128,11 +104,18 @@ axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2)
 kWidth = 5;
 oLap = 0.8;
 
+
 load([speckleDir,'/COSIEoutput_adaptive/COSIEoutput',num2str(1),'.mat'])
 
-allLines = 1:size(testData.cohAll,1);
+
+allLines = testData.rayIdxs;
 nPossibleKernels = size(idxClustering(allLines,kWidth,oLap),2);
 
+
+mask2 = mask(axIdxs,allLines);
+mask3 = any(mask2,1);
+
+[manSegKernels,manSegKernelIDs]  = idxClustering(find(~mask3),kWidth,oLap);
 
 
 for iSumIdx = 32
@@ -157,8 +140,20 @@ for iSumIdx = 32
         nKernels = size(kIdxs,2);
         segPct =  100*(1- nKernels/nPossibleKernels);
         
-        intersect(kIdxs2,allLines)
+        %values of kIdxs2 that are in manSegKernelIDs are true positives
+        TP  = intersect(kIdxs2,manSegKernelIDs);
         
+        %values of kIdxs2 that are not in manSegKernelIDs are false positives
+        FP  = setdiff(kIdxs2,manSegKernelIDs);
+        
+        %values in the set 1:95 that are not in kIdxs2 AND not in
+        %manSegKernelIds are true negative 
+        TN = intersect(setdiff(1:95,kIdxs2),setdiff(1:95,manSegKernelIDs));
+
+        %values that are in the set manSegKernelIDs but not in kIdxs2 are
+        %false negatives 
+        FN =  setdiff(manSegKernelIDs,kIdxs2);
+       
     end
 end
 
