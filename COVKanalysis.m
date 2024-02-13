@@ -1,6 +1,6 @@
     
     
-for iImage2 = 1:4
+for iImage2 = 1
 
     clearvars -except iImage2
     close all
