@@ -225,7 +225,7 @@ ylim(axROC,[0 1])
 
 figure 
 axAUC= axes;
-plot(axAUC,iSumRange,AUC,'o','MarkerFaceColor','auto')
+plot(axAUC,iSumRange,AUC,'o','MarkerFaceColor','k')
 xlabel(axAUC,'Summation index')
 ylabel(axAUC,'A.U.C.')
 

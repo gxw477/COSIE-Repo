@@ -14,8 +14,11 @@ function [] = plotCOVfigure(bscEstimate,tString)
     yMax = max(bscEstimate(1,:));
     yMin = min(bscEstimate(1,:));
     ylim([yMin*0.5 yMax*4])
-    tickVector = round(10.^linspace(log10(10),log10(4*yMax),10));
-    yticks(tickVector)
+    tickVector = (10.^linspace(log10(yMin*0.5),log10(4*yMax),10));
+
+    if ~find(isnan(tickVector))
+        yticks(tickVector)
+    end
 
     subplot(1,3,2)
     plot(bscEstimate(3,:),bscEstimate(2,:),'-x')
@@ -27,8 +30,11 @@ function [] = plotCOVfigure(bscEstimate,tString)
     yMax = max(bscEstimate(2,:));
     yMin = min(bscEstimate(2,:));
     ylim([yMin*0.5 yMax*4])
-    tickVector = round(10.^linspace(log10(10),log10(4*yMax),10));
-    yticks(tickVector)
+    tickVector = (10.^linspace(log10(yMin*0.5),log10(4*yMax),10));
+    
+    if ~find(isnan(tickVector))
+        yticks(tickVector)
+    end
     
  
 

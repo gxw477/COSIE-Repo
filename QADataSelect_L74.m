@@ -4,10 +4,10 @@ close all
 
 %Image Analysis
 
-topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis Folder'),'\'];
+topDirMaster = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis Folder'),'\'];
 
 
-vsxParams = load([topDir,'\VSXoutput.mat']);
+vsxParams = load([topDirMaster,'\VSXoutput.mat']);
 
 
 
@@ -61,14 +61,25 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 kCount = 1; 
 rayCount= 0; 
 
-win = tukeywin(120,0.1)';
+wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+
+if wOption == 1 
+    win = ones(1,kLength_BSC_samples);
+    wName = 'Rect';
+elseif wOption == 2
+    win = tukeywin(kLength_BSC_samples,0.1)';
+    wName = 'Tukey';
+elseif wOption == 3
+    wName = 'Welch';
+end
+
 
 
 for iImage = 1:nImages
 
     iImage
 
-    load([topDir,'BFimgData',num2str(iImage),'.mat'])
+    load([topDirMaster,'BFimgData',num2str(iImage),'.mat'])
    
     
     figure
@@ -83,7 +94,7 @@ for iImage = 1:nImages
 
     pause(0.5)
 
-    zSelect = input('Select depth of interest (mm): ')*1e-3;
+    zSelect = 25e-3;%input('Select depth of interest (mm): ')*1e-3;
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
     
@@ -94,18 +105,28 @@ for iImage = 1:nImages
     plot([xVals(1) xVals(end)],zSelect.*[1 1],'-','color','green')
     plot(120*lWidth.*[1 1],[rVals(axIdxs(1)) rVals(axIdxs(end))],'-','color','green')
     
-    saveDir = [topDir,'/Z',num2str(round(zSelect*1e3))];
+    saveDir = [topDirMaster,wName,'/Z',num2str(round(zSelect*1e3)),'/'];
 
     %% BSC + Coherence Calc
 
     if ~exist(saveDir)
         mkdir(saveDir)
     end
-
-    bscLines = fullIM(rayIdxs,axIdxs).*win;
-
-    spect = fft(bscLines,[],2);
     
+    bscLines = fullIM(rayIdxs,axIdxs);
+
+    if wOption == 1 || wOption == 2
+        winMatrix = ones(size(bscLines)).*win;
+        bscLines = fullIM(rayIdxs,axIdxs).*winMatrix;
+        spect = fft(bscLines,[],2);
+    
+    elseif wOption == 3
+        h = spectrum.welch;                  % Create a Welch spectral estimator.
+        welchObj = psd(h,bscLines','Fs',fs);
+        spect = welchObj.Data'; % transpose because spectAveraging takes the vector the other way
+    end
+
+   
     cohAll = zeros(length(rayIdxs),size(channelStack,3));
     spectAll = zeros(length(rayIdxs),size(spect,2));
     

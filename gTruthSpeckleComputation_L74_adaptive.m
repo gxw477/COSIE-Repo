@@ -4,9 +4,9 @@ close all
 
 %Image Analysis
 
-topDir = 'PhantomExperimentsL74_QuadInterp/Speckle/';
+topDirMaster = 'PhantomExperimentsL74/Speckle/';
 
-vsxParams = load([topDir,'/VSXoutput.mat']);
+vsxParams = load([topDirMaster,'/VSXoutput.mat']);
 
 
 %% Define BSC kernel properties
@@ -46,7 +46,20 @@ zSelect = input('Select depth of interest: ')/1e3;
 [~, zIdx] = min(abs(rVals - zSelect));
 axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
 
-saveDir = [topDir,'/Z',num2str(round(zSelect*1e3)),'/'];
+
+wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+
+if wOption == 1 
+    win = [0,ones(1,kLength_BSC_samples-2),0];
+    wName = 'Rect';
+elseif wOption == 2
+    win = tukeywin(kLength_BSC_samples,0.1)';
+    wName = 'Tukey';
+elseif wOption == 3
+    wName = 'Welsh';
+end
+
+saveDir = [topDirMaster,wName,'/Z',num2str(round(zSelect*1e3)),'/'];
 
 if ~exist(saveDir)
     mkdir(saveDir)
@@ -68,7 +81,7 @@ for iImage = 1:nImages
 
     iImage
 
-    load([topDir,'BFimgData',num2str(iImage),'.mat'])
+    load([topDirMaster,'BFimgData',num2str(iImage),'.mat'])
      
     bM = bmode(iq,30);
 
@@ -89,9 +102,17 @@ for iImage = 1:nImages
     %% BSC + Coherence Calc
 
     bscLines = fullIM(kIdxs{iImage},axIdxs);
-
-    spect = fft(bscLines,[],2);
-
+    
+    if wOption == 1 || wOption == 2
+        winMatrix = ones(size(bscLines)).*win;
+        bscLines = bscLines.*winMatrix;
+        spect = fft(bscLines,[],2);
+        
+    elseif wOption == 3
+        h = spectrum.welch;                  % Create a Welch spectral estimator.
+        welchObj = psd(h,bscLines','Fs',fs);
+        spect = welchObj.Data'; % transpose because spectAveraging takes the vector the other way
+    end
     
     spectAv = spectAveraging(spect,kWidth_BSC_lines,oLap);
 

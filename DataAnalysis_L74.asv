@@ -1,13 +1,12 @@
-
-
+    
 
 for iImage = 1:12
-
+    
     clearvars -except iImage
     close all 
     
-    %topDir_Master = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
-    topDir_Master = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
+    topDir_Master = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
+    %topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\Speckle\'];
     
     
     sumIdx = 32;
@@ -60,7 +59,7 @@ for iImage = 1:12
     vsxParams = load([topDir_Master,'\VSXoutput.mat']);
     vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
     
-    wOption = %input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+    wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
     
     if wOption == 1 
         wName = 'Rect';
@@ -71,7 +70,7 @@ for iImage = 1:12
     end
     
     
-    speckleDir = [topDir_Master,wName,'\Z',num2str(depthSelect),'\'];
+    speckleDir = [speckleDir,wName,'\Z',num2str(depthSelect),'\'];
     dataDir = [topDir_Master,wName,'\Z',num2str(depthSelect),'\'];
     load([dataDir,'COSIEinput',num2str(iImage),'.mat'])
     
@@ -400,5 +399,5 @@ for iImage = 1:12
     
     
     save([imgDir,'\StatAttack.mat'],'bscEstimate_COH','bscEstimate_weighted_COH','bscEstimate_ENV','bscEstimate_weighted_ENV')
-
+    
 end
