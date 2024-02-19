@@ -5,7 +5,7 @@ close all
 clear
 
 
-topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\','Select Analysis directory'),'\'];
+topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
 sumIdx = 32;
 
 fileNames = ls(topDir);
@@ -32,17 +32,25 @@ else
     adaptStr = '';
 end
 
-speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74_QuadInterp\Speckle\'];
+speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
 
 vsxParams = load([topDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 zSelect = input('Depth of interest (mm) : ');
 
-speckleDir = [speckleDir,'Z',num2str(zSelect),'\'];
-topDir2 = [topDir,'Z',num2str(zSelect),'\'];
-testData = load([topDir2,'COSIEinput',num2str(iImage),'.mat']);
+  
+wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
 
+if wOption == 1 
+    wName = 'Rect';
+elseif wOption == 2
+    wName = 'Tukey';
+elseif wOption == 3
+    wName = 'Welch';
+end
+    
+    
 
 tgcBool = isequal(vsxParams.TGC,vsxParams2.TGC);
 
@@ -111,22 +119,24 @@ kWidth = 5;
 oLap = 0.8;
 
 
+speckleDir = [speckleDir,wName,'\Z',num2str(zSelect),'\'];
+topDir2 = [topDir,wName,'\Z',num2str(zSelect),'\'];
+testData = load([topDir2,'COSIEinput',num2str(iImage),'.mat']);
+
 load([speckleDir,'/COSIEoutput_adaptive/COSIEoutput',num2str(1),'.mat'])
 
 
 allLines = testData.rayIdxs;
 nPossibleKernels = size(idxClustering(allLines,kWidth,oLap),2);
 
-
 mask2 = mask(axIdxs,allLines);
 mask3 = any(mask2,1);
 
 [manSegKernels,manSegKernelIDs]  = idxClustering(find(~mask3),kWidth,oLap);
 
-
 nSumIdxs = 32; 
 
-nSumsCalcd = 1
+nSumsCalcd = 1;
 
 iSumRange = 1:32;
 
