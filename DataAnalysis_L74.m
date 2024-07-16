@@ -286,9 +286,7 @@ for iImage = 1:12
     savefig(fname2)
     saveas(gcf,fname2,'png')
     
-    
-    
-    
+ 
     %% 5. Repeat 4. for more seg pctgs 
     outSegPrev = 0; 
     

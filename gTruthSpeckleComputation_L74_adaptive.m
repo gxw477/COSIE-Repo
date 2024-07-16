@@ -4,7 +4,7 @@ close all
 
 %Image Analysis
 
-topDirMaster = 'PhantomExperimentsL74/Speckle/';
+topDirMaster = uigetdir;
 
 vsxParams = load([topDirMaster,'/VSXoutput.mat']);
 
@@ -39,7 +39,13 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 
   
 %% 
-nImages =  12;
+
+
+fNames = ls([topDirMaster,'\BFimgData*']);
+nImages =  size(fNames,1);
+
+clearvars fNames
+
 kIdxs = cell(nImages,1);
 
 zSelect = input('Select depth of interest: ')/1e3;
@@ -59,7 +65,7 @@ elseif wOption == 3
     wName = 'Welsh';
 end
 
-saveDir = [topDirMaster,wName,'/Z',num2str(round(zSelect*1e3)),'/'];
+saveDir = [topDirMaster,'/',wName,'/Z',num2str(round(zSelect*1e3)),'/'];
 
 if ~exist(saveDir)
     mkdir(saveDir)
@@ -81,7 +87,7 @@ for iImage = 1:nImages
 
     iImage
 
-    load([topDirMaster,'BFimgData',num2str(iImage),'.mat'])
+    load([topDirMaster,'\BFimgData',num2str(iImage),'.mat'])
      
     bM = bmode(iq,30);
 
@@ -90,7 +96,7 @@ for iImage = 1:nImages
 
     pause(0.5)
 
-    lRl = 17;%input('Left ray line: ');
+    lRl = 17; %input('Left ray line: ');
     rRl = 111;%input('Right ray line: ');
 
     kIdxs{iImage} = lRl:rRl;

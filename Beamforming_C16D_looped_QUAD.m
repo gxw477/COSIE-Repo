@@ -1,19 +1,15 @@
+
 clear 
 
 close all 
 
 topDir = [uigetdir,'\'];
-cd(topDir)
 
-%fileIdxs = 5:5:50;
-fileNames = ls;
-fileNames = fileNames(3:end,:);
+fileStub = input('File Stub : ','s');
 
-%load(uigetfile)
+for iFile = 1:21
 
-for iFrame = 1:size(fileNames,1)
-
-    VSXfileOption = 2 ;
+    VSXfileOption = 2;
     
     if VSXfileOption == 1
         load([topDir,'VSXinit.mat'])
@@ -22,17 +18,17 @@ for iFrame = 1:size(fileNames,1)
     elseif VSXfileOption == 2
         load([topDir,'VSXoutput.mat'])
         samplesPerAcq = Receive(1).endSample - Receive(1).startSample + 1;
-         
+        
     end
     
     
     %load([topDir,'vsxResult_newSample.mat'])
-    %load([topDir,'Img_',num2str(fileIdxs(iFrame)),'.mat'])
-    load(fileNames(iFrame,:))
+    
+    load([topDir,fileStub,num2str(iFile),'.mat'])
+    
     %close all
     
     RfFrame1 = double(RcvData{1});
-    
     
     clearvars RfRaw
     
@@ -41,7 +37,7 @@ for iFrame = 1:size(fileNames,1)
     lambda = (Resource.Parameters.speedOfSound/(Trans.frequency*1e6));
     
     samplesPwavel = Receive.samplesPerWave; 
-     
+    
     fs = Trans.frequency*1e6*samplesPwavel;
     
     dY_LAMBDA = 1/samplesPwavel/2;
@@ -73,14 +69,14 @@ for iFrame = 1:size(fileNames,1)
     params.kerf = [];
     %params.width = Trans.elementWidth *factor;
     params.fs = params.fc *samplesPwavel;
-    params.Nelements = Trans.numelements;
-    %params.bandwidth = 79;
-    %params.radius = Trans.radiusMm*1e-3;
+    params.Nelements = size(Trans.ElementPos,1);
+    params.bandwidth = 79;
+    params.radius = Trans.radiusMm*1e-3;
     params.height = Trans.elevationApertureMm*1e-3;
     params.focus = Trans.elevationFocusMm*1e-3;
     params.c = Resource.Parameters.speedOfSound;
-    params.t0 = 0; %Receive(1).startDepth*lambda*2/params.c  ;
-
+    params.t0 = Receive(1).startDepth*lambda*2/params.c  ;
+      
     %% compute DAS for each line
     
     fullIM = zeros(P.numRays, samplesPerAcq);
@@ -123,6 +119,7 @@ for iFrame = 1:size(fileNames,1)
         omitBool = TX(i).Apod == 0;
       
         tDelay(omitBool) = nan;
+    
     
         %apElPos = [Trans.ElementPos(~omitBool,1), Trans.ElementPos(~omitBool,3)];
         %chordLength = sqrt((apElPos(1,1)-apElPos(end,1))^2 +(apElPos(1,2)-apElPos(end,2))^2);
@@ -206,9 +203,9 @@ for iFrame = 1:size(fileNames,1)
     
     yVals = lambda.*linspace(Receive(1).startDepth,Receive(1).endDepth,samplesPerAcq);%
     
+    
     %[rMeshed, thMeshed] = meshgrid(rVals,Angle);
-    %[zPolar , xPolar  ] = pol2cclear 
-    % art(thMeshed,rMeshed);
+    %[zPolar , xPolar  ] = pol2cart(thMeshed,rMeshed);
     
     startIdx = 250;
     endIdx = 1500; 
@@ -217,10 +214,10 @@ for iFrame = 1:size(fileNames,1)
     %xPolar2 = xPolar(:,startIdx:endIdx);.
 
 
-    B = bmode(iq(:,startIdx:endIdx),20);
-        
-    save([topDir,'\BFimgData',num2str((iFrame)),'.mat'])
+    B = bmode(iq(:,startIdx:endIdx),50);
+    
+    save([topDir,'\BFimgData',num2str(iFile),'.mat'])
 
-    clearvars -except iFrame topDir fileNames
+    clearvars -except iFrame topDir fileStub
 
 end

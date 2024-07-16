@@ -26,7 +26,12 @@ Resource.Parameters.numRcvChannels = 128;    % number of receive channels.
 Resource.Parameters.speedOfSound = 1540;    % set speed of sound in m/sec before calling computeTrans
 Resource.Parameters.verbose = 2;
 Resource.Parameters.initializeOnly = 0;
-Resource.Parameters.simulateMode = 0;
+Resource.Parameters.simulateMode = 1;
+
+just_Speckle
+Media.attenuation = -0;
+
+%Media.function = 'movePoints'
 %  Resource.Parameters.simulateMode = 1 forces simulate mode, even if hardware is present.
 %  Resource.Parameters.simulateMode = 2 stops sequence and processes RcvData continuously.
 
@@ -47,7 +52,7 @@ P.numRays =128;
 
 
 % Specify PData structure array.
-PData(1).PDelta = [Trans.spacing, 0, 0.5];  % x, y, z pdeltas
+PData(1).PDelta = [Trans.spacing, 0, 0.25];  % x, y, z pdeltas
 PData(1).Size(1) = ceil((P.endDepth-P.startDepth)/PData(1).PDelta(3));
 PData(1).Size(2) = ceil((Trans.numelements*Trans.spacing)/PData(1).PDelta(1));
 PData(1).Size(3) = 1;      % single image page
@@ -68,7 +73,8 @@ PData(1).Region = computeRegions(PData(1));
 % Specify Media object.
 %Media.MP(1,:) = [-0,0,Trans.elevationFocusMm*1e-3/lambda,1.0];
 
-%Media.attenuation = -0.5;
+load(['AttenuationFreeABTSim\MediaFiles\Media',num2str(input('Depth : ')),'.mat'])
+Media.attenuation = 0;
 %Media.function = 'movePoints';
 
 % Specify Resources.
@@ -146,7 +152,7 @@ for i = 1:Resource.RcvBuffer(1).numFrames
 end
 
 % Specify TGC Waveform structure.
-TGC.CntrlPts = [0,138,260,287,385,593,674,810];
+TGC.CntrlPts = 1023.*ones(1,8);%[0,138,260,287,385,593,674,810];
 TGC.rangeMax = P.endDepth;
 TGC.Waveform = computeTGCWaveform(TGC);
 

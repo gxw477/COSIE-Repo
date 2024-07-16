@@ -30,12 +30,10 @@ while contBool
     colormap gray
 
     pause(1e-3)
-    
+
     contBool2 = 1;
     mask = zeros(size(B80));
 
-   
-    
     while contBool2 
         
         m  = imfreehand('Closed',1);

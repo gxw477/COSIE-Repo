@@ -70,7 +70,7 @@ plot(bscEstimate_ENV(3,:),bscEstimate_ENV(5,:),'-o','Color','red','MarkerFaceCol
 plot(bscEstimate_weighted_ENV(3,:),bscEstimate_weighted_ENV(5,:),'-sq','Color','red','MarkerFaceColor','red')
 
 plot([0 100],speckleKurt_stats(1).*[1 1],'-.','Color','magenta')
-errorbar(100,speckleKurt_stats(1),speckleKurt_stats(2),'o','Color','magenta','MarkerFaceColor','auto')
+errorbar(100,speckleKurt_stats(1),speckleKurt_stats(2),'o','Color','red','MarkerFaceColor','auto','MarkerSize',6)
 xlim padded
 xlabel('Seg %')
 ylabel('Kurtosis of BSC')
