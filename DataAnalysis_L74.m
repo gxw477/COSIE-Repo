@@ -1,14 +1,15 @@
 
 
 
-for iImage = 1:12
+for iImage = 1
 
     clearvars -except iImage
     close all 
     
     %topDir_Master = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
-    topDir_Master = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
-    
+    %topDir_Master = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
+    topDir_Master = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\']%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
+
     
     sumIdx = 32;
     
@@ -42,7 +43,7 @@ for iImage = 1:12
     end
     
     
-    depthSelect = 25;%input('Depth of interest (mm) : ');
+    depthSelect = 30;%input('Depth of interest (mm) : ');
     
     
     close all 
@@ -55,12 +56,14 @@ for iImage = 1:12
         adaptStr = '';
     end
     
-    speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
-    
+    %speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
+    speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1Dir\';
+
+
     vsxParams = load([topDir_Master,'\VSXoutput.mat']);
     vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
     
-    wOption = %input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+    wOption = 2%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
     
     if wOption == 1 
         wName = 'Rect';
@@ -71,7 +74,7 @@ for iImage = 1:12
     end
     
     
-    speckleDir = [topDir_Master,wName,'\Z',num2str(depthSelect),'\'];
+    speckleDir = [speckleDir,wName,'\Z',num2str(depthSelect),'\'];
     dataDir = [topDir_Master,wName,'\Z',num2str(depthSelect),'\'];
     load([dataDir,'COSIEinput',num2str(iImage),'.mat'])
     
@@ -125,7 +128,7 @@ for iImage = 1:12
     tGCV = linspace(0.3,1,size(bfImgData.fullIM,2));
     tGCM = repmat(tGCV,size(bfImgData.fullIM,1),1);
     
-    iSegPct = 1;
+    iSegPct = 3;
         
     %1 = keep  , 0 = segment
     segBool = cohSum > speckleCOSIE.EML(1,iSegPct) & cohSum < speckleCOSIE.EML(2,iSegPct);
@@ -329,6 +332,9 @@ for iImage = 1:12
     l = legend({'Coherence','Texture','Normal distn.'});
     l.Position = [0.1482 0.7849 0.2185 0.1214];
     sgtitle('Statistics of Coherence and Texture Distributions')
+    fnameN = [imgDir,'\statDis'];
+    savefig(fnameN)
+    saveas(gcf,fnameN,'png')
     
     
     %% 6. Plots covariance/kurtosis data

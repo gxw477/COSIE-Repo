@@ -4,7 +4,8 @@ close all
 
 %Image Analysis
 
-topDirMaster = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis Folder'),'\'];
+%topDirMaster = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\','Select Analysis Folder'),'\'];
+topDirMaster = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\']%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
 
 
 vsxParams = load([topDirMaster,'\VSXoutput.mat']);
@@ -94,7 +95,7 @@ for iImage = 1:nImages
 
     pause(0.5)
 
-    zSelect = 25e-3;%input('Select depth of interest (mm): ')*1e-3;
+    zSelect = 30e-3;%input('Select depth of interest (mm): ')*1e-3;
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
     

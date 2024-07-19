@@ -5,12 +5,12 @@ close all
 clear
 
 
-topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
+topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\']%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
 sumIdx = 32;
 
 fileNames = ls(topDir);
 
-iImage = input('Image # : ');
+iImage = 1;%input('Image # : ');
 
 for iFile = 3:size(fileNames,1)
     foldBool = isfolder([topDir,'\',fileNames(iFile,:)]);
@@ -32,15 +32,15 @@ else
     adaptStr = '';
 end
 
-speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
+speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1Dir\';
 
 vsxParams = load([topDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
-zSelect = input('Depth of interest (mm) : ');
+zSelect = 30%input('Depth of interest (mm) : ');
 
   
-wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
 
 if wOption == 1 
     wName = 'Rect';
@@ -119,11 +119,11 @@ kWidth = 5;
 oLap = 0.8;
 
 
-speckleDir = [speckleDir,wName,'\Z',num2str(zSelect),'\'];
-topDir2 = [topDir,wName,'\Z',num2str(zSelect),'\'];
+topDir2 = [topDir,'\',wName,'\Z',num2str(zSelect),'\'];
 testData = load([topDir2,'COSIEinput',num2str(iImage),'.mat']);
 
-load([speckleDir,'/COSIEoutput_adaptive/COSIEoutput',num2str(1),'.mat'])
+speckleDir2 = [speckleDir,'\',wName,'\Z',num2str(zSelect),'\'];
+load([speckleDir2,'/COSIEoutput_adaptive/COSIEoutput',num2str(1),'.mat'])
 
 
 allLines = testData.rayIdxs;
@@ -147,9 +147,15 @@ hold(axROC)
 
 for iSumIdx = 1:32 %iSumRange
 
-    load([speckleDir,'/COSIEoutput_adaptive/COSIEoutput',num2str(iSumIdx),'.mat'])
+    if iSumIdx == 32
+        iSumIdx
+    end
+        
+
+
+    load([speckleDir2,'\COSIEoutput_adaptive\COSIEoutput',num2str(iSumIdx),'.mat'])
     
-    segPct2 = 100;
+    %segPct2 = 100;
     
     vble = sum(testData.cohAll(:,1:iSumIdx),2);
 

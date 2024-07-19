@@ -6,8 +6,8 @@ topDir = [uigetdir,'\'];
 cd(topDir)
 
 %fileIdxs = 5:5:50;
-fileNames = ls;
-fileNames = fileNames(3:end,:);
+fileNames = ls('AllImgData*');
+%fileNames = fileNames(3:end,:);
 
 %load(uigetfile)
 

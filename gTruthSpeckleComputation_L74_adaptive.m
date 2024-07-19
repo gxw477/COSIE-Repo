@@ -177,7 +177,11 @@ for sumIdx = 1:size(cohAll,2)
     
     thVector = sort(cohSum);
 
-    save([saveDir2,'/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector')
+    save([saveDir2,'/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector','powf0','cohSum')
+
+    %plot(EML(1,:),EML(2,:),'.')
+    %close all
+    
 
     R = corrcoef(cohSum,abs(powf0));
 

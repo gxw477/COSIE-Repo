@@ -2,9 +2,11 @@
 clear
 close all
 
-topDir = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
+topDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\';%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
 
-speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
+%speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
+speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1Dir\';
+
 %topDir = speckleDir;
 
 sumIdx = 32;
@@ -22,7 +24,7 @@ elseif wOption == 3
 end
 
 
-nImageSpeckle = 12; 
+nImageSpeckle = 5; 
 
 allSpeckleCOV = zeros(1,nImageSpeckle);
 allSpeckleKurt = zeros(1,nImageSpeckle);
