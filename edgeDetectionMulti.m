@@ -1,5 +1,5 @@
 
-function [mEdgeSpect ,y0 ] = edgeDetection(fullIM,fs,yVals,kLengthPER,c0,f0,xBool)
+function [mEdgeSpect ,y0 ] = edgeDetectionMulti(fullIM,fs,yVals,kLengthPER,c0,f0,xBool)
 
     %get fast time axis as the first dimension
     if size(fullIM,2)>size(fullIM,1)

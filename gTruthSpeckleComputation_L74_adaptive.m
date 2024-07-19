@@ -156,6 +156,8 @@ avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
 
 cohMubCorr = zeros(1,size(cohAll,2));
 
+input('check save folder ')
+
 saveDir2 = [saveDir,'/COSIEoutput_adaptive'];
 
 if ~exist(saveDir2)

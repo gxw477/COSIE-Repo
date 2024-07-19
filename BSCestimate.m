@@ -3,7 +3,7 @@
 clear 
 close all 
 
-speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1Dir\';
+speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
 
 testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\';
 
@@ -87,7 +87,7 @@ attComp_Speckle2= 10^(attSpeckle_DB/10);
 speckleCOSIE = load([speckleDir2,'\COSIEoutput',adaptStr,'\COSIEoutput',num2str(sumIdx),'.mat']);
 
 xBool = 17:111;
-kLengthPER = 10;
+%kLengthPER = 10;
 
 load('ElastPhtL74_1607/Img1Dir/edgeCorr.mat')
 %edgecorr = (mean(mEdgeSpectSpeckle)/mEdgeSpect1)^2;
@@ -127,7 +127,7 @@ kWidth = 5;
 oLap = 0.8;
 
 nPossibleKernels = size(idxClustering(1:length(cohTest),kWidth,oLap),2);    
-bscEstimate      = COVsegmentation(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap,nPossibleKernels)
+bscEstimate      = COVsegmentation(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap,nPossibleKernels);
     
 
 figure 
