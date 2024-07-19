@@ -117,26 +117,21 @@ errorbar(1, bscMean1,bscSpeckleSTD,'k.')
 
 
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.kY));
-cohTest = sum(bfImgData.RMat(:,cohTestKernelIdx,:) ,3);
+cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx,:) ,3);
 
 nEMLpoints = size(speckleCOSIE.EML,2);
 
-bscCOSIE = zeros(2,nEMLpoints);
+%bscCOSIE = zeros(2,nEMLpoints+1);
 
-for i = 1:nEMLpoints
+kWidth = 5; 
+oLap = 0.8;
+
+nPossibleKernels = size(idxClustering(1:length(cohTest),kWidth,oLap),2);    
+bscEstimate      = COVsegmentation(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap,nPossibleKernels)
     
-    %1 for keep, 0 for segment
-    segBool = cohTest > speckleCOSIE.EML(1,i) & cohTest < speckleCOSIE.EML(2,i);
-    
-    testPOWER_MEAN_i = mean(powf0(segBool)*attComp_Test);
-    testPOWER_STD_i = std(powf0*attComp_Test);
-    
-    bscCOSIE(:,i) = [(testPOWER_MEAN_i./specklePOWER_MEAN)*bscSpeckleBf; std((testPOWER_MEAN_i./specklePOWER_MEAN)*bscSpeckleBf)];
 
-end
-
-
-errorbar(2:(2+nEMLpoints),bscCOSIE(1,:),bscCOSIE(2,:),'k-.')
+figure 
+errorbar(bscEstimate(3,:),bscEstimate(1,:),bscEstimate(2,:),'k-.')
 
 
 
