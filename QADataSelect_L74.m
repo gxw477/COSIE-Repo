@@ -95,7 +95,7 @@ for iImage = 1:nImages
 
     pause(0.5)
 
-    zSelect = 30e-3;%input('Select depth of interest (mm): ')*1e-3;
+    zSelect = 25e-3;%input('Select depth of interest (mm): ')*1e-3;
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
     
@@ -119,12 +119,12 @@ for iImage = 1:nImages
     if wOption == 1 || wOption == 2
         winMatrix = ones(size(bscLines)).*win;
         bscLines = fullIM(rayIdxs,axIdxs).*winMatrix;
-        spect = fft(bscLines,[],2);
+        spect = abs((fft(bscLines,[],2)).^2);
     
     elseif wOption == 3
         h = spectrum.welch;                  % Create a Welch spectral estimator.
         welchObj = psd(h,bscLines','Fs',fs);
-        spect = welchObj.Data'; % transpose because spectAveraging takes the vector the other way
+        spect = (welchObj.Data').^2; % transpose because spectAveraging takes the vector the other way
     end
 
    

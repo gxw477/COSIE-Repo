@@ -20,6 +20,12 @@ function [mEdgeSpect ,y0 ] = edgeDetectionSingle(fullIM,fs,yVals,kLengthPER,c0,f
 
     y0 = input('Interface Depth')
 
+    
+    IDF = load([dir,'\IDF_FiltAvg.mat']);
+
+   
+
+
     [ ~ , yIdx] = min(abs(yVals-y0));
     
     samplesPwavel = 4;

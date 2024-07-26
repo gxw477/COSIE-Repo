@@ -78,20 +78,36 @@ fVals = (0:length(axIdxs)-1).*fs/(length(axIdxs));
 df = fVals(2)-fVals(1);
 nF = round(vsxParams.Trans.frequency*1e6/df);
  
+attSpeckle   = [0.524 , 0.09].*vsxParams.Trans.frequency;
+%attWater = 0.00217*vsxParams.Trans.frequency^2; 
 
 kCount = 1; 
 rayCount= 0; 
 
+imageIdxs = 1:20;
+
+idxBool = 0.5*zSelect./5e-3 + (0:4:12);
+idxBool = idxBool(idxBool<=20)
+
+imageIdxs = imageIdxs(~ismember(1:nImages,idxBool))
+
+nImages = length(imageIdxs);
 
 for iImage = 1:nImages
-
+    
     iImage
 
-    load([topDirMaster,'\BFimgData',num2str(iImage),'.mat'])
+    load([topDirMaster,'\BFimgData',num2str(imageIdxs(iImage)),'.mat'])
      
-    bM = bmode(iq,30);
+    bM = bmode(iq',60);
+    [~ , edge] = (max(bM,[],1));
+    edgeYVal =  yVals(round(mean(edge)))
 
-    imagesc(bM'); 
+    attSpeckle_DB = 2*(zSelect*100 - edgeYVal*100)*attSpeckle(1);
+    attComp_Speckle= 10^(attSpeckle_DB/10);
+    
+
+    imagesc((1:128).*lWidthF,yVals,bM); 
     colormap gray; 
 
     pause(0.5)
@@ -112,15 +128,16 @@ for iImage = 1:nImages
     if wOption == 1 || wOption == 2
         winMatrix = ones(size(bscLines)).*win;
         bscLines = bscLines.*winMatrix;
-        spect = fft(bscLines,[],2);
+        spect = (fft(bscLines,[],2)).^2;
         
     elseif wOption == 3
         h = spectrum.welch;                  % Create a Welch spectral estimator.
         welchObj = psd(h,bscLines','Fs',fs);
-        spect = welchObj.Data'; % transpose because spectAveraging takes the vector the other way
+        spect = (welchObj.Data').^2; % transpose because spectAveraging takes the vector the other way
     end
     
-    spectAv = spectAveraging(spect,kWidth_BSC_lines,oLap);
+    spect2 = spect.*attComp_Speckle;
+    spectAv = spectAveraging(spect2,kWidth_BSC_lines,oLap);
 
     nKsInAverage = size(spectAv,1);
 
@@ -130,7 +147,7 @@ for iImage = 1:nImages
     for iLine2 = 1:length(kIdxs{iImage})
         
        cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxs,:)));
-       spectAll(iLine2 + rayCount, :) = spect(iLine2,:);
+       spectAll(iLine2 + rayCount, :) = spect2(iLine2,:);
        envAll(iLine2 + rayCount,:) = abs(envelope(bscLines(iLine2,:)));
 
     end

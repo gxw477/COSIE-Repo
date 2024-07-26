@@ -1,7 +1,7 @@
 
 
 
-for iImage = 1
+    iImage = input('Image # : ')
 
     clearvars -except iImage
     close all 
@@ -43,7 +43,7 @@ for iImage = 1
     end
     
     
-    depthSelect = 30;%input('Depth of interest (mm) : ');
+    depthSelect = input('Depth of interest (mm) : ');
     
     
     close all 
@@ -57,7 +57,7 @@ for iImage = 1
     end
     
     %speckleDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
-    speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1Dir\';
+    speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
 
 
     vsxParams = load([topDir_Master,'\VSXoutput.mat']);
@@ -101,7 +101,7 @@ for iImage = 1
     df = fVals(2)-fVals(1);
     nF = round(vsxParams.Trans.frequency*1e6/df);
     
-    powf0 = abs(spectAll(:,nF));
+    powf0 = abs(spectAll(:,nF).^2);
     
     %sumIdx = size(cohAll,2);
     
@@ -158,9 +158,11 @@ for iImage = 1
     ylabel('Axial Position (m)')
     colormap(ax0,'gray') 
     fName1 =[imgDir,'/Bmode'];
-    savefig(fName1)
-    saveas(gcf,fName1,'png')
+    %savefig(fName1)
+    %saveas(gcf,fName1,'png')
     
+    %% Parametric image construction
+
     ax1 = axes;
     imagesc(ax1,lWidth.*(1:128),yVals,B80);
     hold on 
@@ -200,8 +202,8 @@ for iImage = 1
     axis equal
     
     fname2 = [imgDir,'/ParametricImage_COH'];
-    savefig(fname2)
-    saveas(gcf,fname2,'png')
+    %savefig(fname2)
+    %saveas(gcf,fname2,'png')
     
     
     cohValues2 = sum(bfImgData.RMat(:,:,1:sumIdx),3);
@@ -220,8 +222,8 @@ for iImage = 1
     axis equal
     
     fname2 = [imgDir,'/CoherenceImage'];
-    savefig(fname2)
-    saveas(gcf,fname2,'png')
+    %savefig(fname2)
+    %saveas(gcf,fname2,'png')
     
     %% 5. Plot beam features at the focus
     
@@ -286,8 +288,8 @@ for iImage = 1
     
     
     fname2 = [imgDir,'\FocLines'];
-    savefig(fname2)
-    saveas(gcf,fname2,'png')
+    %savefig(fname2)
+    %saveas(gcf,fname2,'png')
     
  
     %% 5. Repeat 4. for more seg pctgs 
@@ -333,8 +335,8 @@ for iImage = 1
     l.Position = [0.1482 0.7849 0.2185 0.1214];
     sgtitle('Statistics of Coherence and Texture Distributions')
     fnameN = [imgDir,'\statDis'];
-    savefig(fnameN)
-    saveas(gcf,fnameN,'png')
+    %savefig(fnameN)
+    %saveas(gcf,fnameN,'png')
     
     
     %% 6. Plots covariance/kurtosis data
@@ -345,30 +347,30 @@ for iImage = 1
     tString = 'BSC: Coherence analysis (COSIE)';
     plotOptions(bscEstimate_COH,tString,kCOVswitch)
     fname3 = [imgDir,'\VariabilityCOSIEcoh',];
-    savefig(fname3)
-    saveas(gcf,fname3,'png')
+    %savefig(fname3)
+    %saveas(gcf,fname3,'png')
     
     
     tString = 'BSC: SNR analysis (COSIE)';
     plotOptions(bscEstimate_weighted_COH,tString,kCOVswitch)
     fname4= [imgDir,'\VariabilityCOSIEsnr',];
-    savefig(fname4)
-    saveas(gcf,fname4,'png')
+    %savefig(fname4)
+    %saveas(gcf,fname4,'png')
     
     
     tString = 'BSC: Coherence analysis (weighting)';
     
     plotOptions(bscEstimate_ENV,tString,kCOVswitch)
     fname5 = [imgDir,'\VariabilityWeightcoh',];
-    savefig(fname5)
-    saveas(gcf,fname5,'png')
+    %savefig(fname5)
+    %saveas(gcf,fname5,'png')
     
     
     tString = 'BSC: SNR analysis (weighting)';
     plotOptions(bscEstimate_weighted_ENV,tString,kCOVswitch)
     fname6 = [imgDir,'\VariabilityWeightsnr',];
-    savefig(fname6)
-    saveas(gcf,fname6,'png')
+    %savefig(fname6)
+    %saveas(gcf,fname6,'png')
     
     
     %% 7. final boss figures
@@ -384,8 +386,8 @@ for iImage = 1
     ylabel('C.O.V of BSC')
     legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
     fname7 = [imgDir,'\COVfigure',];
-    savefig(fname7)
-    saveas(gcf,fname7,'png')
+    %savefig(fname7)
+    %saveas(gcf,fname7,'png')
     
     
     figure 
@@ -399,10 +401,8 @@ for iImage = 1
     ylabel('Kurtosis of BSC')
     legend({'COSIE-COH','Weighted-COH','COSIE-ENV','Weighted-ENV'})
     fname8 = [imgDir,'\KurtosisFigure',];
-    savefig(fname8)
-    saveas(gcf,fname8,'png')
+    %savefig(fname8)
+    %saveas(gcf,fname8,'png')
     
     
     save([imgDir,'\StatAttack.mat'],'bscEstimate_COH','bscEstimate_weighted_COH','bscEstimate_ENV','bscEstimate_weighted_ENV')
-
-end

@@ -63,11 +63,15 @@ function [mEdgeSpect ,y0] = edgeDetectionMulti(dir)
         samplesPwavel = 4;
         kLengthSamples = kLengthPER*samplesPwavel;
         win = hanning(kLengthSamples);
+
+        if yIdx-kLengthSamples/2<0 
+            yIdx = kLengthSamples/2+1;
+        end
     
         yBool = (yIdx - kLengthSamples/2):(yIdx+kLengthSamples/2-1);
         
         edgeRegion = fullIM(yBool,xBool).*win;
-        spectVals = abs(fft(edgeRegion));
+        spectVals = abs(fft(edgeRegion)).^2;
     
         df = fs/(kLengthSamples-1);
         fVals = (0:kLengthSamples-1).*df;
