@@ -6,6 +6,7 @@ close all
 topDir = [uigetdir,'\'];
 
 fileStub = input('File Stub : ','s');
+fileNames = ls([fileStub,'*']);
 
 for iFile = 1:21
 

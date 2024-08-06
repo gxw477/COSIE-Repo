@@ -76,7 +76,7 @@ end
 
 
 
-for iImage = 1:nImages
+for iImage = 1:3
 
     iImage
 
@@ -95,7 +95,7 @@ for iImage = 1:nImages
 
     pause(0.5)
 
-    zSelect = 25e-3;%input('Select depth of interest (mm): ')*1e-3;
+    zSelect = input('Select depth of interest (mm): ')*1e-3;
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
     

@@ -1,6 +1,9 @@
 
 function [] = plotKurtfigure(bscEstimate,tString)
-   
+    
+    %Assumes that bscEstimate has come out of COVsegmentation
+    %bscEstimate = [mean(bscValues);std(bscValues);segPctLines;segPctKernels;skewness(bscValues);kurtosis(bscValues)];
+     
 
     figure 
     sgtitle(tString)

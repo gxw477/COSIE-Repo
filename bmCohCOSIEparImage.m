@@ -5,6 +5,9 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,seg
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
     
+
+
+    figure
     
     ax1 = axes;
     imagesc(ax1,xVals,yVals,B80);

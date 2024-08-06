@@ -10,8 +10,8 @@ testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA
 vsxParams = load([testDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
-sumIdx = 32;
-iImage = 1;
+sumIdx = 33;
+iImage = input('Which Image ? :');
 %load test data
 bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
 
@@ -103,7 +103,7 @@ xBool = 17:111;
 
 %calculate coherence properties
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.kY));
-cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx,:) ,3);
+cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx,1:sumIdx) ,3);
 
 
 %% Generate parametric image using first segmentation point on EML
@@ -120,10 +120,12 @@ nEMLpoints = size(speckleCOSIE.EML,2);
 kWidth = 5; 
 oLap = 0.8;
 
-powerSeg      = COVsegmentation(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
+powerSeg = COVsegmentation(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
 
-bscEstimate = zeros(size(powerSeg,2),3);
+bscEstimate = zeros(size(powerSeg,2),4);
 bscEstimate(:,3) = powerSeg(3,:);
+bscEstimate(:,4) = powerSeg(4,:);
+
 bscEstimate(:,1) = (powerSeg(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
 bscEstimate(:,2) = ((powerSeg(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
 
@@ -159,19 +161,162 @@ pie(errs(1,orderSlices)./sum(errs(1,1:5)),[0 5 0 5 0])
 %legend({'\epsilon(\alpha_{T})','\epsilon(\alpha_R)','\epsilon(S_p)','\epsilon(\mu_{T})','\epsilon({S_i})'})
 legend(legendCell(orderSlices))
 
+[maxEstimate,maxEstimateIdx] = max(bscEstimate(1:end,1));
+yLim2 = maxEstimate + bscEstimate(maxEstimateIdx,2)*1.1;
 
 figure 
-errorbar(-10, bscSpeckleBf,bscSpeckleSTD,'r.')
+tL = tiledlayout(1,1);
+ax1 = axes(tL);
+
+errorbar(ax1,-10, bscSpeckleBf,bscSpeckleSTD,'r.')
 hold on 
-errorbar(bscEstimate(1,3),bscEstimate(1,1),bscEstimate(1,2),'k.')
-errorbar(bscEstimate(2:end,3),bscEstimate(2:end,1),bscEstimate(2:end,2),'k.')
+plot(ax1,[-10 bscEstimate(end,3)+10],bscSpeckleBf.*[1 1],'r-.')
+errorbar(ax1,bscEstimate(1,3),bscEstimate(1,1),bscEstimate(1,2),'k.')
+errorbar(ax1,bscEstimate(2:end,3),bscEstimate(2:end,1),bscEstimate(2:end,2),'k.')
 xlabel('Segmentation (%)')
 ylabel('BSC (m^{-1}sr^{-1})')
-xticks([0:10:80])
-xlim([-20 80])
-%xlim([-1 2])
+xticks(ax1,[0:10:80])
+xlim(ax1,[-20 bscEstimate(end,3)+10])
+ylim(ax1,[0 yLim2])
+
+ax2 = axes(tL);
+plot(ax2,bscEstimate(2:end,3),bscEstimate(2:end,1),'k.')
+ylim(ax2,[0 yLim2])
+xlim(ax2,[-20 bscEstimate(end,3)+10])
+xticks(ax2,unique(bscEstimate(:,3)))
+yticks(ax2,[])
+ax2.XAxisLocation = 'top';
+ax2.YAxisLocation = 'left';
+set(ax2,'YColor','k')
+set(ax2,'XColor','k')
+
+xticklabels(ax2,num2cell(round(bscEstimate(:,4))))
+set(ax2,'FontSize',8)
+ax2.Color = 'none';
+ax1.Box = 'off';
+ax2.Box = 'off';
 
 
+saveDir_SEG = [testDir,wName,'\Z',num2str(depthSelect),'\SegResults_',num2str(iImage),adaptStr,'\SumIdx_',num2str(sumIdx),'\'];
+  
+if ~exist(saveDir_SEG,'dir')
+    mkdir(saveDir_SEG)
+end
 
+saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
+
+%savefig(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx)])
+%saveas(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx),'.jpg'])
+
+
+%% more parametrics? 
+
+contBool = input('More maps? ');
+
+if contBool
+
+    saveDirJPGS = [testDir,wName,'\Z',num2str(depthSelect),'\Jpgs\'];
     
+    if ~exist(saveDirJPGS,'dir')
+        mkdir(saveDirJPGS)
+    end
+    
+    v = VideoWriter([saveDirJPGS,'myFile.mp4']);
+    v.FrameRate = 1.5;
+    open(v)
+    
+    for idxEML = 1:55
+
+        segBool = cohTest > speckleCOSIE.EML(1,idxEML) & cohTest < speckleCOSIE.EML(2,idxEML);
+        bmCohCOSIEparImage_EML_video((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,xBool,speckleCOSIE,cohTest,sumIdx,idxEML)
+        saveas(gcf,[saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
+        A = imread([saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
+        writeVideo(v,A);
+        close all
+    
+    end
+    
+    close(v)
+
+end
+
+
+%% Calculations for segmentations vs BSC estimate with both methods and both input vbls
+
+close all
+
+speckleSNRdata= load([ speckleDir2 , 'envData_COSIE' ]) ;
+qaSNRdata = load([testDir,wName,'\Z',num2str(depthSelect),'\EnvStats',num2str(iImage),'.mat']);
+
+testEnvelope = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
+    
+
+
+powerSeg_COH_COSIE = COVsegmentation(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap);
+bscEstimate_COH_COSIE = zeros(size(powerSeg_COH_COSIE,2),4);
+bscEstimate_COH_COSIE(:,3) = powerSeg_COH_COSIE(3,:);
+bscEstimate_COH_COSIE(:,4) = powerSeg_COH_COSIE(4,:);
+bscEstimate_COH_COSIE(:,1) = (powerSeg_COH_COSIE(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_COH_COSIE(:,2) = ((powerSeg_COH_COSIE(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+
+
+snrEnv = testEnvelope.envMean./testEnvelope.envStd;
+powerSeg_ENV_COSIE = COVsegmentation(snrEnv,speckleSNRdata.EML,powf0,kWidth,oLap);
+bscEstimate_ENV_COSE = zeros(size(powerSeg_ENV_COSIE,2),4);
+bscEstimate_ENV_COSE(:,3) = powerSeg_ENV_COSIE(3,:);
+bscEstimate_ENV_COSE(:,4) = powerSeg_ENV_COSIE(4,:);
+bscEstimate_ENV_COSE(:,1) = (powerSeg_ENV_COSIE(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_ENV_COSE(:,2) = ((powerSeg_ENV_COSIE(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+
+figure
+hCohSpeckle = histogram(speckleCOSIE.thVector,'Normalization','probability');
+binCentreCoh = hCohSpeckle.BinEdges(2:end)-hCohSpeckle.BinWidth;
+pCoh = hCohSpeckle.Values;
+close(gcf)
+
+powerSeg_COH_WEIGHT = PDistWeighting(cohTest,binCentreCoh,pCoh,powf0,kWidth,oLap);
+bscEstimate_COH_WEIGHT = zeros(size(powerSeg_COH_WEIGHT,2),4);
+bscEstimate_COH_WEIGHT(:,3) = powerSeg_COH_WEIGHT(3,:);
+bscEstimate_COH_WEIGHT(:,4) = powerSeg_COH_WEIGHT(4,:);
+bscEstimate_COH_WEIGHT(:,1) = (powerSeg_COH_WEIGHT(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_COH_WEIGHT(:,2) = ((powerSeg_COH_WEIGHT(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+
+figure
+hEnvSpeckle = histogram(speckleSNRdata.snr,'Normalization','probability');
+binCentreEnv = hEnvSpeckle.BinEdges(2:end)-hEnvSpeckle.BinWidth;
+pEnv = hEnvSpeckle.Values;
+close(gcf)
+
+
+powerSeg_ENV_WEIGHT = PDistWeighting(snrEnv,binCentreEnv,pEnv,powf0,kWidth,oLap);
+bscEstimate_ENV_WEIGHT = zeros(size(powerSeg_ENV_WEIGHT,2),4);
+bscEstimate_ENV_WEIGHT(:,3) = powerSeg_ENV_WEIGHT(3,:);
+bscEstimate_ENV_WEIGHT(:,4) = powerSeg_ENV_WEIGHT(4,:);
+bscEstimate_ENV_WEIGHT(:,1) = (powerSeg_ENV_WEIGHT(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_ENV_WEIGHT(:,2) = ((powerSeg_ENV_WEIGHT(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+
+%% Plot segmentation vs BSC 
+
+bscEstimationSegFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_COH_COSIE)
+title('Coherence COSIE Segmentation')
+
+bscEstimationSegFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_COSE)
+title('SNR COSIE Segmentation')
+
+%Pdist may have 0 segmentation percentage, so we'll plot with a seperate
+%function to the COSIE results
+
+bscEstimationWeightFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_WEIGHT,bscEstimate_COH_WEIGHT)
+
+
+save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf','bscSpeckleSTD','bscEstimate_COH_COSIE',...
+    'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
+
+
+
+
+
+
+
+
 

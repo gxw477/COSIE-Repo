@@ -84,20 +84,48 @@ attSpeckle   = [0.524 , 0.09].*vsxParams.Trans.frequency;
 kCount = 1; 
 rayCount= 0; 
 
-imageIdxs = 1:20;
+%all possible image idxs
+imageIdxsAll = 1:nImages;
 
-idxBool = 0.5*zSelect./5e-3 + (0:4:12);
-idxBool = idxBool(idxBool<=20)
+%number of beam translations IN FOLDER
+nTransl = 4;
+%number of frames/Sets 
+nFrames = 5;
+%increment between images
+incZ = 5e-3;
+%image idxs within frame
+imageIdxsFrame = 1:nTransl;
 
-imageIdxs = imageIdxs(~ismember(1:nImages,idxBool))
+if round(nImages/nTransl)~= nImages/nTransl
+    error('wrong number of images')
+end
 
-nImages = length(imageIdxs);
+
+%reject if the analysis kernel is on the water or on the edge 
+edgeBoolFile = zSelect./incZ > imageIdxsFrame;
+%reject if the analysis kernel includes a reverb
+revbBoolFile = 0.5*zSelect./incZ ~= imageIdxsFrame;
+
+%which numbers in 1:nTransl are neither half or equal to the selected depth
+%or in the water path
+boolFile = edgeBoolFile & revbBoolFile ;
+imageIdxsFrameKeep = imageIdxsFrame(boolFile);
+%duplicate to get enough rows for all frames
+imageIdxsFrameKeep2 = repmat(imageIdxsFrameKeep,nFrames,1);
+%add iFrame*nTransl to each row to get all available images
+imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + (nTransl).*(0:(nTransl))'.*ones(nFrames,length(imageIdxsFrameKeep));
+
+%Apply across nFrames to find all the indices
+imageIdxsAll = sort(imageIdxsFrameKeep3(:))
+
+
+nImages = length(imageIdxsAll);
 
 for iImage = 1:nImages
     
     iImage
 
-    load([topDirMaster,'\BFimgData',num2str(imageIdxs(iImage)),'.mat'])
+    load([topDirMaster,'\BFimgData',num2str(imageIdxsAll(iImage)),'.mat'])
      
     bM = bmode(iq',60);
     [~ , edge] = (max(bM,[],1));
