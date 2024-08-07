@@ -42,7 +42,9 @@ speckleDir2 = [speckleDir,wName,'\Z',num2str(depthSelect),'\'];
 speckleCOSIE = load([speckleDir2,'\COSIEoutput',adaptStr,'\COSIEoutput',num2str(sumIdx),'.mat']);
 
 dataDir = [testDir,wName,'\Z',num2str(depthSelect),'\'];
-load([dataDir,'COSIEinput',num2str(iImage),'.mat'])
+
+%contains spectAll 
+powerInputStruct = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
 
 
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample  + 1;
@@ -69,12 +71,13 @@ df = fVals(2)-fVals(1);
 nF = round(vsxParams.Trans.frequency*1e6/df);
 
 %centre frequency of test data
-powf0 = abs(spectAll(:,nF));
+powf0 = abs(powerInputStruct.spectAll(:,nF));
+bscKlength = length(powerInputStruct.spectAll(1,:));
 
 %Calculate edge correction factor
 [mEdgeSpectSpeckle ,yEdgeSpeckle] = edgeDetectionMulti(speckleDir);
 [mEdgeSpectTest ,yEdgeTest] = edgeDetectionMulti(testDir);
-edgecorr = (mean(mEdgeSpectSpeckle)/mean(mEdgeSpectTest));
+edgecorr = (mean(mEdgeSpectSpeckle)/mean(mEdgeSpectTest))
 
 
 attTest  = [0.579 , 0.955].*vsxParams.Trans.frequency;
@@ -102,14 +105,42 @@ bscSpeckleSTD = 0.2*bscSpeckleBf;
 xBool = 17:111;
 
 %calculate coherence properties
+
+%how many coherence kernels fit in a BSC kernel? 
+nCohKernpBSC = length(powerInputStruct.spectAll(1,:))/bfImgData.kLength;
+
+if nCohKernpBSC/2 ~= round(nCohKernpBSC/2)
+    error('Sort out kernel lengths')
+end
+
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.kY));
-cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx,1:sumIdx) ,3);
+cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx-nCohKernpBSC/2 : cohTestKernelIdx + nCohKernpBSC/2-1 ,1:sumIdx) ,3);
+
 
 
 %% Generate parametric image using first segmentation point on EML
 
+%The maximum percentage of rejected kernels we will accept for the BSC calc
+rejectPCT = 50;
+rejectThresh = nCohKernpBSC - 30/nCohKernpBSC;
+
 segBool = cohTest > speckleCOSIE.EML(1,1) & cohTest < speckleCOSIE.EML(2,1);
-bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,xBool)
+segBool2 = sum(segBool,2);
+segBool3 = segBool2 > rejectThresh;
+
+bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool3,xBool)
+
+figure
+plot(xVals(xBool),cohTest)
+hold on
+plot(lWidth.*[1 128],[speckleCOSIE.EML(2,1) speckleCOSIE.EML(2,1)],'-','Color','red')
+plot(lWidth.*[1 128],[speckleCOSIE.EML(1,1) speckleCOSIE.EML(1,1)],'-','Color','red')
+errorbar(lWidth.*120,mean(speckleCOSIE.thVector),std(speckleCOSIE.thVector),'.','Color','red')
+ylim([-sumIdx/4 1.5*max(speckleCOSIE.EML(2,1))])
+xlabel('Lateral Position')
+ylabel('Summed Coherence')
+xlim(lWidth.*[1 128])
+
 
 
 %%
@@ -120,7 +151,7 @@ nEMLpoints = size(speckleCOSIE.EML,2);
 kWidth = 5; 
 oLap = 0.8;
 
-powerSeg = COVsegmentation(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
+powerSeg = COVsegmentation(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap,rejectThresh);
 
 bscEstimate = zeros(size(powerSeg,2),4);
 bscEstimate(:,3) = powerSeg(3,:);
@@ -203,7 +234,7 @@ if ~exist(saveDir_SEG,'dir')
     mkdir(saveDir_SEG)
 end
 
-saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
+%saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
 
 %savefig(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx)])
 %saveas(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx),'.jpg'])
@@ -252,21 +283,25 @@ testEnvelope = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
     
 
 
-powerSeg_COH_COSIE = COVsegmentation(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap);
+powerSeg_COH_COSIE = COVsegmentation(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap,rejectThresh);
 bscEstimate_COH_COSIE = zeros(size(powerSeg_COH_COSIE,2),4);
 bscEstimate_COH_COSIE(:,3) = powerSeg_COH_COSIE(3,:);
 bscEstimate_COH_COSIE(:,4) = powerSeg_COH_COSIE(4,:);
 bscEstimate_COH_COSIE(:,1) = (powerSeg_COH_COSIE(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
 bscEstimate_COH_COSIE(:,2) = ((powerSeg_COH_COSIE(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_COH_COSIE(:,5) = powerSeg_COH_COSIE(5,:);
+bscEstimate_COH_COSIE(:,5) = powerSeg_COH_COSIE(6,:);
 
 
 snrEnv = testEnvelope.envMean./testEnvelope.envStd;
-powerSeg_ENV_COSIE = COVsegmentation(snrEnv,speckleSNRdata.EML,powf0,kWidth,oLap);
-bscEstimate_ENV_COSE = zeros(size(powerSeg_ENV_COSIE,2),4);
-bscEstimate_ENV_COSE(:,3) = powerSeg_ENV_COSIE(3,:);
-bscEstimate_ENV_COSE(:,4) = powerSeg_ENV_COSIE(4,:);
-bscEstimate_ENV_COSE(:,1) = (powerSeg_ENV_COSIE(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
-bscEstimate_ENV_COSE(:,2) = ((powerSeg_ENV_COSIE(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+powerSeg_ENV_COSIE = COVsegmentation(snrEnv,speckleSNRdata.EML,powf0,kWidth,oLap,rejectThresh);
+bscEstimate_ENV_COSIE = zeros(size(powerSeg_ENV_COSIE,2),4);
+bscEstimate_ENV_COSIE(:,3) = powerSeg_ENV_COSIE(3,:);
+bscEstimate_ENV_COSIE(:,4) = powerSeg_ENV_COSIE(4,:);
+bscEstimate_ENV_COSIE(:,1) = (powerSeg_ENV_COSIE(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_ENV_COSIE(:,2) = ((powerSeg_ENV_COSIE(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_ENV_COSIE(:,5) = powerSeg_ENV_COSIE(5,:);
+bscEstimate_ENV_COSIE(:,6) = powerSeg_ENV_COSIE(6,:);
 
 figure
 hCohSpeckle = histogram(speckleCOSIE.thVector,'Normalization','probability');
@@ -280,6 +315,8 @@ bscEstimate_COH_WEIGHT(:,3) = powerSeg_COH_WEIGHT(3,:);
 bscEstimate_COH_WEIGHT(:,4) = powerSeg_COH_WEIGHT(4,:);
 bscEstimate_COH_WEIGHT(:,1) = (powerSeg_COH_WEIGHT(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
 bscEstimate_COH_WEIGHT(:,2) = ((powerSeg_COH_WEIGHT(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_COH_WEIGHT(:,5) = powerSeg_COH_WEIGHT(5,:);
+bscEstimate_COH_WEIGHT(:,6) = powerSeg_COH_WEIGHT(6,:);
 
 figure
 hEnvSpeckle = histogram(speckleSNRdata.snr,'Normalization','probability');
@@ -294,13 +331,16 @@ bscEstimate_ENV_WEIGHT(:,3) = powerSeg_ENV_WEIGHT(3,:);
 bscEstimate_ENV_WEIGHT(:,4) = powerSeg_ENV_WEIGHT(4,:);
 bscEstimate_ENV_WEIGHT(:,1) = (powerSeg_ENV_WEIGHT(1,:)./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
 bscEstimate_ENV_WEIGHT(:,2) = ((powerSeg_ENV_WEIGHT(2,:))./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+bscEstimate_ENV_WEIGHT(:,5) = powerSeg_ENV_WEIGHT(5,:);
+bscEstimate_ENV_WEIGHT(:,6) = powerSeg_ENV_WEIGHT(6,:);
+
 
 %% Plot segmentation vs BSC 
 
 bscEstimationSegFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_COH_COSIE)
 title('Coherence COSIE Segmentation')
 
-bscEstimationSegFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_COSE)
+bscEstimationSegFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_COSIE)
 title('SNR COSIE Segmentation')
 
 %Pdist may have 0 segmentation percentage, so we'll plot with a seperate
@@ -308,9 +348,50 @@ title('SNR COSIE Segmentation')
 
 bscEstimationWeightFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_WEIGHT,bscEstimate_COH_WEIGHT)
 
+%% plot statistics vs. Seg pct. 
+
+statsBool = input('Statistics Plots ? : ');
+
+if statsBool 
+
+    plotOptions(bscEstimate_COH_COSIE','COSIE (coherence)',1)
+    plotOptions(bscEstimate_COH_COSIE','COSIE (coherence)',2)
+    
+    plotOptions(bscEstimate_ENV_COSIE,'COSIE (env)',1)
+    plotOptions(bscEstimate_ENV_COSIE,'COSIE (env)',2)
+    
+    plotOptions(bscEstimate_COH_WEIGHT,'Weighting (coherence)',1)
+    plotOptions(bscEstimate_COH_WEIGHT,'Weighting (coherence)',2)
+    
+    plotOptions(bscEstimate_ENV_WEIGHT,'Weighting (env)',1)
+    plotOptions(bscEstimate_ENV_WEIGHT,'Weighting (env)',2)
+
+    normDistData =  normrnd(zeros(1,1e5),ones(1,1e5));
+    
+    figure
+    plot([std(speckleCOSIE.thVector)/mean(speckleCOSIE.thVector), skewness(speckleCOSIE.thVector) ,kurtosis(speckleCOSIE.thVector)],'o','MarkerFaceColor','blue')
+    hold on 
+    plot([std(speckleSNRdata.snr)/mean(speckleSNRdata.snr), skewness(speckleSNRdata.snr) ,kurtosis(speckleSNRdata.snr)],'o','MarkerFaceColor','red')
+    plot([nan, skewness(normDistData) ,kurtosis(normDistData)],'o','Color','white','MarkerFaceColor','k')
+    xticks([1,2,3])
+    xlim([0 4])
+    xticklabels({'C.O.V.','Skew','Kurtosis'})
+    ylabel('Value')
+    l = legend({'Coherence','Texture','Normal distn.'});
+    l.Position = [0.1482 0.7849 0.2185 0.1214];
+    sgtitle('Statistics of Coherence and Texture Distributions')
+  
+    %savefig(fnameN)
+    %saveas(gcf,fnameN,'png')
+    
+    
+
+end
+
+%% Save results 
 
 save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf','bscSpeckleSTD','bscEstimate_COH_COSIE',...
-    'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
+    'bscEstimate_ENV_COSIE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
 
 
 
