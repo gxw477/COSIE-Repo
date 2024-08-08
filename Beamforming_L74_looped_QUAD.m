@@ -163,7 +163,7 @@ for iFrame = 1:size(fileNames,1)
     %kernel length (wavels)
     nWavels = 3;
     %kernel length (samples)
-    kLength = round(samplesPwavel*nWavels); 
+    kLength = 120;%round(samplesPwavel*nWavels); 
     
     kLength_LENGTH = (bformY(1+kLength)-bformY(1))*lambda;
     nKernels = floor(samplesPerAcq/kLength);
@@ -219,7 +219,7 @@ for iFrame = 1:size(fileNames,1)
 
     B = bmode(iq(:,startIdx:endIdx),20);
         
-    save([topDir,'\BFimgData',num2str((iFrame)),'.mat'])
+    save([topDir,'\BFimgData',num2str((iFrame)),'_longK.mat'])
 
     clearvars -except iFrame topDir fileNames
 

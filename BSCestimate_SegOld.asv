@@ -13,7 +13,14 @@ vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 sumIdx = 33;
 iImage = input('Which Image ? :');
 %load test data
-bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
+
+kLengthSwitch = input('Length of kernel 1 for long, 0 for short: ');
+
+if kLengthSwitch
+    bfImgData = load([testDir,'BFimgData',num2str(iImage),'_longK.mat']);
+else
+    bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
+end
 
 depthSelect = input('Depth of interest (mm) : ');
     
@@ -43,7 +50,7 @@ speckleCOSIE = load([speckleDir2,'\COSIEoutput',adaptStr,'_smallK\COSIEoutput',n
 
 dataDir = [testDir,wName,'\Z',num2str(depthSelect),'\'];
 
-%contains spectAll 
+%contains spectAll, nothing else used
 powerInputStruct = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
 
 
@@ -116,7 +123,7 @@ if nCohKernpBSC/2 ~= round(nCohKernpBSC/2)
 end
 
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.kY));
-cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx-nCohKernpBSC/2 : cohTestKernelIdx + nCohKernpBSC/2-1 ,1:sumIdx) ,3);
+cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx,1:sumIdx) ,3);
 
 
 
@@ -127,8 +134,8 @@ rejectPCT = 90;
 rejectThresh = nCohKernpBSC - 30/nCohKernpBSC;
 
 segBool = cohTest > speckleCOSIE.EML(1,1) & cohTest < speckleCOSIE.EML(2,1);
-segBool2 = sum(segBool,2);
-segBool3 = segBool2 > rejectThresh;
+%segBool2 = sum(segBool,2);
+segBool3 = segBool;
 
 bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool3,xBool)
 
@@ -261,8 +268,7 @@ if contBool
     for idxEML = 1:55
 
         segBool = cohTest > speckleCOSIE.EML(1,idxEML) & cohTest < speckleCOSIE.EML(2,idxEML);
-        segBool2 = sum(segBool,2);
-        segBool3 = segBool2 > rejectThresh;
+        segBool3 = segBool;
 
         bmCohCOSIEparImage_EML_video((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool3,xBool,speckleCOSIE,cohTest,sumIdx,idxEML)
         saveas(gcf,[saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);

@@ -26,7 +26,7 @@ end
 % parameters
 sumIdx = 33;
 wName = 'Tukey';
-depthSelect = 25;
+depthSelect =35;
 
 resultsDirs = ls([testDir,wName,'\Z',num2str(depthSelect),'\SegResults_*']);
 
@@ -45,7 +45,7 @@ hold(ax4,'on')
 
 for iImage = 1:3
 
-    segDir = [testDir,wName,'\Z25\',resultsDirs(iImage,:),'\SumIdx_',num2str(sumIdx),'\'];
+    segDir = [testDir,wName,'\Z',num2str(depthSelect),'\',resultsDirs(iImage,:),'\SumIdx_',num2str(sumIdx),'\'];
     segStruct = load([segDir,'SegResults.mat']);
     
     errorbar(ax1,segStruct.bscEstimate_COH_COSIE(:,3),segStruct.bscEstimate_COH_COSIE(:,1),segStruct.bscEstimate_COH_COSIE(:,2),'-.')%,'Color','k') 
