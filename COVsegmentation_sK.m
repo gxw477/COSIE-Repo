@@ -22,11 +22,9 @@ function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,rejectThres
     while segPctIdx < 200
     
         segBool =   vble > EML(1,1) & vble < EML(2,1);
-        %segBool2 = sum(segBool,2);
-        %segBool3 = segBool2 > rejectThresh;
-
+       
         
-        segIdxs = find(segBool3);
+        segIdxs = find(segBool);
         
         kIdxs = idxClustering(segIdxs,kWidth,oLap);
     
@@ -38,7 +36,7 @@ function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,rejectThres
             bscValuesIK(iKernels) = abs(mean(spectAll(kIdxs{iKernels})));
         end
     
-        segPctL =  100*(1-length(find(segBool3))/length(segBool3));
+        segPctL =  100*(1-length(find(segBool))/length(segBool));
         segPctK =  100*(1- nKernels/nPossibleKernels);
     
         bscEstimate(:,segPctIdx+1) = [mean(bscValuesIK) ;std(bscValuesIK);segPctL; segPctK; skewness(bscValuesIK);kurtosis(bscValuesIK)];

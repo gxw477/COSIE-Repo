@@ -153,7 +153,7 @@ nEMLpoints = size(speckleCOSIE.EML,2);
 kWidth = 5; 
 oLap = 0.8;
 
-powerSeg = COVsegmentation(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap,rejectThresh);
+powerSeg = COVsegmentation_mK(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap,rejectThresh);
 
 bscEstimate = zeros(size(powerSeg,2),4);
 bscEstimate(:,3) = powerSeg(3,:);

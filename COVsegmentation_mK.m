@@ -1,5 +1,5 @@
 
-function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,rejectThresh)
+function bscEstimate = COVsegmentation_mK(vble,EML,spectAll,kWidth,oLap,rejectThresh)
     
     segPctIdx = 1;
     segPctL = 0;
