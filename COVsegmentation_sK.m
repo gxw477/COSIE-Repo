@@ -1,12 +1,12 @@
 
-function bscEstimate = COVsegmentation_sK(vble,EML,spectAll,kWidth,oLap,rejectThresh)
+function bscEstimate = COVsegmentation_sK(vble,EML,spectAll,kWidth,oLap)
     
     segPctIdx = 1;
     segPctL = 0;
     
     nPossibleKernels = size(idxClustering(1:length(vble),kWidth,oLap),2);    
 
-    kIdxs = idxClustering(1:size(spectAll,1),kWidth,oLap);
+    kIdxs = idxClustering(1:length(spectAll),kWidth,oLap);
     nKernels = size(kIdxs,2);
 
     bscValuesIK = zeros(1,nKernels);

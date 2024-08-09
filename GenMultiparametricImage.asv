@@ -120,8 +120,8 @@ for iDepth = 1:length(depthVals)
     powerSeg_COH_COSIE = COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powAll(iDepth,:),kWidth,oLap);
 
 
-    bscAll_UNSEG(iDepth,:) = [powerSeg_COH_COSIE(1,1),powerSeg_COH_COSIE(2,1)];
-    bscAll_COSIE(iDepth,:) = [powerSeg_COH_COSIE(1,EMLidx+1),powerSeg_COH_COSIE(2,EMLidx+1)];
+    bscAll_UNSEG(iDepth,:) = [powerSeg_COH_COSIE(2,EMLidx),powerSeg_COH_COSIE(3,EMLidx)];
+    bscAll_COSIE(iDepth,:) = [powerSeg_COH_COSIE(2,EMLidx+1),powerSeg_COH_COSIE(3,EMLidx+1)];
 
 
     segBoolAll(iDepth,:) = segBool1_cluster;
@@ -160,8 +160,8 @@ errBSC_unseg = std(powAll,[],2,'omitnan');
 errorbar(depthVals-0.5,meanBSC_COSIE,errBSC_COSIE,'k.')
 hold on 
 errorbar(depthVals+0.5,meanBSC_unseg,meanBSC_unseg,'b.')
-plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf.*[1 1]*1e2,'r-')
-errorbar(min(depthVals)-5,bscSpeckleBf*1e2, bscSpeckleSTD*1e2,'r.')
+plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf.*[1 1],'r-')
+errorbar(min(depthVals)-5,bscSpeckleBf, bscSpeckleSTD,'r.')
 xticks(depthVals)
 xlim padded
 ylim padded
@@ -172,8 +172,8 @@ figure
 errorbar(depthVals-0.5,bscAll_COSIE(:,1),bscAll_COSIE(:,2),'k.')
 hold on 
 errorbar(depthVals+0.5,bscAll_UNSEG(:,1),bscAll_UNSEG(:,2),'b.')
-plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf.*[1 1]*1e2,'r-')
-errorbar(min(depthVals)-5,bscSpeckleBf*1e2, bscSpeckleSTD*1e2,'r.')
+plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf.*[1 1],'r-')
+errorbar(min(depthVals)-5,bscSpeckleBf, bscSpeckleSTD,'r.')
 xticks(depthVals)
 xlim padded
 ylim padded
