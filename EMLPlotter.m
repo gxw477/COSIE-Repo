@@ -1,12 +1,17 @@
 function [] = EMLPlotter(speckleCOSIE)
+    
+    %EMLPlotter(speckleCOSIE,sumIdx)
+    %plots EML from speckle COSIE struct. sumIdx sets lims only
 
     figure
     subplot(1,2,1)
     plot(speckleCOSIE.EML(1,:),speckleCOSIE.EML(2,:),'k-.')
     hold on 
     contour(speckleCOSIE.thVector,speckleCOSIE.thVector,abs(1-speckleCOSIE.segSurface),2.^(0.5:-0.5:-10))
-    plot([-10 20],[-10 20],'k-')
-    xlim([min(speckleCOSIE.EML(1,:))-1 max(speckleCOSIE.EML(1,:))+1])
+    ax = gca;
+    xLimsC1 = ax.XLim;
+    plot(xLimsC1,xLimsC1,'k-')
+    xlim(xLimsC1)
     ylim padded
     
     xlabel('Lower Threshold')

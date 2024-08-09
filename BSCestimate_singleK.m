@@ -35,7 +35,8 @@ elseif wOption == 3
     wName = 'Welch';
 end
 
-cohKlength = 30;
+cohKlength = 120;
+cohKlength_Length = 0.5*cohKlength*vsxParams.sPerWaveInit*vsxParams.lambda;
 
 speckleDir2 = [speckleDir,wName,'\Z',num2str(depthSelect),'\'];  
 %load COSIE data
@@ -121,26 +122,52 @@ snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
 
 %% Generate parametric images using first 3 segmentation points on EML
 
-%%
-EMLidx = 1;
-%%
+saveDir_SEG = [testDir,wName,'\Z',num2str(depthSelect),'\SegResults_',num2str(iImage),adaptStr,num2str(cohKlength),'\SumIdx_',num2str(sumIdx),'\'];
+  
+if ~exist(saveDir_SEG,'dir')
+    mkdir(saveDir_SEG)
+end
+
+
+
+EMLidx = 2;
+kWidth = 5; 
+oLap = 0.8;
 
 segBool1 = cohTest > speckleCOSIE.redEML(1,EMLidx) & cohTest < speckleCOSIE.redEML(2,EMLidx);
-bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool1,xBool)
+
+%bmCohCOSIEparImage takes segBool not indices as an argument, so we'll
+%convert to idx and back to bool to give a segbool that reflects the actual
+%useable lines. We want the second output argument of idxsClustering to 
+%just get the unique lines instead of a cell array (output 1).
+
+%All lines
+rayIdxs = (1:128);
+
+%Lines in centre of image
+rayIdxs2 = rayIdxs(xBool);
+
+
+
+segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
+
+
+bmCohCOSIEparImage(rayIdxs.*lWidth,yVals,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
+saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
+
 
 segBool2 = cohTest > speckleSNRdata.redEML(1,EMLidx) & cohTest < speckleSNRdata.redEML(2,EMLidx);
-bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool2,xBool)
+bmCohCOSIEparImage(rayIdxs.*lWidth,yVals,bfImgData,depthIdx,axIdxs,axIdxs,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx))
+saveas(gcf,[saveDir_SEG,'ParametricImage_SNR'])
 
-depthFeaturePlot(speckleCOSIE,speckleSNRdata,EMLidx,lWidth,cohTest,snrTest,0)
+depthFeaturePlot(speckleCOSIE,speckleSNRdata,EMLidx,lWidth,cohTest,snrTest,20)
+saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
 
 
 %%
 
 nEMLpoints = size(speckleCOSIE.EML,2);
 %bscCOSIE = zeros(2,nEMLpoints+1);
-
-kWidth = 5; 
-oLap = 0.8;
 
 powerSeg      = COVsegmentation_sK(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
 
@@ -162,11 +189,6 @@ for i = 1:size(bscEstimate,1)
 
 end
 
-figure 
-errorbar(-10, bscSpeckleBf,bscSpeckleSTD,'r.')
-hold on 
-errorbar(bscEstimate(1,3),bscEstimate(1,1), errs(1,6),'k.')
-errorbar(bscEstimate(:,3),bscEstimate(:,1), errs(:,6),'k-.')
 
 
 orderSlices = [3,4,2,5,1];
@@ -184,55 +206,6 @@ pie(errs(1,orderSlices)./sum(errs(1,1:5)),[0 5 0 5 0])
 %legend({'\epsilon(\alpha_{T})','\epsilon(\alpha_R)','\epsilon(S_p)','\epsilon(\mu_{T})','\epsilon({S_i})'})
 legend(legendCell(orderSlices))
 
-[maxEstimate,maxEstimateIdx] = max(bscEstimate(1:end,1));
-yLim2 = maxEstimate + bscEstimate(maxEstimateIdx,2)*1.1;
-
-figure 
-errorbar(-10, bscSpeckleBf,bscSpeckleSTD,'r.')
-tL = tiledlayout(1,1);
-ax1 = axes(tL);
-
-errorbar(ax1,-10, bscSpeckleBf,bscSpeckleSTD,'r.')
-hold on 
-errorbar(bscEstimate(1,3),bscEstimate(1,1),bscEstimate(1,2),'k.')
-errorbar(bscEstimate(2:end,3),bscEstimate(2:end,1),bscEstimate(2:end,2),'k.')
-plot(ax1,[-10 bscEstimate(end,3)+10],bscSpeckleBf.*[1 1],'r-.')
-errorbar(ax1,bscEstimate(1,3),bscEstimate(1,1),bscEstimate(1,2),'k.')
-errorbar(ax1,bscEstimate(2:end,3),bscEstimate(2:end,1),bscEstimate(2:end,2),'k.')
-xlabel('Segmentation (%)')
-ylabel('BSC (m^{-1}sr^{-1})')
-xticks([0:10:80])
-xlim([-20 80])
-%xlim([-1 2])
-xticks(ax1,[0:10:80])
-xlim(ax1,[-20 bscEstimate(end,3)+10])
-ylim(ax1,[0 yLim2])
-
-ax2 = axes(tL);
-plot(ax2,bscEstimate(2:end,3),bscEstimate(2:end,1),'k.')
-ylim(ax2,[0 yLim2])
-xlim(ax2,[-20 bscEstimate(end,3)+10])
-xticks(ax2,unique(bscEstimate(:,3)))
-yticks(ax2,[])
-ax2.XAxisLocation = 'top';
-ax2.YAxisLocation = 'left';
-set(ax2,'YColor','k')
-set(ax2,'XColor','k')
-
-xticklabels(ax2,num2cell(round(bscEstimate(:,4))))
-set(ax2,'FontSize',8)
-ax2.Color = 'none';
-ax1.Box = 'off';
-ax2.Box = 'off';
-
-
-saveDir_SEG = [testDir,wName,'\Z',num2str(depthSelect),'\SegResults_',num2str(iImage),adaptStr,num2str(cohKlength),'\SumIdx_',num2str(sumIdx),'\'];
-  
-if ~exist(saveDir_SEG,'dir')
-    mkdir(saveDir_SEG)
-end
-
-saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
 
 %savefig(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx)])
 %saveas(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx),'.jpg'])

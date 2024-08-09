@@ -1,4 +1,4 @@
-function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,rayIdxs)
+function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML)
 
     B80 = bmode(bfImgData.iq',80);
 
@@ -12,17 +12,19 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,seg
     imagesc(ax1,xVals,yVals,B80);
     hold on 
     plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
-    plot(ax1,[xVals(rayIdxs(end)) xVals(rayIdxs(end))], [yVals(axIdxs(1)) yVals(axIdxs(end))],'-','color','red')
+    plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], [yVals(axIdxsBSC(1)) yVals(axIdxsBSC(end))],'r^-','MarkerFaceColor','red','LineWidth',2)
+    plot(ax1,[xVals(rayIdxs(1)-5) xVals(rayIdxs(1)-5)],[yVals(axIdxsCOH(1)) yVals(axIdxsCOH(end))],'ro-','MarkerFaceColor','red','LineWidth',2)
+    
     xlabel('Lateral Position (m)')
     axis equal
     ylabel('Axial Position (m)')
      
     
     ax2 = axes;
-    powfLong = repmat(powf0,1,size(axIdxs,2));
-    hideVectorLong = repmat(segBool,1,size(axIdxs,2));
-    colorData(rayIdxs,axIdxs) = log(powfLong); 
-    transpData(rayIdxs,axIdxs) = 0.6.*hideVectorLong; 
+    powfLong = repmat(powf0,1,size(axIdxsBSC,2));
+    hideVectorLong = repmat(segBool,1,size(axIdxsBSC,2));
+    colorData(rayIdxs,axIdxsBSC) = log(powfLong); 
+    transpData(rayIdxs,axIdxsBSC) = 0.6.*hideVectorLong; 
 
     imagesc(ax2,xVals , yVals, colorData','AlphaData',transpData')    
     cB = colorbar;
@@ -42,7 +44,7 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,seg
     
     outSeg = 100*(1-length(find(segBool))/length(segBool));
 
-    title(ax1,['Seg = ',num2str(outSeg),'%'])
+    title(ax1,['Seg = ',num2str(outSeg),'%   (',num2str(segEML),')'])
     axis tight 
     axis equal
    

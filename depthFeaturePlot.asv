@@ -33,12 +33,11 @@ function [] = depthFeaturePlot(cosieStructCOH,cosieStructSNR,EMLidx,lWidth,cohTe
     subplot(2,2,3)
     plot(cosieStructCOH.redEML(1,:),cosieStructCOH.redEML(2,:),'k-.')
     hold on 
-    contour(cosieStructCOH.thVector,cosieStructCOH.thVector,abs(1-cosieStructCOH.segSurface),2.^(0.5:-0.5:-10));    
-    %xLimsC1 = [min(c1(1,:)) max(c1(1,:))];
-    ax = gca;
-    xLimsC1 = ax.XLim;
-    plot(xLimsC1,xLimsC1,'k-')
-    xlim(xLimsC1)
+    c1 = contour(cosieStructCOH.thVector,cosieStructCOH.thVector,abs(1-cosieStructCOH.segSurface),2.^(0.5:-0.5:-10))
+    
+    xLimsC = [-min(c1(1,:)) max(c1(1,:))];
+    plot(xLimsC,xLimsC,'k-')
+    xlim([sumIdx/2 max(cosieStructCOH.EML(1,:))+1])
     ylim padded
     xlabel('Lower Threshold')
     ylabel('Upper Threshold')
@@ -48,10 +47,9 @@ function [] = depthFeaturePlot(cosieStructCOH,cosieStructSNR,EMLidx,lWidth,cohTe
     subplot(2,2,4)
     plot(cosieStructSNR.EML(1,:),cosieStructSNR.EML(2,:),'k-.')
     hold on 
-    contour(cosieStructSNR.EML(1,:),cosieStructSNR.EML(1,:),abs(1-cosieStructSNR.segSurface),2.^(0.5:-0.5:-10));
-    ax = gca;
-    xLimsC2 = ax.XLim;plot(xLimsC2,xLimsC2,'k-')
-    xlim(xLimsC2)
+    contour(cosieStructSNR.EML(1,:),cosieStructSNR.EML(1,:),abs(1-cosieStructSNR.segSurface),2.^(0.5:-0.5:-10))
+    plot([1 2],[1 2],'k-')
+    xlim([1 3])
     ylim padded
     xlabel('Lower Threshold')
     ylabel('Upper Threshold')
