@@ -1,5 +1,5 @@
 
-function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,rejectThresh)
+function bscEstimate = COVsegmentation_sK(vble,EML,spectAll,kWidth,oLap,rejectThresh)
     
     segPctIdx = 1;
     segPctL = 0;
@@ -19,9 +19,9 @@ function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,rejectThres
     bscEstimate(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0; 0; skewness(bscValuesIK);kurtosis(bscValuesIK)];
 
     
-    while segPctIdx < 200
+    for segPctIdx = 1:length(EML(1,:))
     
-        segBool =   vble > EML(1,1) & vble < EML(2,1);
+        segBool =   vble > EML(1,segPctIdx) & vble < EML(2,segPctIdx);
        
         
         segIdxs = find(segBool);
@@ -41,7 +41,7 @@ function bscEstimate = COVsegmentation(vble,EML,spectAll,kWidth,oLap,rejectThres
     
         bscEstimate(:,segPctIdx+1) = [mean(bscValuesIK) ;std(bscValuesIK);segPctL; segPctK; skewness(bscValuesIK);kurtosis(bscValuesIK)];
         
-        segPctIdx = segPctIdx+1;
+        %segPctIdx = segPctIdx+1;
     
     end    
     

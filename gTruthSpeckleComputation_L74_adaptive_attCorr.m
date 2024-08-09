@@ -4,7 +4,7 @@ close all
 
 %Image Analysis
 
-topDirMaster = uigetdir;
+topDirMaster =  'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir';
 
 vsxParams = load([topDirMaster,'/VSXoutput.mat']);
 
@@ -33,13 +33,9 @@ rVals = lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).en
 %kernel length (wavels)
 nWavels = 3;
 %kernel length (samples)
-kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
+kLength_COH = kLength_BSC_samples*(4/4);
 
-
-
-  
 %% 
-
 
 fNames = ls([topDirMaster,'\BFimgData*']);
 nImages =  size(fNames,1);
@@ -48,12 +44,15 @@ clearvars fNames
 
 kIdxs = cell(nImages,1);
 
-zSelect = input('Select depth of interest: ')/1e3;
+zSelect = 40/1e3
+
 [~, zIdx] = min(abs(rVals - zSelect));
-axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
+axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
+axIdxsCOH = zIdx-round(kLength_COH/2) : zIdx + round(kLength_COH/2) -1 ;
 
 
-wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+
+wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
 
 if wOption == 1 
     win = [0,ones(1,kLength_BSC_samples-2),0];
@@ -74,7 +73,7 @@ end
 
 fs = vsxParams.Trans.frequency*1e6*vsxParams.Receive(1).samplesPerWave;
 
-fVals = (0:length(axIdxs)-1).*fs/(length(axIdxs));
+fVals = (0:length(axIdxsBSC)-1).*fs/(length(axIdxsBSC));
 df = fVals(2)-fVals(1);
 nF = round(vsxParams.Trans.frequency*1e6/df);
  
@@ -116,7 +115,7 @@ imageIdxsFrameKeep2 = repmat(imageIdxsFrameKeep,nFrames,1);
 imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + (nTransl).*(0:(nTransl))'.*ones(nFrames,length(imageIdxsFrameKeep));
 
 %Apply across nFrames to find all the indices
-imageIdxsAll = sort(imageIdxsFrameKeep3(:))
+imageIdxsAll = sort(imageIdxsFrameKeep3(:));
 
 
 nImages = length(imageIdxsAll);
@@ -145,13 +144,13 @@ for iImage = 1:nImages
 
     kIdxs{iImage} = lRl:rRl;
    
-    if length(axIdxs) ~= kLength_BSC_samples
+    if length(axIdxsBSC) ~= kLength_BSC_samples
         error('check bsc kernel length')
     end
 
     %% BSC + Coherence Calc
 
-    bscLines = fullIM(kIdxs{iImage},axIdxs);
+    bscLines = fullIM(kIdxs{iImage},axIdxsBSC);
     
     if wOption == 1 || wOption == 2
         winMatrix = ones(size(bscLines)).*win;
@@ -174,7 +173,7 @@ for iImage = 1:nImages
     
     for iLine2 = 1:length(kIdxs{iImage})
         
-       cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxs,:)));
+       cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxsCOH,:)));
        spectAll(iLine2 + rayCount, :) = spect2(iLine2,:);
        envAll(iLine2 + rayCount,:) = abs(envelope(bscLines(iLine2,:)));
 
@@ -201,16 +200,14 @@ avCohAll = spectAveraging(cohAll,kWidth_BSC_lines,oLap);
 
 cohMubCorr = zeros(1,size(cohAll,2));
 
-input('check save folder ')
-
-saveDir2 = [saveDir,'/COSIEoutput_adaptive'];
+saveDir2 = [saveDir,'/COSIEoutput_adaptive',num2str(kLength_COH)];
 
 if ~exist(saveDir2)
     mkdir(saveDir2)
 end
 
 
-for sumIdx = 1:size(cohAll,2)
+for sumIdx = size(cohAll,2)
 
     sumIdx/size(cohAll,2)
 
@@ -235,6 +232,5 @@ for sumIdx = 1:size(cohAll,2)
     cohMubCorr(sumIdx) = R(2);
 
 end
-
 
 

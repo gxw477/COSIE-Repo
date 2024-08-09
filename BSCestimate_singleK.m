@@ -35,14 +35,17 @@ elseif wOption == 3
     wName = 'Welch';
 end
 
-
+cohKlength = 30;
 
 speckleDir2 = [speckleDir,wName,'\Z',num2str(depthSelect),'\'];  
 %load COSIE data
-speckleCOSIE = load([speckleDir2,'\COSIEoutput',adaptStr,'\COSIEoutput',num2str(sumIdx),'.mat']);
+speckleCOSIE = load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
+speckleCOSIE2 = load([speckleDir2,'\COSIEoutput',adaptStr,'\COSIEoutput',num2str(sumIdx),'.mat']);
+
+
 
 dataDir = [testDir,wName,'\Z',num2str(depthSelect),'\'];
-load([dataDir,'COSIEinput',num2str(iImage),'.mat'])
+cInput = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
 
 
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample  + 1;
@@ -69,7 +72,7 @@ df = fVals(2)-fVals(1);
 nF = round(vsxParams.Trans.frequency*1e6/df);
 
 %centre frequency of test data
-powf0 = abs(spectAll(:,nF));
+powf0 = abs(cInput.spectAll(:,nF));
 
 %Calculate edge correction factor
 %[mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir);
@@ -102,9 +105,16 @@ bscSpeckleSTD = 0.2*bscSpeckleBf;
 xBool = 17:111;
 
 %calculate coherence properties
-[~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.kY));
-%cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx,:) ,3);
-cohTest = sum(bfImgData.RMat(xBool,cohTestKernelIdx,1:sumIdx) ,3);
+[~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.yVals));
+
+RMatTest = zeros(length(xBool),33);
+axIdxsCOH = (cohTestKernelIdx- cohKlength/2):(cohTestKernelIdx+cohKlength/2-1);
+
+for iLine = 1:length(xBool)
+   RMatTest(iLine,:) =  CoherenceAnalysisFN(squeeze(bfImgData.channelStack(xBool(iLine),axIdxsCOH,:)));
+end
+
+cohTest = sum(RMatTest(:,1:sumIdx),2);
 
 
 %% Generate parametric image using first segmentation point on EML
@@ -122,9 +132,8 @@ kWidth = 5;
 oLap = 0.8;
 
 powerSeg      = COVsegmentation_sK(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
-powerSeg = COVsegmentation(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
 
-bscEstimate = zeros(size(powerSeg,2),3);
+
 bscEstimate = zeros(size(powerSeg,2),4);
 bscEstimate(:,3) = powerSeg(3,:);
 bscEstimate(:,4) = powerSeg(4,:);
@@ -224,7 +233,7 @@ contBool = input('More maps? ');
 
 if 0
 
-    saveDirJPGS = [testDir,wName,'\Z',num2str(depthSelect),'\Jpgs\'];
+    saveDirJPGS = ['Test\'];
     
     if ~exist(saveDirJPGS,'dir')
         mkdir(saveDirJPGS)
@@ -236,7 +245,7 @@ if 0
     
     for idxEML = 1:55
 
-        segBool = cohTest > speckleCOSIE.EML(1,idxEML) & cohTest < speckleCOSIE.EML(2,idxEML);
+        segBool = cohTest > speckleCOSIE.redEML(1,idxEML) & cohTest < speckleCOSIE.redEML(2,idxEML);
         bmCohCOSIEparImage_EML_video((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,xBool,speckleCOSIE,cohTest,sumIdx,idxEML)
         saveas(gcf,[saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
         A = imread([saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
@@ -245,7 +254,7 @@ if 0
     
     end
     
-    close(v)
+    %close(v)
 
 end
 
@@ -261,7 +270,7 @@ testEnvelope = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
     
 
 
-powerSeg_COH_COSIE = COVsegmentation(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap);
+powerSeg_COH_COSIE = COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
 bscEstimate_COH_COSIE = zeros(size(powerSeg_COH_COSIE,2),4);
 bscEstimate_COH_COSIE(:,3) = powerSeg_COH_COSIE(3,:);
 bscEstimate_COH_COSIE(:,4) = powerSeg_COH_COSIE(4,:);
@@ -270,7 +279,7 @@ bscEstimate_COH_COSIE(:,2) = ((powerSeg_COH_COSIE(2,:))./specklePOWER_MEAN) * bs
 
 
 snrEnv = testEnvelope.envMean./testEnvelope.envStd;
-powerSeg_ENV_COSIE = COVsegmentation(snrEnv,speckleSNRdata.EML,powf0,kWidth,oLap);
+powerSeg_ENV_COSIE = COVsegmentation_sK(snrEnv,speckleSNRdata.EML,powf0,kWidth,oLap);
 bscEstimate_ENV_COSE = zeros(size(powerSeg_ENV_COSIE,2),4);
 bscEstimate_ENV_COSE(:,3) = powerSeg_ENV_COSIE(3,:);
 bscEstimate_ENV_COSE(:,4) = powerSeg_ENV_COSIE(4,:);
@@ -318,7 +327,7 @@ title('SNR COSIE Segmentation')
 bscEstimationWeightFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_WEIGHT,bscEstimate_COH_WEIGHT)
 
 
-%save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf','bscSpeckleSTD','bscEstimate_COH_COSIE',...
+save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf','bscSpeckleSTD','bscEstimate_COH_COSIE',...
   %  'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
 
 
