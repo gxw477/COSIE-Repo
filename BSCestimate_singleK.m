@@ -41,7 +41,6 @@ cohKlength_Length = 0.5*cohKlength*vsxParams.sPerWaveInit*vsxParams.lambda;
 speckleDir2 = [speckleDir,wName,'\Z',num2str(depthSelect),'\'];  
 %load COSIE data
 speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
-speckleCOSIE2 = load([speckleDir2,'\COSIEoutput',adaptStr,'\COSIEoutput',num2str(sumIdx),'.mat']);
 speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
 
 
@@ -109,7 +108,7 @@ xBool = 17:111;
 %calculate coherence properties
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.yVals));
 
-RMatTest = zeros(length(xBool),33);
+RMatTest = zeros(length(xBool),sumIdx);
 axIdxsCOH = (cohTestKernelIdx- cohKlength/2):(cohTestKernelIdx+cohKlength/2-1);
 
 for iLine = 1:length(xBool)
@@ -130,7 +129,7 @@ end
 
 
 
-EMLidx = 2;
+EMLidx = 1;
 kWidth = 5; 
 oLap = 0.8;
 
@@ -146,7 +145,6 @@ rayIdxs = (1:128);
 
 %Lines in centre of image
 rayIdxs2 = rayIdxs(xBool);
-
 
 
 segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
@@ -310,11 +308,5 @@ bscEstimationWeightFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_WEIGHT,bscE
 
 save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf','bscSpeckleSTD','bscEstimate_COH_COSIE',...
     'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
-
-
-
-
-
-
 
 

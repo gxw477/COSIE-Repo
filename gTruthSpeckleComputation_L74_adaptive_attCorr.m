@@ -44,7 +44,7 @@ clearvars fNames
 
 kIdxs = cell(nImages,1);
 
-zSelect = 40/1e3
+zSelect = 10/1e3
 
 [~, zIdx] = min(abs(rVals - zSelect));
 axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
