@@ -39,13 +39,14 @@ cohKlength = 30;
 
 speckleDir2 = [speckleDir,wName,'\Z',num2str(depthSelect),'\'];  
 %load COSIE data
-speckleCOSIE = load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
+speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
 speckleCOSIE2 = load([speckleDir2,'\COSIEoutput',adaptStr,'\COSIEoutput',num2str(sumIdx),'.mat']);
-
+speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
 
 
 dataDir = [testDir,wName,'\Z',num2str(depthSelect),'\'];
 cInput = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
+qaSNRdata = load([testDir,wName,'\Z',num2str(depthSelect),'\EnvStats',num2str(iImage),'.mat']);
 
 
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample  + 1;
@@ -116,11 +117,21 @@ end
 
 cohTest = sum(RMatTest(:,1:sumIdx),2);
 
+snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
 
-%% Generate parametric image using first segmentation point on EML
+%% Generate parametric images using first 3 segmentation points on EML
 
-segBool = cohTest > speckleCOSIE.EML(1,1) & cohTest < speckleCOSIE.EML(2,1);
-bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,xBool)
+%%
+EMLidx = 1;
+%%
+
+segBool1 = cohTest > speckleCOSIE.redEML(1,EMLidx) & cohTest < speckleCOSIE.redEML(2,EMLidx);
+bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool1,xBool)
+
+segBool2 = cohTest > speckleSNRdata.redEML(1,EMLidx) & cohTest < speckleSNRdata.redEML(2,EMLidx);
+bmCohCOSIEparImage((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool2,xBool)
+
+depthFeaturePlot(speckleCOSIE,speckleSNRdata,EMLidx,lWidth,cohTest,snrTest,0)
 
 
 %%
@@ -215,7 +226,7 @@ ax1.Box = 'off';
 ax2.Box = 'off';
 
 
-saveDir_SEG = [testDir,wName,'\Z',num2str(depthSelect),'\SegResults_',num2str(iImage),adaptStr,'\SumIdx_',num2str(sumIdx),'\'];
+saveDir_SEG = [testDir,wName,'\Z',num2str(depthSelect),'\SegResults_',num2str(iImage),adaptStr,num2str(cohKlength),'\SumIdx_',num2str(sumIdx),'\'];
   
 if ~exist(saveDir_SEG,'dir')
     mkdir(saveDir_SEG)
@@ -245,8 +256,8 @@ if 0
     
     for idxEML = 1:55
 
-        segBool = cohTest > speckleCOSIE.redEML(1,idxEML) & cohTest < speckleCOSIE.redEML(2,idxEML);
-        bmCohCOSIEparImage_EML_video((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,xBool,speckleCOSIE,cohTest,sumIdx,idxEML)
+        segBool3 = cohTest > speckleCOSIE.redEML(1,idxEML) & cohTest < speckleCOSIE.redEML(2,idxEML);
+        bmCohCOSIEparImage_EML_video((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool3,xBool,speckleCOSIE,cohTest,sumIdx,idxEML)
         saveas(gcf,[saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
         A = imread([saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
         writeVideo(v,A);
@@ -263,9 +274,6 @@ end
 
 close all
 
-speckleSNRdata= load([ speckleDir2 , 'envData_COSIE' ]) ;
-qaSNRdata = load([testDir,wName,'\Z',num2str(depthSelect),'\EnvStats',num2str(iImage),'.mat']);
-
 testEnvelope = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
     
 
@@ -279,7 +287,7 @@ bscEstimate_COH_COSIE(:,2) = ((powerSeg_COH_COSIE(2,:))./specklePOWER_MEAN) * bs
 
 
 snrEnv = testEnvelope.envMean./testEnvelope.envStd;
-powerSeg_ENV_COSIE = COVsegmentation_sK(snrEnv,speckleSNRdata.EML,powf0,kWidth,oLap);
+powerSeg_ENV_COSIE = COVsegmentation_sK(snrEnv,speckleSNRdata.redEML,powf0,kWidth,oLap);
 bscEstimate_ENV_COSE = zeros(size(powerSeg_ENV_COSIE,2),4);
 bscEstimate_ENV_COSE(:,3) = powerSeg_ENV_COSIE(3,:);
 bscEstimate_ENV_COSE(:,4) = powerSeg_ENV_COSIE(4,:);
@@ -328,7 +336,7 @@ bscEstimationWeightFigure(bscSpeckleBf,bscSpeckleSTD,bscEstimate_ENV_WEIGHT,bscE
 
 
 save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf','bscSpeckleSTD','bscEstimate_COH_COSIE',...
-  %  'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
+    'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
 
 
 

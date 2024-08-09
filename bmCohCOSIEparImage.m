@@ -8,7 +8,6 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,seg
 
 
     figure
-    
     ax1 = axes;
     imagesc(ax1,xVals,yVals,B80);
     hold on 
@@ -21,7 +20,6 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,seg
     
     ax2 = axes;
     powfLong = repmat(powf0,1,size(axIdxs,2));
-    
     hideVectorLong = repmat(segBool,1,size(axIdxs,2));
     colorData(rayIdxs,axIdxs) = log(powfLong); 
     transpData(rayIdxs,axIdxs) = 0.6.*hideVectorLong; 
@@ -48,7 +46,6 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,seg
     axis tight 
     axis equal
    
-
 
 end 
 
