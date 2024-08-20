@@ -8,7 +8,9 @@ function [] = MultipleParametricCohImage(xVals,yVals,rayIdxs,bfImgData,depthVals
     
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
-      
+    
+    xVals = xVals - mean(xVals);
+
     figure
     ax1 = axes;
     imagesc(ax1,xVals,yVals,B80);
@@ -17,17 +19,19 @@ function [] = MultipleParametricCohImage(xVals,yVals,rayIdxs,bfImgData,depthVals
     %plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], [yVals(axIdxsBSC(1)) yVals(axIdxsBSC(end))],'r^-','MarkerFaceColor','red','LineWidth',2)
     %plot(ax1,[xVals(rayIdxs(1)-5)   xVals(rayIdxs(1)-5)],   [yVals(axIdxsCOH(1)) yVals(axIdxsCOH(end))],'ro-','MarkerFaceColor','red','LineWidth',2)
     
-    xlabel('Lateral Position (m)')
+    xlabel('Lateral Position (mm)')
     axis equal
-    ylabel('Axial Position (m)')
-    
-    
+    ylabel('Axial Position (mm)')
+    ax1.FontSize = 40;
+    ax1.XTick = -16:8:16;
+    ax1.YTick = 10:10:50;
+
     for iDepth = 1:length(depthVals)
 
         powf0 = powAll(iDepth,:)';
         segBool = segAll(iDepth,:)';
 
-        [~, depthIdx] = min(abs(yVals - depthVals(iDepth)*1e-3));
+        [~, depthIdx] = min(abs(yVals - depthVals(iDepth)));
         axIdxs = depthIdx-round(kLength_BSC_samples/2) : depthIdx + round(kLength_BSC_samples/2) -1 ;
 
       
@@ -42,9 +46,11 @@ function [] = MultipleParametricCohImage(xVals,yVals,rayIdxs,bfImgData,depthVals
     imagesc(axNew,xVals , yVals, colorData','AlphaData',transpData')    
     cB = colorbar;
     cB.Label.String = '\mu (dBcm^{-1}sr^{-1})';
-    cB.Label.FontSize= 20;
-    cB.Position(3) = 0.02;
-    
+    cB.Label.FontSize= 40;
+    cB.FontSize = 30;
+    cB.Ticks = round(min(colorData(:))):round(max(colorData(:)));
+
+
     linkaxes([ax1,axNew])
     
     axNew.Visible = 'off';
@@ -56,5 +62,21 @@ function [] = MultipleParametricCohImage(xVals,yVals,rayIdxs,bfImgData,depthVals
     colormap(ax1,'gray')
     axis tight 
     axis equal
+
+    input('Resize')
+
+    axisPosition = get(ax1,'Position');
+    colorbarPosition = get(cB, 'Position');
+
+    % Adjust the colorbar height and position
+    colorbarPosition(2) = axisPosition(2);  % Match the bottom position
+    colorbarPosition(4) = axisPosition(4);  % Match the height
+    
+    % Apply the new position to the colorbar
+    set(cB, 'Position', colorbarPosition);
+
+
+    cB.Location = 'eastoutside';
+    cB.Location = 'manual';
 
 end

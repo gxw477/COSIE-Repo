@@ -312,8 +312,8 @@
     
     powf0 = spectAll(:,nF);
     
-    bscEstimate_COH = COVsegmentation(cohSum,speckleCOSIE.EML,powf0,kWidth,oLap,nPossibleKernels);
-    bscEstimate_ENV = COVsegmentation(snrEnv,speckleEnvelope.EML,powf0,kWidth,oLap,nPossibleKernels);
+    bscEstimate_COH = COVsegmentation_sK(cohSum,speckleCOSIE.EML,powf0,kWidth,oLap);
+    bscEstimate_ENV = COVsegmentation_sK(snrEnv,speckleEnvelope.EML,powf0,kWidth,oLap);
     
     
     bscEstimate_weighted_COH = COVWeighting(cohSum,binCentreCoh,pCoh,powf0,kWidth,oLap);

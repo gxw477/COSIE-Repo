@@ -1,11 +1,15 @@
 function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML)
 
-    B80 = bmode(bfImgData.iq',80);
+    B80 = bmode(bfImgData.iq',100);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
     
+    xVals = xVals - mean(xVals);
 
+    xlabel('Lateral Position (mm)')
+    axis equal
+    ylabel('Axial Position (mm)')
 
     figure
     ax1 = axes;
@@ -15,9 +19,9 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], [yVals(axIdxsBSC(1)) yVals(axIdxsBSC(end))],'r^-','MarkerFaceColor','red','LineWidth',2)
     plot(ax1,[xVals(rayIdxs(1)-5) xVals(rayIdxs(1)-5)], [yVals(axIdxsCOH(1)) yVals(axIdxsCOH(end))],'ro-','MarkerFaceColor','red','LineWidth',2)
     
-    xlabel('Lateral Position (m)')
+    xlabel('Lateral Position (mm)')
     axis equal
-    ylabel('Axial Position (m)')
+    ylabel('Axial Position (mm)')
      
     
     ax2 = axes;
@@ -46,9 +50,26 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
 
     speckleScore = 100 - (outSeg-segEML);
 
-    title(ax1,['Speckle Score = ',num2str(round(speckleScore)),'%'])
+    title(ax1,['Speckle Score = ',num2str(round(speckleScore))])
     axis tight 
     axis equal
+
+        input('Resize')
+
+    axisPosition = get(ax1,'Position');
+    colorbarPosition = get(cB, 'Position');
+
+    % Adjust the colorbar height and position
+    colorbarPosition(2) = axisPosition(2);  % Match the bottom position
+    colorbarPosition(4) = axisPosition(4);  % Match the height
+    
+    % Apply the new position to the colorbar
+    set(cB, 'Position', colorbarPosition);
+
+
+    cB.Location = 'eastoutside';
+    cB.Location = 'manual';
+
    
 
 end 

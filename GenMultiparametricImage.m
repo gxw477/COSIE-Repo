@@ -5,7 +5,7 @@ clear
 close all
 
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\';
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
 
 %load verasonics param's
 vsxParams = load([testDir,'\VSXoutput.mat']);
@@ -24,9 +24,18 @@ df = fVals(2)-fVals(1);
 nF = round(vsxParams.Trans.frequency*1e6/df);
 
 
-mu0 = 3.25e-4/(3^3.6);
-bscSpeckleBf = mu0 * vsxParams.Trans.frequency^3.6;
-bscSpeckleSTD = 0.2*bscSpeckleBf;
+%ground truth BSC values: reference
+mu0_ref = 3.25e-4/(3^3.6);
+bscSpeckleBf_ref = mu0_ref * vsxParams.Trans.frequency^3.6; 
+bscSpeckleSTD_ref = 0.2*bscSpeckleBf_ref;
+
+%ground truth BSC values: test
+mu0_test = 3.86e-4/(3^3.5);
+bscSpeckleBf_test = mu0_test * vsxParams.Trans.frequency^3.6; 
+bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
+
+
+
 edgecorr =   46.6590;
 bm = bmode(bfImgData.iq',80);  
 [~ , edge] = (max(bm,[],1));
@@ -59,7 +68,7 @@ sumIdx = 33;
 kLength_COH_samples = 120;
 kLength_COH_samples_Length = 0.5*kLength_COH_samples*vsxParams.sPerWaveInit*vsxParams.lambda;
 
-EMLidx = 2;
+EMLidx =1;
 kWidth = 5; 
 oLap = 0.8;
 
@@ -96,7 +105,7 @@ for iDepth = 1:length(depthVals)
     specklePOWER_MEAN = mean(speckleCOSIE.powf0);
    
     
-    bscConvert = (1./specklePOWER_MEAN) * bscSpeckleBf *edgecorr*attComp_Test;
+    bscConvert = (1./specklePOWER_MEAN) * bscSpeckleBf_ref *edgecorr*attComp_Test;
     powAll(iDepth,:) = powf0.*bscConvert.*1e2;
 
    
@@ -122,7 +131,12 @@ for iDepth = 1:length(depthVals)
 
     bscAll_UNSEG(iDepth,:) = [powerSeg_COH_COSIE(1,1),powerSeg_COH_COSIE(2,1)];
     bscAll_COSIE(iDepth,:) = [powerSeg_COH_COSIE(1,EMLidx+1),powerSeg_COH_COSIE(2,EMLidx+1)];
+    
+    outSeg = 100*(1-length(find(segBool1_cluster))/length(segBool1_cluster));
 
+    speckleScore(iDepth) = 100 - (outSeg-speckleCOSIE.pctSeg2(EMLidx));
+    
+    segPct(iDepth) = 100*(length(segBool)-length(find(segBool)))/length(segBool);
 
     segBoolAll(iDepth,:) = segBool1_cluster;
 
@@ -140,12 +154,17 @@ lWidth = lambda*(vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1)
 xVals = (1:128).*lWidth;
 
 
-MultipleParametricCohImage(xVals,yVals,rayIdxs,bfImgData,depthVals,powAll,segBoolAll,kLength_BSC_samples,kLength_COH_samples)
+MultipleParametricCohImage(xVals.*1e3,yVals.*1e3,rayIdxs,bfImgData,depthVals,powAll,segBoolAll,kLength_BSC_samples,kLength_COH_samples)
 
 
-%% Calculate depth features 
+bscSpeckleBf_ref = bscSpeckleBf_ref*1e2;
+bscSpeckleSTD_ref = bscSpeckleSTD_ref*1e2;
 
-figure 
+bscSpeckleBf_test = bscSpeckleBf_test*1e2;
+bscSpeckleSTD_test = bscSpeckleSTD_test*1e2;
+
+%% Calculate depth1 features 
+
 
 powAll2 = powAll;
 powAll2(find(~segBoolAll)) = nan;
@@ -157,25 +176,88 @@ errBSC_COSIE = std(powAll2,[],2,'omitnan');
 meanBSC_unseg = mean(powAll,2,'omitnan');
 errBSC_unseg = std(powAll,[],2,'omitnan');
 
-errorbar(depthVals-0.5,meanBSC_COSIE,errBSC_COSIE,'k.')
+maxBSCall = max([meanBSC_COSIE(:)+errBSC_COSIE(:);meanBSC_unseg(:)+errBSC_unseg(:)]);
+
+figure
+errorbar(depthVals-0.5,meanBSC_COSIE,errBSC_COSIE,'.','MarkerSize',10)
 hold on 
-errorbar(depthVals+0.5,meanBSC_unseg,meanBSC_unseg,'b.')
-plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf.*[1 1]*1e2,'r-')
-errorbar(min(depthVals)-5,bscSpeckleBf*1e2, bscSpeckleSTD*1e2,'r.')
+errorbar(depthVals+0.5,meanBSC_unseg,errBSC_unseg,'.','MarkerSize',10)
+plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf_test.*[1 1],'k-','MarkerSize',10)
+errorbar(min(depthVals)-5,bscSpeckleBf_test, bscSpeckleSTD_ref,'k.','MarkerSize',10)
 xticks(depthVals)
+xlabel('Depth (mm)')
+ylabel('BSC (cm^{-1}sr^{-1})')
+%title('Full Width averaging')
+ax = gca;
+ax.FontSize = 20;
+xlim padded
+
+ylim([0 1.2])
+yticks(ax,[0:0.2:1.2])
+%ylim padded
+
+ax1 = gca;
+
+figure
+errorbar(depthVals-0.5,bscAll_COSIE(:,1),bscAll_COSIE(:,2),'.','MarkerSize',10)
+hold on 
+errorbar(depthVals+0.5,bscAll_UNSEG(:,1),bscAll_UNSEG(:,2),'.','MarkerSize',10)
+plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf_test.*[1 1],'k-','MarkerSize',10)
+errorbar(min(depthVals)-5,bscSpeckleBf_test, bscSpeckleSTD_ref,'k.','MarkerSize',10)
+xticks(depthVals)
+set(gca,'FontSize', 20);
+
+xlabel('Depth (mm)')
+ylabel('BSC (cm^{-1}sr^{-1})')
+title('Kernel averaging')
+
+xlim(ax1.XLim)
+ylim(ax1.YLim)
+
+
+figure
+plot(depthVals, speckleScore,'kx','MarkerSize',10)
+xlim([7.55 47.45])
+xticks(ax1.XTick)
+xlabel('Depth (mm)')
+ylabel('Speckle Score')
+set(gca,'FontSize', 20);
+
 xlim padded
 ylim padded
 
 
+errVals_COSIE = 100.*abs(bscAll_COSIE(:,1)- bscSpeckleBf_test)./bscSpeckleBf_test;
+errVals_Unseg = 100.*abs(bscAll_UNSEG(:,1)- bscSpeckleBf_test)./bscSpeckleBf_test;
 
-figure 
-errorbar(depthVals-0.5,bscAll_COSIE(:,1),bscAll_COSIE(:,2),'k.')
+mError = max([errVals_COSIE(:);errVals_Unseg(:)]);
+
+r25 = ceil(mError/25)*25;
+
+cMatrix = colororder;
+markerSizeMatrix = 8.*(100-segPct)/100;
+
+figure
 hold on 
-errorbar(depthVals+0.5,bscAll_UNSEG(:,1),bscAll_UNSEG(:,2),'b.')
-plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf.*[1 1]*1e2,'r-')
-errorbar(min(depthVals)-5,bscSpeckleBf*1e2, bscSpeckleSTD*1e2,'r.')
-xticks(depthVals)
+
+for iPlotMarker = 1:length(markerSizeMatrix(:))
+
+    plot(depthVals(iPlotMarker)-0.5, errVals_COSIE(iPlotMarker) ,'o','MarkerSize',markerSizeMatrix(iPlotMarker),'Color',cMatrix(1,:),'MarkerFaceColor',cMatrix(1,:))
+    
+end
+
+plot(depthVals+0.5, errVals_Unseg,'o','MarkerSize', 6,'MarkerFaceColor',cMatrix(2,:))
+xlabel('Depth (mm)')
+xlim([7.55 47.45])
+xticks(ax1.XTick)
+ylabel('BSC error (%)')
+%legend({'COSIE','Unsegmented'})
+set(gca,'FontSize', 20);
+
 xlim padded
-ylim padded
+ylim([0 r25])
+yticks(0:25:r25)
+
+
 
 

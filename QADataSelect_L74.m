@@ -5,7 +5,7 @@ close all
 %Image Analysis
 
 %topDirMaster = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\','Select Analysis Folder'),'\'];
-topDirMaster = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\']%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
+topDirMaster = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht2\']%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
 
 
 vsxParams = load([topDirMaster,'\VSXoutput.mat']);
