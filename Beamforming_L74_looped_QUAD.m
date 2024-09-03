@@ -17,7 +17,7 @@ for iFrame = 1:size(fileNames,1)
     
     if VSXfileOption == 1
         load([topDir,'VSXinit.mat'])
-        samplesPerAcq = size(RfFrame1,1)/P.numRays ;
+        samplesPerAcq = (Receive(1).endDepth-Receive(1).startDepth)*4;
     
     elseif VSXfileOption == 2
         load([topDir,'VSXoutput.mat'])
@@ -28,10 +28,12 @@ for iFrame = 1:size(fileNames,1)
     
     %load([topDir,'vsxResult_newSample.mat'])
     %load([topDir,'Img_',num2str(fileIdxs(iFrame)),'.mat'])
-    load(fileNames(iFrame,:))
+    %load(fileNames(iFrame,:))
     %close all
+
+    load([fileNames(i,:)])
     
-    RfFrame1 = double(RcvData{1});
+    RfFrame1 = double(RcvData{1}); 
     
     
     clearvars RfRaw
@@ -219,7 +221,7 @@ for iFrame = 1:size(fileNames,1)
 
     B = bmode(iq(:,startIdx:endIdx),20);
         
-    save([topDir,'\BFimgData',num2str((iFrame)),'_longK.mat'])
+    save([topDir,'\BFimgData',num2str((iFrame)),'.mat'])
 
     clearvars -except iFrame topDir fileNames
 

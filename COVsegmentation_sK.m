@@ -12,7 +12,7 @@ function bscEstimate = COVsegmentation_sK(vble,EML,spectAll,kWidth,oLap)
     bscValuesIK = zeros(1,nKernels);
 
     for iKernels = 1:nKernels
-        bscValuesIK(iKernels) = abs(mean(spectAll(kIdxs{iKernels})));
+        bscValuesIK(iKernels) = mean(abs(spectAll(kIdxs{iKernels})));
     end
 
     %Unsegmented Values

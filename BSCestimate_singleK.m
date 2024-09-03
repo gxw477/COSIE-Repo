@@ -3,7 +3,9 @@ clear
 close all 
 
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
+%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
+
 
 %load verasonics param's
 vsxParams = load([testDir,'\VSXoutput.mat']);
@@ -64,7 +66,7 @@ axIdxs = depthIdx-round(kLength_BSC_samples/2) : depthIdx + round(kLength_BSC_sa
 %test data interface reflectivity
 bm = bmode(bfImgData.iq',80);  
 [~ , edge] = (max(bm,[],1));
-edgeYVal = bfImgData.yVals(round(mean(edge)));
+edgeYVal = 0;%bfImgData.yVals(round(mean(edge)));
 
 %spectral calculations
 fs = vsxParams.Trans.frequency*1e6*vsxParams.Receive(1).samplesPerWave;
@@ -75,17 +77,26 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 %centre frequency of test data
 powf0 = abs(cInput.spectAll(:,nF));
 
-%Calculate edge correction factor
-[mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir);
-[mEdgeSpectTest ,yEdgeTest] = edgeDetectionMulti(testDir);
-%[mEdgeSpectTest ,yEdgeTest] = edgeDetectionSingle(bfImgData.fullIM,bfImgData.fs,bfImgData.yVals,10,1540,bfImgData.Trans.frequency*1e6,17:111);
 
-edgecorr = (mean(mEdgeSpectSpeckle)/mean(mEdgeSpectTest))^2;
+if 1%~exist([testDir,'/data_edgeCorr.mat'])
+    %Calculate edge correction factor
+    tic
+    [mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir,1);
+    toc
+    [mEdgeSpectTest ,yEdgeTest] = edgeDetectionMulti(testDir,0);
+    %[mEdgeSpectTest ,yEdgeTest] = edgeDetectionSingle(bfImgData.fullIM,bfImgData.fs,bfImgData.yVals,10,1540,bfImgData.Trans.frequency*1e6,17:111);
+    %!!! squared to account for way there and back!! 
+    %edgecorr = (mean(mEdgeSpectTest,'omitnan')/mean(mEdgeSpectSpeckle,'omitnan'))^2;
+    save([testDir,'/data_edgeCorr.mat'],'edgecorr','mEdgeSpectTest','yEdgeTest','yEdgeSpeckle','mEdgeSpectSpeckle')
+%else
+    load([testDir,'/data_edgeCorr.mat'])
+    %
+end
 
-edgecorr =   46.6590;
-
+edgecorr =1 ;
+                
 attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
-attSpeckle  = [0    .524 , 0.09].*vsxParams.Trans.frequency;
+attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
 attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
 
 dzT = depthSelect*0.1 - edgeYVal*100;
@@ -100,14 +111,14 @@ speckle_STD  = std(speckleCOSIE.powf0);
 testPOWER_MEAN = mean(powf0*attComp_Test);
 testPOWER_STD = std(powf0*attComp_Test);
 
-%ground truth BSC values: reference
-mu0_ref = 3.25e-4/(3^3.6);
-bscSpeckleBf_ref = mu0_ref * vsxParams.Trans.frequency^3.6; 
+%ground truth BSC values: reference 
+mu0_ref = 3.86e-4/(3^3.5); %(cm^{-1}sr^{-1}) 
+bscSpeckleBf_ref = mu0_ref * 100 * vsxParams.Trans.frequency^3.5 ; %(m^{-1}sr^{-1})
 bscSpeckleSTD_ref = 0.2*bscSpeckleBf_ref;
 
 %ground truth BSC values: test
-mu0_test = 3.86e-4/(3^3.5);
-bscSpeckleBf_test = mu0_test * vsxParams.Trans.frequency^3.6; 
+mu0_test = 3.25e-4/(3^3.6);%(cm^{-1}sr^{-1}) 
+bscSpeckleBf_test = mu0_test * 100 * vsxParams.Trans.frequency^3.6; %(m^{-1}sr^{-1})
 bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
 
 
@@ -304,10 +315,10 @@ bscEstimate_ENV_WEIGHT(:,2) = ((powerSeg_ENV_WEIGHT(2,:))./specklePOWER_MEAN) * 
 
 %% Plot segmentation vs BSC 
 
-bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_ref,bscEstimate_COH_COSIE)
+bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_test,bscEstimate_COH_COSIE)
 title('Coherence COSIE Segmentation')
 
-bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_ref,bscEstimate_ENV_COSE)
+bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_test,bscEstimate_ENV_COSE)
 title('SNR COSIE Segmentation')
 
 %Pdist may have 0 segmentation percentage, so we'll plot with a seperate
@@ -316,7 +327,7 @@ title('SNR COSIE Segmentation')
 bscEstimationWeightFigure(bscSpeckleBf_ref,bscSpeckleSTD_ref,bscEstimate_ENV_WEIGHT,bscEstimate_COH_WEIGHT)
 
 
-save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf_ref','bscSpeckleSTD_ref','bscEstimate_COH_COSIE',...
-    'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
+%save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf_ref','bscSpeckleSTD_ref','bscEstimate_COH_COSIE',...
+    %'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
 
 

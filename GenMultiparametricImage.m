@@ -34,9 +34,15 @@ mu0_test = 3.86e-4/(3^3.5);
 bscSpeckleBf_test = mu0_test * vsxParams.Trans.frequency^3.6; 
 bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
 
+%Calculate edge correction factor
+[mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir);
+[mEdgeSpectTest ,yEdgeTest] = edgeDetectionMulti(testDir);
+%[mEdgeSpectTest ,yEdgeTest] = edgeDetectionSingle(bfImgData.fullIM,bfImgData.fs,bfImgData.yVals,10,1540,bfImgData.Trans.frequency*1e6,17:111);
 
+edgecorr = (mean(mEdgeSpectSpeckle)/mean(mEdgeSpectTest))^2;
 
-edgecorr =   46.6590;
+%edgecorr =   46.6590;
+
 bm = bmode(bfImgData.iq',80);  
 [~ , edge] = (max(bm,[],1));
 edgeYVal = bfImgData.yVals(round(mean(edge)));
@@ -106,9 +112,7 @@ for iDepth = 1:length(depthVals)
    
     
     bscConvert = (1./specklePOWER_MEAN) * bscSpeckleBf_ref *edgecorr*attComp_Test;
-    powAll(iDepth,:) = powf0.*bscConvert.*1e2;
-
-   
+    powAll(iDepth,:) = powf0.*bscConvert;
     
     RMatTest = zeros(length(rayIdxs),sumIdx);
     
@@ -186,7 +190,7 @@ plot([min(depthVals)-5 max(depthVals)+5],bscSpeckleBf_test.*[1 1],'k-','MarkerSi
 errorbar(min(depthVals)-5,bscSpeckleBf_test, bscSpeckleSTD_ref,'k.','MarkerSize',10)
 xticks(depthVals)
 xlabel('Depth (mm)')
-ylabel('BSC (cm^{-1}sr^{-1})')
+ylabel('BSC (m^{-1}sr^{-1})')
 %title('Full Width averaging')
 ax = gca;
 ax.FontSize = 20;

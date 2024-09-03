@@ -48,7 +48,7 @@ function [] = depthFeaturePlot(cosieStructCOH,cosieStructSNR,EMLidx,lWidth,cohTe
     subplot(2,2,4)
     plot(cosieStructSNR.redEML(1,:),cosieStructSNR.redEML(2,:),'k-.')
     hold on 
-    contour(cosieStructSNR.thVector,cosieStructSNR.thVector,abs(1-cosieStructSNR.segSurface),2.^(0.5:-0.5:-10));
+    contour(cosieStructSNR.EML(1,:),cosieStructSNR.EML(1,:),abs(1-cosieStructSNR.segSurface),2.^(0.5:-0.5:-10));
     ax = gca;
     xLimsC2 = ax.XLim;plot(xLimsC2,xLimsC2,'k-')
     xlim(xLimsC2)

@@ -6,7 +6,7 @@ function [mEdgeSpect ,y0] = edgeDetectionMulti(dir,switchBool)
 
 
     %kernel length in periods of T0 = 1/f0
-    kLengthPER = 30;
+    kLengthPER = 20;
     xBool = 17:111;
    
    
@@ -38,8 +38,7 @@ function [mEdgeSpect ,y0] = edgeDetectionMulti(dir,switchBool)
         wSize = IDF.Filt.wsize*lambda; 
 
         IDF.Filt.yVals = offset + wSize/2 + (IDF.Filt.wpos )./2*lambda/bfImgData.Receive(1).samplesPerWave;
-        %wPosActual = (vsxParams.Receive(1).startDepth*sPerWave+Filt.wpos(:))/mmtosamps*1e-3; 
-       
+        
         [~,nF0_IDF] = min(abs(f0/1e6-IDF.Filt.f));
 
         %get fast time axis as the first dimension
@@ -62,9 +61,8 @@ function [mEdgeSpect ,y0] = edgeDetectionMulti(dir,switchBool)
         kLength_LENGTH = 0.5*kLengthPER*(1/f0)*c0;
     
         if switchBool 
-            [~,yIdx]= max(sum(fullIM,2)); 
-            timeS = sum(abs(fullIM),2);
-           
+            [~,yIdx]= max(sum(fullIM,2));
+        
         else
             timeS = sum(abs(fullIM),2);
             p1 = figure ;
@@ -76,12 +74,12 @@ function [mEdgeSpect ,y0] = edgeDetectionMulti(dir,switchBool)
 
         y0_Val = yVals(yIdx);
 
-        if 1%y0_Val < min(IDF.Filt.yVals) || y0_Val > max(IDF.Filt.yVals)
+        if y0_Val < min(IDF.Filt.yVals) || y0_Val > max(IDF.Filt.yVals)
             
-           % mEdgeSpect(iImage) = nan;
-           % y0(iImage) = nan;
+            mEdgeSpect(iImage) = nan;
+            y0(iImage) = nan;
 
-        %else
+        else
             
             [~,y0IDF_idx] = min(abs(y0_Val-IDF.Filt.yVals));
             y0(iImage)= y0_Val;
@@ -105,9 +103,9 @@ function [mEdgeSpect ,y0] = edgeDetectionMulti(dir,switchBool)
             [~ , nF] = min(abs(fVals-f0));
             
             fLine = IDF.Filt.F(nF0_IDF,:);
-            idfCorrVal = interp1(IDF.Filt.yVals,fLine,yVals(yBool));
+            idfCorrVal = interp1(IDF.Filt.yVals,)
 
-            mEdgeSpect(iImage) = mean(spectVals(nF,:))/mean(idfCorrVal,'omitnan');
+            mEdgeSpect(iImage) = mean(spectVals(nF,:))/;
             
     end
     
