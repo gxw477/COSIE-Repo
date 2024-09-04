@@ -6,6 +6,8 @@ speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
 testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
 
+planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
+1
 
 %load verasonics param's
 vsxParams = load([testDir,'\VSXoutput.mat']);
@@ -13,7 +15,7 @@ vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
 sumIdx = 33;
-iImage = input('Which Image ? :');
+iImage = input('Which Image ? : ');
 %load test data
 bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
 
@@ -77,8 +79,25 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 %centre frequency of test data
 powf0 = abs(cInput.spectAll(:,nF));
 
+R0_test = planarReflectorEstimates(testDir,planeDir,0);
+Ttest = (1-mean(R0_test));
 
-if 1%~exist([testDir,'/data_edgeCorr.mat'])
+R0_speckle= planarReflectorEstimates(speckleDir,planeDir,1);
+Tspeckle = (1-mean(R0_speckle));
+
+
+edgecorr = (Tspeckle/Ttest)^1;
+edgecorr = 1.2735^2;
+
+
+
+%if testDir == '\G218L74_1\'
+%   edgecorr ~= 1.2735
+%elseif testDir \G218L74_2\
+%   edgecorr ~= 
+%end
+
+if 0%~exist([testDir,'/data_edgeCorr.mat'])
     %Calculate edge correction factor
     tic
     [mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir,1);
@@ -92,8 +111,6 @@ if 1%~exist([testDir,'/data_edgeCorr.mat'])
     load([testDir,'/data_edgeCorr.mat'])
     %
 end
-
-edgecorr =1 ;
                 
 attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
 attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;

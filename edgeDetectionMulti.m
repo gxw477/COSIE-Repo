@@ -69,6 +69,9 @@ function [mEdgeSpect ,y0] = edgeDetectionMulti(dir,switchBool)
             timeS = sum(abs(fullIM),2);
             p1 = figure ;
             plot(gca,timeS);
+            hold on 
+            plot(gca,sum(fullIM,2));
+            xlim([100 400])
             peakMat = ginput;
             yIdx = round(mean(peakMat(:,1)));
             close(p1)
