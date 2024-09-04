@@ -1,4 +1,4 @@
-function [] = bmCohCOSIEparImage_EML_video_FRAME(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,rayIdxs,speckleCOSIE,cohTest,sumIdx,segIdx)
+function [xlimSubFig,ylimSubFig] = bmCohCOSIEparImage_EML_video_FRAME(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool,rayIdxs,speckleCOSIE,cohTest,sumIdx,segIdx,xlimSubFig,ylimSubFig)
 
     %EML is the value of the EML up until the current index (for plotting
     %purposes only)
@@ -89,11 +89,26 @@ function [] = bmCohCOSIEparImage_EML_video_FRAME(xVals,yVals,bfImgData,depthIdx,
     plot([-sumIdx sumIdx],[-sumIdx sumIdx],'k-')
     contour(speckleCOSIE.thVector,speckleCOSIE.thVector,abs(1-speckleCOSIE.segSurface),2.^(0.5:-0.5:-10))
     cB2 = colorbar;
-    cB2.Location = 'westtoutside';
+    cB2.Location = 'northoutside';
     cB2.Label.String = 'Seg. Strength';
     cB2.Label.FontSize = 9;
-    xlim([-2 max(speckleCOSIE.thVector)])
-    ylim([-2 max(speckleCOSIE.thVector)])
+    
+    if segIdx == 1
+
+        input('Ready for limit selection : ')
+        
+        xlimLow = input('Lower xlim :');
+        xlimHigh = input('Upper xlim :');
+        ylimLow = input('Lower ylim : ');
+        ylimHigh = input('Upper ylim : ');
+
+        xlimSubFig = [xlimLow, xlimHigh];
+        ylimSubFig = [ylimLow, ylimHigh];
+
+    end
+
+    xlim(xlimSubFig)
+    ylim(ylimSubFig)
     xlabel('Lower Threshold')
     ylabel('Upper Threshold')
     %axis equal

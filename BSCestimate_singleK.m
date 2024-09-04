@@ -247,7 +247,7 @@ end
 close all
 
 testEnvelope = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
-    
+    1
 
 
 powerSeg_COH_COSIE = COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
@@ -298,16 +298,24 @@ bscEstimate_ENV_WEIGHT(:,2) = ((powerSeg_ENV_WEIGHT(2,:))./specklePOWER_MEAN) * 
 bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_test,bscEstimate_COH_COSIE)
 title('Coherence COSIE Segmentation')
 
+
+
+bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
+
+
 bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_test,bscEstimate_ENV_COSE)
 title('SNR COSIE Segmentation')
+
+bmCohCOSIEparImage(rayIdxs.*lWidth,yVals,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx))
 
 %Pdist may have 0 segmentation percentage, so we'll plot with a seperate
 %function to the COSIE results
 
+
 bscEstimationWeightFigure(bscSpeckleBf_ref,bscSpeckleSTD_ref,bscEstimate_ENV_WEIGHT,bscEstimate_COH_WEIGHT)
 
 
-%save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf_ref','bscSpeckleSTD_ref','bscEstimate_COH_COSIE',...
-    %'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
+save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf_ref','bscSpeckleSTD_ref','bscEstimate_COH_COSIE',...
+    'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
 
 

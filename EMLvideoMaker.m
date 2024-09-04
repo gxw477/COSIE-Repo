@@ -7,11 +7,16 @@ function [] = EMLvideoMaker(saveDirJPGS,nEMLpoints,cohTest,speckleCOSIE,lWidth,y
     v = VideoWriter([saveDirJPGS,'myFile.mp4']);
     v.FrameRate = 1.5;
     open(v)
+
+    xVals = (1:128).*lWidth;
     
+    xlimSubFig = [];
+    ylimSubFig = [];
+
     for idxEML = 1:nEMLpoints
 
         segBool3 = cohTest > speckleCOSIE.redEML(1,idxEML) & cohTest < speckleCOSIE.redEML(2,idxEML);
-        bmCohCOSIEparImage_EML_video_FRAME((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool3,xBool,speckleCOSIE,cohTest,sumIdx,idxEML)
+        [xlimSubFig,ylimSubFig] = bmCohCOSIEparImage_EML_video_FRAME(xVals,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool3,xBool,speckleCOSIE,cohTest,sumIdx,idxEML,xlimSubFig,ylimSubFig);
         saveas(gcf,[saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
         A = imread([saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
         writeVideo(v,A);

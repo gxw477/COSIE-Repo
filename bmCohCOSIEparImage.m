@@ -7,10 +7,6 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     
     xVals = xVals - mean(xVals);
 
-    xlabel('Lateral Position (mm)')
-    axis equal
-    ylabel('Axial Position (mm)')
-
     figure
     ax1 = axes;
     imagesc(ax1,xVals,yVals,B80);
@@ -54,7 +50,7 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     axis tight 
     axis equal
 
-        input('Resize')
+    input('Resize')
 
     axisPosition = get(ax1,'Position');
     colorbarPosition = get(cB, 'Position');
