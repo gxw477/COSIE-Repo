@@ -7,7 +7,6 @@ speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607
 testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
 
 planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
-1
 
 %load verasonics param's
 vsxParams = load([testDir,'\VSXoutput.mat']);
@@ -79,35 +78,20 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 %centre frequency of test data
 powf0 = abs(cInput.spectAll(:,nF));
 
-R0_test = planarReflectorEstimates(testDir,planeDir,0);
-Ttest = (1-mean(R0_test));
 
-R0_speckle= planarReflectorEstimates(speckleDir,planeDir,1);
-Tspeckle = (1-mean(R0_speckle));
-
-
-edgecorr = (Tspeckle/Ttest)^1;
-edgecorr = 1.2735^2;
-
-
-
-%if testDir == '\G218L74_1\'
-%   edgecorr ~= 1.2735
-%elseif testDir \G218L74_2\
-%   edgecorr ~= 
-%end
-
-if 0%~exist([testDir,'/data_edgeCorr.mat'])
+if ~exist([testDir,'/data_edgeCorr.mat'])
+    
     %Calculate edge correction factor
-    tic
-    [mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir,1);
-    toc
-    [mEdgeSpectTest ,yEdgeTest] = edgeDetectionMulti(testDir,0);
-    %[mEdgeSpectTest ,yEdgeTest] = edgeDetectionSingle(bfImgData.fullIM,bfImgData.fs,bfImgData.yVals,10,1540,bfImgData.Trans.frequency*1e6,17:111);
-    %!!! squared to account for way there and back!! 
-    %edgecorr = (mean(mEdgeSpectTest,'omitnan')/mean(mEdgeSpectSpeckle,'omitnan'))^2;
-    save([testDir,'/data_edgeCorr.mat'],'edgecorr','mEdgeSpectTest','yEdgeTest','yEdgeSpeckle','mEdgeSpectSpeckle')
-%else
+    R0_test = planarReflectorEstimates(testDir,planeDir,0);
+    Ttest = (1-mean(R0_test));
+    
+    R0_speckle= planarReflectorEstimates(speckleDir,planeDir,1);
+    Tspeckle = (1-mean(R0_speckle));
+
+    edgecorr = (Tspeckle/Ttest)^2;
+    save([testDir,'/data_edgeCorr.mat'],'edgecorr')
+    
+else
     load([testDir,'/data_edgeCorr.mat'])
     %
 end
@@ -249,32 +233,11 @@ legend(legendCell(orderSlices))
 
 %% more parametrics? 
 
-contBool = input('More maps? ');
+%contBool = input('More maps? ');
 
 if 0
-
-    saveDirJPGS = ['Test\'];
     
-    if ~exist(saveDirJPGS,'dir')
-        mkdir(saveDirJPGS)
-    end
-    
-    v = VideoWriter([saveDirJPGS,'myFile.mp4']);
-    v.FrameRate = 1.5;
-    open(v)
-    
-    for idxEML = 1:55
-
-        segBool3 = cohTest > speckleCOSIE.redEML(1,idxEML) & cohTest < speckleCOSIE.redEML(2,idxEML);
-        bmCohCOSIEparImage_EML_video((1:128).*lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,segBool3,xBool,speckleCOSIE,cohTest,sumIdx,idxEML)
-        saveas(gcf,[saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
-        A = imread([saveDirJPGS,'idx_',num2str(idxEML),'.jpg']);
-        writeVideo(v,A);
-        close all
-    
-    end
-    
-    close(v)
+    EMLvideoMaker('Test',55,cohTest,speckleCOSIE,lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,xBool,sumIdx)
 
 end
 
