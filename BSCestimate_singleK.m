@@ -4,11 +4,13 @@ close all
 
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
+%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver_NHV_NTGC\';
+
 
 planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
-%load verasonics param's
+%load verasonics param's2
 vsxParams = load([testDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
@@ -95,10 +97,20 @@ else
     load([testDir,'/data_edgeCorr.mat'])
     %
 end
-                
-attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
+ 
+input('Check which attenuation value you are using')
+
+%QA phantom
+%attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
+
+%Emma Liver 
+attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+
+
 attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
-attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
+%attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
+
+
 
 dzT = depthSelect*0.1 - edgeYVal*100;
 attTest_DB = 2*(dzT)*attTest(1);
@@ -172,16 +184,19 @@ rayIdxs2 = rayIdxs(xBool);
 segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
 
 
-bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
+bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence')
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
 
 
 segBool2 = snrTest > speckleSNRdata.redEML(1,EMLidx) & snrTest < speckleSNRdata.redEML(2,EMLidx);
-bmCohCOSIEparImage(rayIdxs.*lWidth,yVals,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx))
+bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx),'SNR')
 saveas(gcf,[saveDir_SEG,'ParametricImage_SNR'])
 
 depthFeaturePlot(speckleCOSIE,speckleSNRdata,EMLidx,lWidth,cohTest,snrTest,20)
-saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
+saveas(gcf,[saveDir_SEG,'DepthImage'])
+
+
+
 
 
 %%
@@ -237,17 +252,17 @@ legend(legendCell(orderSlices))
 
 if 0
     
-    EMLvideoMaker('Test',55,cohTest,speckleCOSIE,lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,xBool,sumIdx)
+    EMLvideoMaker([saveDir_SEG,'\video\'],55,cohTest,speckleCOSIE,lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,xBool,sumIdx)
 
 end
 
 
 %% Calculations for segmentations vs BSC estimate with both methods and both input vbls
 
-close all
+%close all
 
 testEnvelope = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
-    1
+    
 
 
 powerSeg_COH_COSIE = COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
@@ -300,13 +315,13 @@ title('Coherence COSIE Segmentation')
 
 
 
-bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
+%bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence')
 
 
 bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_test,bscEstimate_ENV_COSE)
 title('SNR COSIE Segmentation')
 
-bmCohCOSIEparImage(rayIdxs.*lWidth,yVals,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx))
+%bmCohCOSIEparImage(rayIdxs.*lWidth,yVals,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx),'SNR')
 
 %Pdist may have 0 segmentation percentage, so we'll plot with a seperate
 %function to the COSIE results

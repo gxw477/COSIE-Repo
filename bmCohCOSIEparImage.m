@@ -1,15 +1,40 @@
-function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML)
+function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML,titleString)
+% bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML,titleString)
+%
+%   I 
+%   ~~~~~~~~~~
+%   xVals & yVals vector (1xM lines, 1:k samples) (mm)!!! 
+%   bfImgData     struct
+%   depthIdx    scalar 
+%   axIdxsBSC   vector (1xN idxs) axial indices for BSC estm.
+%   axIdxsCOH   vector (1xN idxs)    "      "  for Coh estm. 
+%   powf0       vector (1xM lines) absolute backscattered power at f0
+%   segBool     keep = 1, seg = 0
+%   rayIdxs     vector (1xM' lines) lines to keep
+%   segEML      matrix (2xS seg points) 
+    
+    rawIQ{1} = bfImgData.IData{1}+1i.*bfImgData.QData{1};
 
-    B80 = bmode(bfImgData.iq',100);
+    iqV = demodulateIQfn(bfImgData.PData,rawIQ);
+
+    bModeViq = bmode(iqV,100);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
     
     xVals = xVals - mean(xVals);
+    
 
+    bmXVals = 1e3.*(bfImgData.PData.Origin(1) + (1:size(bModeViq,2)).*bfImgData.PData.PDelta(1))*bfImgData.lambda;
+    %bmYVals = (bfImgData.PData.Origin(3) + (1:size(bModeViq,1)).*bfImgData.PData.PDelta(3))*bfImgData.lambda;
+   
+
+    bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ (1:2*bfImgData.PData.Size-1).*0.5*bfImgData.PData.PDelta(3));
+
+    
     figure
     ax1 = axes;
-    imagesc(ax1,xVals,yVals,B80);
+    imagesc(ax1,bmXVals,bmZvals,bModeViq);
     hold on 
     plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
     plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], [yVals(axIdxsBSC(1)) yVals(axIdxsBSC(end))],'r^-','MarkerFaceColor','red','LineWidth',2)
@@ -46,11 +71,11 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
 
     speckleScore = 100 - (outSeg-segEML);
 
-    title(ax1,['Speckle Score = ',num2str(round(speckleScore))])
+    %title(ax1,[titleString,' Speckle Score = ',num2str(round(speckleScore))])
     axis tight 
     axis equal
 
-    input('Resize')
+    %input('Resize : ')
 
     axisPosition = get(ax1,'Position');
     colorbarPosition = get(cB, 'Position');

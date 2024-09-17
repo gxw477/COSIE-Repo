@@ -8,14 +8,16 @@ function [] = depthFeaturePlot(cosieStructCOH,cosieStructSNR,EMLidx,lWidth,cohTe
     % cohTest : coherence values in image 
     % snrTest : snr values for image
 
-
+    xVals = 1e3*lWidth.*[1:length(cohTest)];
+    xVals = xVals - mean(xVals);
+    
     
     figure 
     subplot(2,2,1)
-    plot(lWidth.*[1 length(cohTest)],cosieStructCOH.redEML(1,EMLidx).*[1 1],'k-')
+    plot([xVals(1) xVals(end)],cosieStructCOH.redEML(1,EMLidx).*[1 1],'k-')
     hold on 
-    plot(lWidth.*[1 length(cohTest)],cosieStructCOH.redEML(2,EMLidx).*[1 1],'k-')
-    plot(lWidth.*(1:length(cohTest)),cohTest,'r-')
+    plot([xVals(1) xVals(end)],cosieStructCOH.redEML(2,EMLidx).*[1 1],'k-')
+    plot(xVals,cohTest,'r-')
     xlabel('Lateral position (m)')
     ylabel('Coherence Value')
     

@@ -5,11 +5,12 @@ close all
 
 topDir = [uigetdir,'\'];
 
-fileStub = input('File Stub : ','s');
+fileStub = 'AllImgData'; 
 fileNames = ls([fileStub,'*']);
 
-for iFile = 1:21
-
+for iFile = 1:30
+    
+    disp(['iFile = ',num2str(iFile)])
     VSXfileOption = 2;
     
     if VSXfileOption == 1
@@ -25,7 +26,7 @@ for iFile = 1:21
     
     %load([topDir,'vsxResult_newSample.mat'])
     
-    load([topDir,fileStub,num2str(iFile),'.mat'])
+    load([topDir,fileNames(iFile,:)])
     
     %close all
     
@@ -219,6 +220,6 @@ for iFile = 1:21
     
     save([topDir,'\BFimgData',num2str(iFile),'.mat'])
 
-    clearvars -except iFrame topDir fileStub
+    clearvars -except fileNames topDir fileStub
 
 end

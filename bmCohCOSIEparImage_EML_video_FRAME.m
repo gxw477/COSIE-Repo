@@ -55,7 +55,10 @@ function [xlimSubFig,ylimSubFig] = bmCohCOSIEparImage_EML_video_FRAME(xVals,yVal
     title(ax1,['Seg = ',num2str(outSeg),'%'])
     axis tight 
     axis equal
-   
+    
+    ylim([min(yVals) 0.06])
+
+
     [speckleCOHpdf,speckleCOHbins] = histcounts(speckleCOSIE.cohSum);
 
     speckleCOHbins = speckleCOHbins(1:end-1)+(speckleCOHbins(2)-speckleCOHbins(1))/2;
@@ -86,8 +89,9 @@ function [xlimSubFig,ylimSubFig] = bmCohCOSIEparImage_EML_video_FRAME(xVals,yVal
     set(gca,'YColor','k')
     plot(speckleCOSIE.EML(1,1:segIdx),speckleCOSIE.EML(2,1:segIdx),'k-o','MarkerFaceColor','k','MarkerSize',2)
     hold on 
-    plot([-sumIdx sumIdx],[-sumIdx sumIdx],'k-')
     contour(speckleCOSIE.thVector,speckleCOSIE.thVector,abs(1-speckleCOSIE.segSurface),2.^(0.5:-0.5:-10))
+    plot([-sumIdx sumIdx],[-sumIdx sumIdx],'k-')
+    
     cB2 = colorbar;
     cB2.Location = 'northoutside';
     cB2.Label.String = 'Seg. Strength';

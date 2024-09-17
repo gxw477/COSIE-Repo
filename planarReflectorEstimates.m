@@ -80,6 +80,5 @@ function R0 = planarReflectorEstimates(dir,prefDir,switchBool)
         
     end
         
-    
-
+   
 end

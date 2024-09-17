@@ -1,7 +1,7 @@
 function [] = EMLvideoMaker(saveDirJPGS,nEMLpoints,cohTest,speckleCOSIE,lWidth,yVals,bfImgData,depthIdx,axIdxs,powf0,xBool,sumIdx)
     
     if ~exist(saveDirJPGS,'dir')
-        mkdir(saveDirJPGS)
+        mkdir([saveDirJPGS,'\video'])
     end
     
     v = VideoWriter([saveDirJPGS,'myFile.mp4']);

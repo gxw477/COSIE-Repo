@@ -31,7 +31,7 @@ for iFrame = 1:size(fileNames,1)
     %load(fileNames(iFrame,:))
     %close all
 
-    load([fileNames(i,:)])
+    load([fileNames(iFrame,:)])
     
     RfFrame1 = double(RcvData{1}); 
     

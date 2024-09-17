@@ -1,30 +1,52 @@
-function [] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML)
+function [] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,kLength,powf0,segBool,rayIdxs,segEML,titleString)
+% bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML,titleString)
+%
+%   I 
+%   ~~~~~~~~~~
+%   xVals & yVals vector (1xM lines, 1:k samples) (mm)!!! 
+%   bfImgData     struct
+%   depthIdx    scalar (only plots the hzal line now 
+%   axIdxsBSC   vector (DxN idxs) axial indices for BSC estm.
+%   kLength     kernel length
+%   powf0       vector (DxM lines) absolute backscattered power at f0
+%   segBool     keep = 1, seg = 0
+%   rayIdxs     vector (1xM' lines) lines to keep
+%   segEML      matrix (2xS seg points) 
+    
+    rawIQ{1} = bfImgData.IData{1}+1i.*bfImgData.QData{1};
+    iqV = demodulateIQfn(bfImgData.PData,rawIQ);
 
-    B80 = bmode(bfImgData.iq',80);
+    bModeViq = bmode(iqV,75);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
     
+    xVals = xVals - mean(xVals);
+    
 
+    bmXVals = 1e3.*(bfImgData.PData.Origin(1) + (1:size(bModeViq,2)).*bfImgData.PData.PDelta(1))*bfImgData.lambda;
+    bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ (1:2*bfImgData.PData.Size-1).*0.5*bfImgData.PData.PDelta(3));
+
+    
 
     figure
     ax1 = axes;
-    imagesc(ax1,xVals,yVals,B80);
+    imagesc(ax1,bmXVals,bmZvals,bModeViq);
     hold on 
-    plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
-    plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], [yVals(axIdxsBSC(1)) yVals(axIdxsBSC(end))],'r^-','MarkerFaceColor','red','LineWidth',2)
-    plot(ax1,[xVals(rayIdxs(1)-5) xVals(rayIdxs(1)-5)], [yVals(axIdxsCOH(1)) yVals(axIdxsCOH(end))],'ro-','MarkerFaceColor','red','LineWidth',2)
+    %plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
+    %plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], 10.*[1 1],'r^-','MarkerFaceColor','red','LineWidth',2)
+    %plot(ax1,[xVals(rayIdxs(1)-5) xVals(rayIdxs(1)-5)], [yVals(axIdxsCOH(1)) yVals(axIdxsCOH(end))],'ro-','MarkerFaceColor','red','LineWidth',2)
     
-    xlabel('Lateral Position (m)')
+    xlabel('Lateral Position (mm)')
     axis equal
-    ylabel('Axial Position (m)')
+    ylabel('Axial Position (mm)')
      
     
     ax2 = axes;
-    powfLong = repmat(powf0,1,size(axIdxsBSC,2));
-    hideVectorLong = repmat(segBool,1,size(axIdxsBSC,2));
+    powfLong = repelem(powf0,1,kLength);
+    hideVectorLong = repelem(segBool,1,kLength);
     colorData(rayIdxs,axIdxsBSC) = log(powfLong); 
-    transpData(rayIdxs,axIdxsBSC) = 0.6.*hideVectorLong; 
+    transpData(rayIdxs,axIdxsBSC) = 0.5.*hideVectorLong; 
 
     imagesc(ax2,xVals , yVals, colorData','AlphaData',transpData')    
     cB = colorbar;
@@ -46,7 +68,7 @@ function [] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC
 
     speckleScore = 100 - (outSeg-segEML);
 
-    title(ax1,['Speckle Score = ',num2str(round(speckleScore)),'%'])
+    %title(ax1,['Speckle Score = ',num2str(round(speckleScore)),'%'])
     axis tight 
     axis equal
    
