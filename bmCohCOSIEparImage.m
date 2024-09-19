@@ -13,11 +13,13 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
 %   rayIdxs     vector (1xM' lines) lines to keep
 %   segEML      matrix (2xS seg points) 
     
-    rawIQ{1} = bfImgData.IData{1}+1i.*bfImgData.QData{1};
+    rawIQ{1} = bfImgData.IData{1}(:,:,1) +1i.*bfImgData.QData{1}(:,:,1);
 
-    iqV = demodulateIQfn(bfImgData.PData,rawIQ);
+    [iqV ,rfV , zOut] = demodulateIQfn(bfImgData.PData,rawIQ);
 
-    bModeViq = bmode(iqV,100);
+    nSamps = 1300;
+
+    bModeViq = bmode(iqV(1:nSamps,:),50);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
@@ -29,7 +31,7 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     %bmYVals = (bfImgData.PData.Origin(3) + (1:size(bModeViq,1)).*bfImgData.PData.PDelta(3))*bfImgData.lambda;
    
 
-    bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ (1:2*bfImgData.PData.Size-1).*0.5*bfImgData.PData.PDelta(3));
+    bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ zOut(1:nSamps).*bfImgData.PData.PDelta(3));
 
     
     figure
@@ -91,7 +93,7 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     cB.Location = 'eastoutside';
     cB.Location = 'manual';
 
-   
+    ylim([5 50])
 
 end 
 

@@ -76,7 +76,7 @@ end
 
 
 
-for iImage = 1:7
+for iImage = 1524:16:1572
 
     iImage
 

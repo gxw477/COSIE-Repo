@@ -6,16 +6,19 @@ topDir = [uigetdir,'\'];
 cd(topDir)
 
 %fileIdxs = 5:5:50;
-fileNames = ls('AllImgData*');
+fileNames = ls('Liver*');
 %fileNames = fileNames(3:end,:);
 
 %load(uigetfile)
+
+SOS = input('Speed of sound :')
 
 for iFrame = 1:size(fileNames,1)
 
     VSXfileOption = 2 ;
     
     if VSXfileOption == 1
+        
         load([topDir,'VSXinit.mat'])
         samplesPerAcq = (Receive(1).endDepth-Receive(1).startDepth)*4;
     
@@ -40,8 +43,9 @@ for iFrame = 1:size(fileNames,1)
     
     %% Calculate reconstruction positions
     
-    lambda = (Resource.Parameters.speedOfSound/(Trans.frequency*1e6));
-    
+    %lambda = (Resource.Parameters.speedOfSound/(Trans.frequency*1e6));
+    lambda = SOS/(Trans.frequency*1e6);
+
     samplesPwavel = Receive.samplesPerWave; 
      
     fs = Trans.frequency*1e6*samplesPwavel;
@@ -80,7 +84,7 @@ for iFrame = 1:size(fileNames,1)
     %params.radius = Trans.radiusMm*1e-3;
     params.height = Trans.elevationApertureMm*1e-3;
     params.focus = Trans.elevationFocusMm*1e-3;
-    params.c = Resource.Parameters.speedOfSound;
+    params.c = SOS; %Resource.Parameters.speedOfSound;
     params.t0 = 0; %Receive(1).startDepth*lambda*2/params.c  ;
 
     %% compute DAS for each line
@@ -221,7 +225,7 @@ for iFrame = 1:size(fileNames,1)
 
     B = bmode(iq(:,startIdx:endIdx),20);
         
-    save([topDir,'\BFimgData',num2str((iFrame)),'.mat'])
+    save([topDir,'\BFimgData',num2str(SOS),'.mat'])
 
     clearvars -except iFrame topDir fileNames
 

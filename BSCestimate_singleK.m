@@ -5,8 +5,11 @@ close all
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver_NHV_NTGC\';
+%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver_NHV_NTGC\';
+testDir = [uigetdir,'\'];
 
+liverBool = 1;
+phtBool = 0;
 
 planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
@@ -125,15 +128,26 @@ testPOWER_MEAN = mean(powf0*attComp_Test);
 testPOWER_STD = std(powf0*attComp_Test);
 
 %ground truth BSC values: reference 
+
 mu0_ref = 3.86e-4/(3^3.5); %(cm^{-1}sr^{-1}) 
 bscSpeckleBf_ref = mu0_ref * 100 * vsxParams.Trans.frequency^3.5 ; %(m^{-1}sr^{-1})
 bscSpeckleSTD_ref = 0.2*bscSpeckleBf_ref;
 
-%ground truth BSC values: test
-mu0_test = 3.25e-4/(3^3.6);%(cm^{-1}sr^{-1}) 
-bscSpeckleBf_test = mu0_test * 100 * vsxParams.Trans.frequency^3.6; %(m^{-1}sr^{-1})
-bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
 
+%ground truth BSC values
+
+if phtBool 
+    mu0_test = 3.25e-4/(3^3.6);%(cm^{-1}sr^{-1}) 
+    bscSpeckleBf_test = mu0_test * 100 * vsxParams.Trans.frequency^3.6; %(m^{-1}sr^{-1})
+    bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
+end
+
+if liverBool 
+    a = 3.15e-4;
+    b =  1.38;
+    bscSpeckleBf_test =  a * 100 * vsxParams.Trans.frequency^b; %(m^{-1}sr^{-1})
+    bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
+end    
 
 
 %regions of image with full aperture in effect
@@ -186,14 +200,19 @@ segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(seg
 
 bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence')
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
+saveas(gcf,[saveDir_SEG,'ParametricImage_COH.jpg'])
+
+%tripleImage()
 
 
 segBool2 = snrTest > speckleSNRdata.redEML(1,EMLidx) & snrTest < speckleSNRdata.redEML(2,EMLidx);
 bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx),'SNR')
 saveas(gcf,[saveDir_SEG,'ParametricImage_SNR'])
+saveas(gcf,[saveDir_SEG,'ParametricImage_SNR.jpg'])
 
 depthFeaturePlot(speckleCOSIE,speckleSNRdata,EMLidx,lWidth,cohTest,snrTest,20)
 saveas(gcf,[saveDir_SEG,'DepthImage'])
+saveas(gcf,[saveDir_SEG,'DepthImage.jpg'])
 
 
 
@@ -202,7 +221,7 @@ saveas(gcf,[saveDir_SEG,'DepthImage'])
 %%
 
 nEMLpoints = size(speckleCOSIE.EML,2);
-%bscCOSIE = zeros(2,nEMLpoints+1);
+%bscCOSIE = zeros(2,nEMLpo20ints+1);
 
 powerSeg      = COVsegmentation_sK(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
 
@@ -332,5 +351,4 @@ bscEstimationWeightFigure(bscSpeckleBf_ref,bscSpeckleSTD_ref,bscEstimate_ENV_WEI
 
 save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf_ref','bscSpeckleSTD_ref','bscEstimate_COH_COSIE',...
     'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
-
 
