@@ -143,7 +143,7 @@ if phtBool
 end
 
 if liverBool 
-    a = 3.15e-4;
+    a = 3.15e-4; %(cm^{-1}sr^{-1})
     b =  1.38;
     bscSpeckleBf_test =  a * 100 * vsxParams.Trans.frequency^b; %(m^{-1}sr^{-1})
     bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
@@ -198,7 +198,7 @@ rayIdxs2 = rayIdxs(xBool);
 segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
 
 
-bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence')
+bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH.jpg'])
 

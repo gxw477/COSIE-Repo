@@ -15,9 +15,9 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     
     rawIQ{1} = bfImgData.IData{1}(:,:,1) +1i.*bfImgData.QData{1}(:,:,1);
 
-    [iqV ,rfV , zOut] = demodulateIQfn(bfImgData.PData,rawIQ);
+    [iqV ,rfV , zOut] = demodulateIQfn(bfImgData.PData,rawIQ,2);
 
-    nSamps = 1300;
+    nSamps = 6e3;
 
     bModeViq = bmode(iqV(1:nSamps,:),50);
 

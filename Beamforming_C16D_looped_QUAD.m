@@ -4,11 +4,12 @@ clear
 close all 
 
 topDir = [uigetdir,'\'];
+cd(topDir)
 
 fileStub = 'AllImgData'; 
 fileNames = ls([fileStub,'*']);
 
-for iFile = 1:30
+for iFile = 1:size(fileNames,1)
     
     disp(['iFile = ',num2str(iFile)])
     VSXfileOption = 2;
