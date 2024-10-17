@@ -5,7 +5,7 @@ close all
 nRepeats = 6; 
 nTranslations = 6; 
 omitBool = boolean(ones(1,10)); 
-topDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\C16D\';
+topDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\C16D_ABT\';
 
 load('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\CCR5912_06V\VSX_init.mat','Trans')
 bw6dB = [Trans.Bandwidth(1), Trans.Bandwidth(2)]; 
@@ -19,13 +19,13 @@ errData = zeros(nRepeats,nTranslations);
 for iRepeat = 1:nRepeats
         
     for iTranslations = 1:6
-        frameData = load([topDir,'ABT',num2str(iRepeat),'/Results/Frame',num2str(iTranslations),'_IDF.mat']);
+        frameData = load([topDir,'ABT',num2str(iRepeat),'/Results/Frame',num2str(iTranslations),'Att.mat']);
         [~,nFm6dB]= min(abs(bw6dB(1)-frameData.BAE.IDFres.f));
         [~,nFp6dB]= min(abs(bw6dB(2)-frameData.BAE.IDFres.f));
         freqVector = nFm6dB:nFp6dB;
 
         f = frameData.BAE.IDFres.f(freqVector);
-        b = frameData.BAE.IDFres.b(freqVector);
+        b = frameData.BAE.IDFres.bm(freqVector);
         e = frameData.BAE.IDFres.c(freqVector);
         [slope, err ] = llsq2(f, b);
         
@@ -65,11 +65,12 @@ depth = 0.1.*(10:5:35);
 figure
 hold on 
 for iRepeat = 1:nRepeats
-    errorbar(10:5:35,attData(iRepeat,:),errData(iRepeat,:),'o','MarkerSize',3)
+    errorbar(depth,attData(iRepeat,:),errData(iRepeat,:),'o','MarkerSize',3)
 end
 ylabel('Attenuation coeff (dB/cm/MHz)')
 xlabel('Edge Depth (cm)')
 set(gca,'FontSize',15)
+xlim padded
 
 
 %mean 
