@@ -9,7 +9,7 @@ cd(topDir)
 fileStub = 'AllImgData'; 
 fileNames = ls([fileStub,'*']);
 
-for iFile = 31:size(fileNames,1)
+for iFile = 1:size(fileNames,1)
     
     disp(['iFile = ',num2str(iFile)])
     VSXfileOption = 2;

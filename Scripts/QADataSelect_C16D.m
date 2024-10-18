@@ -30,7 +30,7 @@ samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSampl
 rVals = lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
 lWidth = (vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1))*lambda;
 
-xVals = (1:128).*lWidth;
+xVals = vsxParams.Angle;
 
 
 [~, bscFocIdx] = min(abs(rVals - vsxParams.TX(1).focus*lambda));
@@ -48,7 +48,10 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 
   
 %% 
-nImages =  12;
+fNames = ls([topDirMaster,'\BFImg*']);
+nImages = size(fNames ,1);
+
+
 kIdxs = cell(nImages,1);
 
 
@@ -73,14 +76,18 @@ elseif wOption == 3
     wName = 'Welch';
 end
 
+for i = 1:128 
+    n(i) = sum(vsxParams.TX(i).Apod);
+end
 
+rayIdxs = find(n == max(n));
+%sumIdx = max(n)
 
 for iImage = 1:nImages
 
     iImage
-
-    load([topDirMaster,'BFimgData',num2str(iImage),'.mat'])
-   
+    
+    load([topDirMaster,fNames(iImage,:)])
     
     figure
     imagesc(xVals,yVals,log(abs(fullIM')),[2.5 11]); colormap gray 
@@ -88,11 +95,11 @@ for iImage = 1:nImages
     plot([xVals(1) xVals(end)],vsxParams.TX(1).focus*lambda.*[1 1],'-','color','red')
     colormap gray
 
-    rayIdxs = 17:11;
+   
 
     pause(0.5)
 
-    for zVals = 15:5:50
+    for zVals = 15:5:95
 
         zSelect = zVals*1e-3;
         [~, zIdx] = min(abs(rVals - zSelect));
