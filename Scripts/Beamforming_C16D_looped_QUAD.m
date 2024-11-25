@@ -218,6 +218,12 @@ for iFile = 1:size(fileNames,1)
 
 
     B = bmode(iq(:,startIdx:endIdx),50);
+
+    figure 
+    imagesc(B')
+    colormap gray
+    pause(5)
+    close all
     
     save([topDir,'\BFimgData',num2str(iFile),'.mat'])
 

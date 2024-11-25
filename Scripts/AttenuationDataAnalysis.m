@@ -2,7 +2,7 @@
 clear
 close all 
 
-nRepeats = 6; 
+nRepeats = 5; 
 nTranslations = 6; 
 omitBool = boolean(ones(1,10)); 
 topDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\C16D_ABT\';
@@ -19,7 +19,9 @@ errData = zeros(nRepeats,nTranslations);
 for iRepeat = 1:nRepeats
         
     for iTranslations = 1:6
-        frameData = load([topDir,'ABT',num2str(iRepeat),'/Results/Frame',num2str(iTranslations),'Att.mat']);
+        %frameData = load([topDir,'ABT',num2str(iRepeat),'/Results/Frame',num2str(iTranslations),'Att.mat']);
+        frameData = load([topDir,'ABT',num2str(iRepeat),'/Results/AttFrame',num2str(iTranslations),'.mat']);
+        
         [~,nFm6dB]= min(abs(bw6dB(1)-frameData.BAE.IDFres.f));
         [~,nFp6dB]= min(abs(bw6dB(2)-frameData.BAE.IDFres.f));
         freqVector = nFm6dB:nFp6dB;

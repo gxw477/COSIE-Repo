@@ -83,6 +83,8 @@ end
 rayIdxs = find(n == max(n));
 %sumIdx = max(n)
 
+sumImg = zeros(nImages,2048);
+
 for iImage = 1:nImages
 
     iImage
@@ -94,74 +96,12 @@ for iImage = 1:nImages
     hold on 
     plot([xVals(1) xVals(end)],vsxParams.TX(1).focus*lambda.*[1 1],'-','color','red')
     colormap gray
-
-   
-
-    pause(0.5)
-
-    for zVals = 15:5:95
-
-        zSelect = zVals*1e-3;
-        [~, zIdx] = min(abs(rVals - zSelect));
-        axIdxs = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
-        
-        if length(axIdxs) ~= kLength_BSC_samples
-            error('check bsc kernel length')
-        end
     
-        plot([xVals(1) xVals(end)],zSelect.*[1 1],'-','color','green')
-        plot(120*lWidth.*[1 1],[rVals(axIdxs(1)) rVals(axIdxs(end))],'-','color','green')
-        
-        saveDir = [topDirMaster,wName,'/Z',num2str(round(zSelect*1e3)),'/'];
+    fullIM2 = TGCnorm(fullIM,vsxParams,yVals);
 
-        if ~exist(saveDir)
-            mkdir(saveDir)
-        end
-        
-        bscLines = fullIM(rayIdxs,axIdxs);
-    
-        if wOption == 1 || wOption == 2
-            winMatrix = ones(size(bscLines)).*win;
-            bscLines = fullIM(rayIdxs,axIdxs).*winMatrix;
-            spect = abs((fft(bscLines,[],2)).^2);
-        
-        elseif wOption == 3
-            h = spectrum.welch;                  % Create a Welch spectral estimator.
-            welchObj = psd(h,bscLines','Fs',fs);
-            spect = (welchObj.Data').^2; % transpose because spectAveraging takes the vector the other way
-        end
-    
-       
-        cohAll = zeros(length(rayIdxs),size(channelStack,3));
-        spectAll = zeros(length(rayIdxs),size(spect,2));
-        
-        for iLine2 = 1:length(rayIdxs)
-            
-            cohAll(iLine2,:) = CoherenceAnalysisFN(squeeze(channelStack(rayIdxs(iLine2),axIdxs,:)));
-            spectAll(iLine2,:) = spect(iLine2,:);
-    
-        end
-        
-        %kCount = kCount + nKsInAverage; 
-        %rayCount = rayCount + length(kIdxs{iImage});
-    
-        save([saveDir,'\COSIEinput',num2str(iImage),'.mat'],'cohAll','spectAll','fVals','rayIdxs')
-
-
-        %% Envelope statistics calculations 
-    
-        %fullIM
-        fullEnv = abs(envelope(fullIM(rayIdxs,axIdxs)));
-        
-        envMean = mean(fullEnv,2);
-        envStd = std(fullEnv,0,2);
-        
-        save([saveDir,'\EnvStats',num2str(iImage),'.mat'],'envMean','envStd')
-    
-        mean(envMean./envStd)
-
-
-    end
+    sumImg(iImage,:) = sum(log(abs(fullIM)),1);
 
 end
+
+
 
