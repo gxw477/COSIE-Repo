@@ -4,7 +4,7 @@ close all
 
 %Image Analysis
 
-transSwitch = input('0 for L74 \n1 for C1-6D \n :');
+transSwitch = input('0 for L74 \n1 for C1-6D \n : ');
 
 if transSwitch == 0
     topDirMaster =  'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
@@ -50,7 +50,9 @@ clearvars fNames
 
 kIdxs = cell(nImages,1);
 
-for zSelect = (25:5:80).*1e-3
+
+
+for zSelect = (40:5:55).*1e-3
 
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
@@ -58,7 +60,7 @@ for zSelect = (25:5:80).*1e-3
     
     
     
-    wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+    wOption = 4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
     
     if wOption == 1 
         win = [0,ones(1,kLength_BSC_samples-2),0];
@@ -68,6 +70,9 @@ for zSelect = (25:5:80).*1e-3
         wName = 'Tukey';
     elseif wOption == 3
         wName = 'Welsh';
+    elseif wOption == 4 
+        win = hann(kLength_BSC_samples)';
+        wName = 'Hann';
     end
     
     saveDir = [topDirMaster,'/',wName,'/Z',num2str(round(zSelect*1e3)),'/'];
@@ -125,7 +130,11 @@ for zSelect = (25:5:80).*1e-3
         imageIdxsAll = sort(imageIdxsFrameKeep3(:));
     
     elseif transSwitch == 1
+        
+        %we're using all of them because they're recorded at the same
+        %distance from the phantom
         imageIdxsAll = 1:nImages;
+
     end
     
     nImages = length(imageIdxsAll);
@@ -137,8 +146,18 @@ for zSelect = (25:5:80).*1e-3
         load([topDirMaster,'\BFimgData',num2str(imageIdxsAll(iImage)),'.mat'])
          
         bM = bmode(iq',60);
-        [~ , edge] = (max(bM,[],1));
-        edgeYVal =  yVals(round(mean(edge)))
+        
+        [~,edgeIdx1] = min(abs(yVals-3e-2));
+        [~,edgeIdx2] = min(abs(yVals-3.6e-2));
+
+        [~ , edgeIdxActual] = max(bM(edgeIdx1:edgeIdx2,64));
+        edgeYVal =  yVals(edgeIdxActual+edgeIdx1-1);
+
+        figure 
+        imagesc(1:128,yVals,bM)
+        colormap gray 
+
+        close all
     
         attSpeckle_DB = 2*(zSelect*100 - edgeYVal*100)*attSpeckle(1);
         attComp_Speckle= 10^(attSpeckle_DB/10);
@@ -171,7 +190,7 @@ for zSelect = (25:5:80).*1e-3
     
         bscLines = fullIM(kIdxs{iImage},axIdxsBSC);
         
-        if wOption == 1 || wOption == 2
+        if wOption == 1 || wOption == 2 || wOption == 4
             winMatrix = ones(size(bscLines)).*win;
             bscLines = bscLines.*winMatrix;
             spect = (fft(bscLines,[],2)).^2;

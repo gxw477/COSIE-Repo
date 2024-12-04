@@ -24,7 +24,7 @@ for iFile = 1:size(fileNames,1)
         
     end
     
-    
+
     %load([topDir,'vsxResult_newSample.mat'])
     
     load([topDir,'RawImgData\',fileNames(iFile,:)])
@@ -84,6 +84,7 @@ for iFile = 1:size(fileNames,1)
     fitResults = load('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\FitResults.mat');
     
     tgc = load([topDir,'/VSXoutput.mat'],'TGC')
+    %tgc = load([topDir,'/TGC_1t9.mat'],'TGC')
 
     nTGCsamples = 128;
     nTimeSamples = 2*round(samplesPwavel)*200; 
