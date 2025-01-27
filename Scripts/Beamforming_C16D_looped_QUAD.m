@@ -7,7 +7,7 @@ topDir = [uigetdir,'\'];
 cd(topDir)
 
 fileStub = 'AllImgData'; 
-fileNames = ls([fileStub,'*']);
+fileNames = ls(['RawImgData\',fileStub,'*']);
 
 for iFile = 1:size(fileNames,1)
     
@@ -27,7 +27,7 @@ for iFile = 1:size(fileNames,1)
     
     %load([topDir,'vsxResult_newSample.mat'])
     
-    load([topDir,fileNames(iFile,:)])
+    load([topDir,'RawImgData\',fileNames(iFile,:)])
     
     %close all
     
@@ -123,7 +123,6 @@ for iFile = 1:size(fileNames,1)
       
         tDelay(omitBool) = nan;
     
-    
         %apElPos = [Trans.ElementPos(~omitBool,1), Trans.ElementPos(~omitBool,3)];
         %chordLength = sqrt((apElPos(1,1)-apElPos(end,1))^2 +(apElPos(1,2)-apElPos(end,2))^2);
         %chordAngle = 2*asin(chordLength/(2*Trans.radius));
@@ -148,7 +147,6 @@ for iFile = 1:size(fileNames,1)
         channelStack(i,:,1:size(channelData,2)) = channelData;
         
     end
-    
     
     iq = rf2iq(fullIM,params.fs);
     
@@ -207,14 +205,14 @@ for iFile = 1:size(fileNames,1)
     yVals = lambda.*linspace(Receive(1).startDepth,Receive(1).endDepth,samplesPerAcq);%
     
     
-    %[rMeshed, thMeshed] = meshgrid(rVals,Angle);
-    %[zPolar , xPolar  ] = pol2cart(thMeshed,rMeshed);
+    [rMeshed, thMeshed] = meshgrid(rVals,Angle);
+    [zPolar , xPolar  ] = pol2cart(thMeshed,rMeshed);
     
     startIdx = 250;
     endIdx = 1500; 
-    %zPolar = zPolar - radius*lambda; 
-    %zPolar2 = zPolar(:,startIdx:endIdx);
-    %xPolar2 = xPolar(:,startIdx:endIdx);.
+    zPolar = zPolar - radius*lambda; 
+    zPolar2 = zPolar(:,startIdx:endIdx);
+    xPolar2 = xPolar(:,startIdx:endIdx);
 
 
     B = bmode(iq(:,startIdx:endIdx),50);
@@ -224,8 +222,14 @@ for iFile = 1:size(fileNames,1)
     colormap gray
     pause(5)
     close all
-    
-    save([topDir,'\BFimgData',num2str(iFile),'.mat'])
+
+    saveDir = [topDir,'\BFimgData\'];
+
+    if ~exist(saveDir,'dir')
+        mkdir(saveDir)
+    end
+
+    save([saveDir,'\BFimgData',num2str(iFile),'.mat'])
 
     clearvars -except fileNames topDir fileStub
 

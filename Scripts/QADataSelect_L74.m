@@ -61,7 +61,7 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 kCount = 1; 
 rayCount= 0; 
 
-wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Hann \n 4 for Welch : \n ');
 
 if wOption == 1 
     win = ones(1,kLength_BSC_samples);
@@ -70,16 +70,26 @@ elseif wOption == 2
     win = tukeywin(kLength_BSC_samples,0.1)';
     wName = 'Tukey';
 elseif wOption == 3
+    win = hann(kLength_BSC_samples)';
+    wName = 'Hann';
+elseif wOption == 4
     wName = 'Welch';
 end
 
 
+for iReceive = 1:length(vsxParams.TX)
+    
+    nReceive(iReceive) = length(find(vsxParams.TX(iReceive).Apod));
+
+end
+
+rayIdxs = find(nReceive == mode(nReceive));
 
 for iImage = 1:nImages
 
     iImage
 
-    load([topDirMaster,'BFimgData',num2str(iImage),'.mat'])
+    load([topDirMaster,'\BFimgDataTGCcorr\BFimgData',num2str(iImage),'.mat'])
    
     
     figure
@@ -88,7 +98,7 @@ for iImage = 1:nImages
     plot([xVals(1) xVals(end)],vsxParams.TX(1).focus*lambda.*[1 1],'-','color','red')
     colormap gray
 
-    rayIdxs = 17:11;
+    %rayIdxs = 1:128;
 
     pause(0.5)
 
@@ -105,7 +115,7 @@ for iImage = 1:nImages
         plot([xVals(1) xVals(end)],zSelect.*[1 1],'-','color','green')
         plot(120*lWidth.*[1 1],[rVals(axIdxs(1)) rVals(axIdxs(end))],'-','color','green')
         
-        saveDir = [topDirMaster,wName,'/Z',num2str(round(zSelect*1e3)),'/'];
+        saveDir = [topDirMaster,wName,'\Z',num2str(round(zSelect*1e3)),'/'];
 
         if ~exist(saveDir)
             mkdir(saveDir)
@@ -113,12 +123,12 @@ for iImage = 1:nImages
         
         bscLines = fullIM(rayIdxs,axIdxs);
     
-        if wOption == 1 || wOption == 2
+        if wOption == 1 || wOption == 2 || wOption == 3 
             winMatrix = ones(size(bscLines)).*win;
             bscLines = fullIM(rayIdxs,axIdxs).*winMatrix;
             spect = abs((fft(bscLines,[],2)).^2);
         
-        elseif wOption == 3
+        elseif wOption == 4
             h = spectrum.welch;                  % Create a Welch spectral estimator.
             welchObj = psd(h,bscLines','Fs',fs);
             spect = (welchObj.Data').^2; % transpose because spectAveraging takes the vector the other way

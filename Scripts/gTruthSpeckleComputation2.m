@@ -52,7 +52,7 @@ kIdxs = cell(nImages,1);
 
 
 
-for zSelect = (40:5:55).*1e-3
+for zSelect = (85:5:90).*1e-3
 
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;

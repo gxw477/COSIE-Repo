@@ -16,16 +16,13 @@ for iFile = 1:size(fileNames,1)
     
     if VSXfileOption == 1
         load([topDir,'VSXinit.mat'])
-        samplesPerAcq = size(RfFrame1,1)/P.numRays ;
+        samplesPerAcq = size(RfFrame1,1)/P.numRays;
     
     elseif VSXfileOption == 2
         load([topDir,'VSXoutput.mat'])
         samplesPerAcq = Receive(1).endSample - Receive(1).startSample + 1;
         
     end
-    
-
-    %load([topDir,'vsxResult_newSample.mat'])
     
     load([topDir,'RawImgData\',fileNames(iFile,:)])
     
@@ -96,7 +93,9 @@ for iFile = 1:size(fileNames,1)
     wForm = tgc.TGC.Waveform;
     wForm2 = interp1(wFormT1,wForm(1:nTGCsamples),wFormT2);
 
-    wForm3 = fitResults.p3(1).*wForm2.^3 + fitResults.p3(2).*wForm2.^2 + fitResults.p3(3).*wForm2 + fitResults.p3(4);
+    wForm2Pad = [wForm2(1).*ones(1,50), wForm2(1:(nTimeSamples-50))];
+
+    wForm3 = fitResults.p3(1).*wForm2Pad.^3 + fitResults.p3(2).*wForm2Pad.^2 + fitResults.p3(3).*wForm2Pad + fitResults.p3(4);
     gainFn = 10.^(-wForm3./20);
 
     gainFn = [gainFn , gainFn(end).*ones(1,Receive(1).endSample - length(gainFn))];
@@ -163,20 +162,19 @@ for iFile = 1:size(fileNames,1)
         bformY =  linspace(Receive(i).startDepth,Receive(i).endDepth,samplesPerAcq2);
    
         params.Nelements  = length(tDelay(~omitBool));
-        [bfSigCorr,channelData,~] = mustUGeorge(acqI.*gainFn', zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,'quadratic');
-         
-        fullIMcorr(i,:) = bfSigCorr;
+        [~,channelData,~] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,'quadratic');
+        
 
-        %[bfSig,~,~] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,'quadratic');
-      
-        %fullIMunCorr(i,:) = bfSig;
+        channelData2 = channelData.*gainFn';
+
+        fullIM(i,:) = sum(channelData2,2);
        
-        channelStack(i,:,1:size(channelData,2)) = channelData;
+        channelStack(i,:,1:size(channelData2,2)) = channelData2;
         
     end
     
     
-    iq = rf2iq(fullIMcorr,params.fs);
+    iq = rf2iq(fullIM,params.fs);
     %iqUncorr = rf2iq(fullIMunCorr,params.fs);
     
     I = IData{1};
@@ -239,10 +237,6 @@ for iFile = 1:size(fileNames,1)
     
     startIdx = 250;
     endIdx = 1500;  
-    %zPolar = zPolar - radius*lambda; 
-    %zPolar2 = zPolar(:,startIdx:endIdx);
-    %xPolar2 = xPolar(:,startIdx:endIdx);.
-
 
     B = bmode(iq(:,startIdx:endIdx),50);
 
