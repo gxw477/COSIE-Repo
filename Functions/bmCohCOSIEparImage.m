@@ -19,7 +19,7 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
 
     nSamps = 6e3;
 
-    bModeViq = bmode(iqV(1:nSamps,:),50);
+    bModeViq = bmode(iqV(1:nSamps,:),70);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
@@ -93,7 +93,9 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     cB.Location = 'eastoutside';
     cB.Location = 'manual';
 
-    ylim([5 50])
+    ylim([5 45])
+    xlim([-17 17])
+    axis tight
 
 end 
 

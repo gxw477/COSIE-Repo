@@ -31,14 +31,20 @@ else
     adaptStr = '';
 end
 
-wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+wOption = 4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+kLength_BSC_samples = 120;
 
 if wOption == 1 
+    win = [0,ones(1,kLength_BSC_samples-2),0];
     wName = 'Rect';
 elseif wOption == 2
+    win = tukeywin(kLength_BSC_samples,0.1)';
     wName = 'Tukey';
 elseif wOption == 3
-    wName = 'Welch';
+    wName = 'Welsh';
+elseif wOption == 4 
+    win = hann(kLength_BSC_samples)';
+    wName = 'Hann';
 end
 
 cohKlength = 120;
@@ -64,7 +70,6 @@ xVals = (1:128).*lWidth;
 
 %Calculate kernel idxs for analysis
 [~, depthIdx] = min(abs(yVals - depthSelect*1e-3));
-kLength_BSC_samples = 120;
 axIdxs = depthIdx-round(kLength_BSC_samples/2) : depthIdx + round(kLength_BSC_samples/2) -1 ;
 
 %test data interface reflectivity
@@ -98,20 +103,30 @@ else
     load([testDir,'/data_edgeCorr.mat'])
     %
 end
- 
-input('Check which attenuation value you are using')
 
-%QA phantom
-%attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
 
-%Emma Liver 
-attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+sThick = load([testDir,'/MRI_seg/Set_1/Skin/SkinSegData.mat'])
+sThickMedian = median(sThick.thicknessMM(:),'omitnan');
+sThickSTD = std(sThick.thicknessMM(:),1,'omitnan');
+
+fThick = load([testDir,'/MRI_seg/Set_1/Fat/FatSegData.mat']);
+fThickMedian = median(fThick.thicknessMM(:),'omitnan');
+fThickSTD = std(fThick.thicknessMM(:),1,'omitnan');
+
+distSkinLiverMAT = load([testDir,'/MRI_seg/Set_1/SkinLiverDist.mat'])
+
+for i = 1:size(distSkinLiverMAT.distCell,1)
+    d1(i,1:3) = [distSkinLiverMAT.lUnique(i) ,mean(distSkinLiverMAT.distCell{i}),std(distSkinLiverMAT.distCell{i})];
+end
+
+distSkinLiver = median(d1(:,2));
+
+muscleThick = distSkinLiver - sThickMedian - fThickMedian;
+
+
 
 
 attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
-%attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
-
-
 
 dzT = depthSelect*0.1 - edgeYVal*100;
 attTest_DB = 2*(dzT)*attTest(1);

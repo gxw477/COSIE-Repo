@@ -73,10 +73,9 @@ function R0 = planarReflectorEstimates(dir,prefDir,switchBool)
         edgeRegionP = prefImg(yBool,xBool);%.*win;
         spectValsP = abs(fft(edgeRegionP)).^2;
         
-        perspWint = 0.1307;
+        
 
-        R0(iImage) = mean(spectValsT(nF,:))./mean(spectValsP(nF,:))* perspWint; 
-
+        R0(iImage) = mean(spectValsT(nF,:))./mean(spectValsP(nF,:));
         
     end
         

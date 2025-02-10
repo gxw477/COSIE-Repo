@@ -1,4 +1,4 @@
-function [bfSIG,channelData,param] = mustUGeorge(SIG,x,z,varargin)
+function [bfSIG,channelData,param,M] = mustUGeorge(SIG,x,z,varargin)
 
 %DAS   Delay-And-Sum beamforming of RF or I/Q signals
 %   BFSIG = DAS(SIG,X,Z,DELAYS,PARAM) beamforms the RF or I/Q signals
@@ -276,7 +276,8 @@ for k = 1:Nchunks
     bfSIG(idx(k):idx(k+1)-1,:) = M*SIG;
 
     %-- Just-Delay
-    channelData = getElementData(M,SIG,Npoints);
+    %channelData = getElementData(M,SIG,Npoints);
+    channelData = [0];
 
 end
 

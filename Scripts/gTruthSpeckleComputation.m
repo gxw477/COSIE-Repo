@@ -18,7 +18,7 @@ vsxParams = load([topDirMaster,'/VSXoutput.mat']);
 %% Define BSC kernel properties
 lambda = vsxParams.lambda;
 
-dtheta = vsxParams.Angle(2)-vsxParams.Angle(1);
+%dtheta = vsxParams.Angle(2)-vsxParams.Angle(1);
 
 kWidth_BSC_lines = 5;
 kLength_BSC_samples = 120;
@@ -50,7 +50,7 @@ clearvars fNames
 
 kIdxs = cell(nImages,1);
 
-for zSelect = (25:5:80).*1e-3
+for zSelect = (25:5:50).*1e-3
 
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
@@ -94,9 +94,9 @@ for zSelect = (25:5:80).*1e-3
         imageIdxsAll = 1:nImages;
         
         %number of beam translations IN FOLDER
-        nTransl = input('Number of beam translations in folder : ');
+        nTransl = 4;%input('Number of beam translations in folder : ');
         %number of frames/Sets 
-        nFrames = input('Number of frames : ');
+        nFrames = 20;%input('Number of frames : ');
         %increment between images
         incZ = 5e-3;
         %image idxs within frame
@@ -108,7 +108,7 @@ for zSelect = (25:5:80).*1e-3
         
         
         %reject if the analysis kernel is on the water or on the edge 
-        edgeBoolFile = zSelect./incZ > imageIdxsFrame;
+        edgeBoolFile = zSelect./incZ > imageIdxsFrame*;
         %reject if the analysis kernel includes a reverb
         revbBoolFile = 0.5*zSelect./incZ ~= imageIdxsFrame;
         
@@ -119,7 +119,7 @@ for zSelect = (25:5:80).*1e-3
         %duplicate to get enough rows for all frames
         imageIdxsFrameKeep2 = repmat(imageIdxsFrameKeep,nFrames,1);
         %add iFrame*nTransl to each row to get all available images
-        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + (nTransl).*(0:(nTransl))'.*ones(nFrames,length(imageIdxsFrameKeep));
+        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + (nTransl).*(0:(nTransl-1)).*ones(nFrames,length(imageIdxsFrameKeep));
         
         %Apply across nFrames to find all the indices
         imageIdxsAll = sort(imageIdxsFrameKeep3(:));

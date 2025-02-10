@@ -89,8 +89,8 @@ for iImage = 1:nImages
 
     iImage
 
-    load([topDirMaster,'\BFimgDataTGCcorr\BFimgData',num2str(iImage),'.mat'])
-   
+    %load([topDirMaster,'\BFimgDataTGCcorr\BFimgData',num2str(iImage),'.mat'])
+    load([topDirMaster,'\BFimgData',num2str(iImage),'.mat'])
     
     figure
     imagesc(xVals,yVals,log(abs(fullIM')),[2.5 11]); colormap gray 

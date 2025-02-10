@@ -8,7 +8,7 @@
     
     %topDir_Master = [uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
     %topDir_Master = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\Speckle\'];
-    topDir_Master = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QA\']%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
+    topDir_Master = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\']%[uigetdir('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\PhantomExperimentsL74\','Select Analysis directory'),'\'];
 
     
     sumIdx = 32;

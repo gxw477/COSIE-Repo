@@ -1,4 +1,4 @@
-function [] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,kLength,powf0,segBool,rayIdxs,segEML,titleString)
+function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,kLength,powf0,segBool,rayIdxs,segEML,titleString)
 % bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML,titleString)
 %
 %   I 

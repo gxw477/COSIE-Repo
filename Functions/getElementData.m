@@ -42,7 +42,7 @@ function [ channels] = getElementData(M,SIG,methodIdx)
     channels = zeros(nSamples,nChannels);
 
     if nChannels > 128 
-        nChannels
+        nChannels;
     end
 
     lVec = zeros(1,nSamples);

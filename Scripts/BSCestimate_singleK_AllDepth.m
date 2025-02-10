@@ -4,11 +4,10 @@ close all
 
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_2\';
 
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
-
+%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
 
 planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
@@ -32,7 +31,7 @@ else
     adaptStr = '';
 end
 
-wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
 
 if wOption == 1 
     wName = 'Rect';
@@ -40,7 +39,11 @@ elseif wOption == 2
     wName = 'Tukey';
 elseif wOption == 3
     wName = 'Welch';
+elseif wOption == 4
+    wName = 'Hann';
 end
+
+saveDir_SEG = [testDir,'\',wName,'\'];
 
 cohKlength = 120;
 cohKlength_Length = 0.5*cohKlength*vsxParams.sPerWaveInit*vsxParams.lambda;
@@ -88,23 +91,17 @@ else
     %
 end
  
-input('Check which attenuation value you are using')
+input('Check which attenuation value you are using : ')
 
 %QA phantom
-%attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
+attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
 
 %Emma Liver 
-attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+%attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
 
 
 attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
 %attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
-
-
-
-dzT = depthSelect*0.1 - edgeYVal*100;
-attTest_DB = 2*(dzT)*attTest(1);
-attComp_Test =   10^(attTest_DB/10);
 
 
 %ground truth BSC values: reference 
@@ -120,7 +117,7 @@ bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
 
 
 %regions of image with full aperture in effect
-xBool = 17:111;
+xBool = 17:112;
 
 %calculate coherence properties
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.yVals));
@@ -145,7 +142,7 @@ EMLidx = 1;
 kWidth = 5; 
 oLap = 0.8;
 
-allDepths = 15:5:40;
+allDepths = 15:5:50;
 
 segBoolBIG = zeros(length(rayIdxs2),length(allDepths));
 powf0_BIG = segBoolBIG;
@@ -153,6 +150,10 @@ powf0_BIG = segBoolBIG;
 axIdxs_BIG = [];
 
 for iDepths = 1:length(allDepths)
+
+    dzT = allDepths(iDepths)*0.1 - edgeYVal*100; %cm 
+    attTest_DB = 2*(dzT)*attTest(1);
+    attComp_Test =   10^(attTest_DB/10);
 
     [~ , cohTestKernelIdx] = min(abs(allDepths(iDepths)*1e-3 - bfImgData.yVals));
 
@@ -170,17 +171,24 @@ for iDepths = 1:length(allDepths)
     cInput = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
 
     %load COSIE data
-    %speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
-
+    speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
 
     speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
     cInput_Depth = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
 
+    powf0 = abs(cInput_Depth.spectAll(:,nF));
+
+    powerSeg      = COVsegmentation_sK(cohTest,speckleCOSIE.EML,(powf0),kWidth,oLap);
+
+    %mean speckle power
+    specklePOWER_MEAN = mean(speckleCOSIE.powf0);
+    
+    bscEstimate = (powf0./specklePOWER_MEAN) * bscSpeckleBf_ref *edgecorr*attComp_Test;
+    
     segBool1 = cohTest > speckleCOSIE.redEML(1,EMLidx) & cohTest < speckleCOSIE.redEML(2,EMLidx);    
     segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
     
-    powf0_BIG(:,iDepths) = abs(cInput_Depth.spectAll(:,nF));
-    
+    powf0_BIG(:,iDepths) = bscEstimate;
 
     segBoolBIG(:,iDepths) = segBool1_cluster;
     
@@ -191,20 +199,22 @@ end
 %axIdxs_BIG = fIdx(1):fIdx(2);
 
 
-bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence')
+[ax1,ax2,cB ] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence');
+xlim([-15 15])
+ax1.XTick = [-15 :5:15];
+ax1.YTick = [5:10:55];
+ax1.YLim = [5 55];
+set(ax1,'FontSize',14)
+set(ax1,'FontWeight','normal')
+saveas(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
+saveas(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage),'.jpg'])
+savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
 
-saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
+
+%bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG,xBool,speckleCOSIE.pctSeg2(EMLidx),'SNR')
 
 
-    
-saveas(gcf,[saveDir_SEG,'ParametricImage_SNR'])
-
-depthFeaturePlot(speckleCOSIE,speckleSNRdata,EMLidx,lWidth,cohTest,snrTest,20)
-saveas(gcf,[saveDir_SEG,'DepthImage'])
-
-
-
-save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf_ref','bscSpeckleSTD_ref','bscEstimate_COH_COSIE',...
-    'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
+%save([saveDir_SEG,'\SegResults.mat'],'bscSpeckleBf_ref','bscSpeckleSTD_ref','bscEstimate_COH_COSIE',...
+%    'bscEstimate_ENV_COSE','bscEstimate_ENV_WEIGHT','bscEstimate_COH_WEIGHT')
 
 

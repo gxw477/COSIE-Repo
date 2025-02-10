@@ -5,14 +5,15 @@ clear
 close all
 
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver_NHV_NTGC\';
+%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver_NHV_NTGC\';
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
 
 %load verasonics param's
 vsxParams = load([testDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 iImage =  input('Which image ? : ');
-
+1
 bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
 
 
@@ -35,8 +36,8 @@ bscSpeckleBf_test = mu0_test * vsxParams.Trans.frequency^3.6;
 bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
 
 %Calculate edge correction factor
-[mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir);
-[mEdgeSpectTest ,yEdgeTest] = edgeDetectionMulti(testDir);
+[mEdgeSpectSpeckle , yEdgeSpeckle] = edgeDetectionMulti(speckleDir,1);
+[mEdgeSpectTest ,yEdgeTest] = edgeDetectionMulti(testDir,0);
 %[mEdgeSpectTest ,yEdgeTest] = edgeDetectionSingle(bfImgData.fullIM,bfImgData.fs,bfImgData.yVals,10,1540,bfImgData.Trans.frequency*1e6,17:111);
 
 edgecorr = (mean(mEdgeSpectSpeckle)/mean(mEdgeSpectTest))^2;

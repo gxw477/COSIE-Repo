@@ -6,13 +6,9 @@ function [kIdxs, kIdxs2] = idxClustering(idxs,width,oLap)
     kN = 1;
 
     iRayline = 3;
-    sepn = oLap*width;
+    sepn = round(oLap*width);
     
-    if sepn ~= round(sepn)
-        error('Check overlap and kernel width')
-    end
-
-    endRayline = iRayline + 2;
+    endRayline = width;
     %startRayline = iRayline - 2;
 
     while endRayline <= max(idxs) 

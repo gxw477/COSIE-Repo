@@ -18,7 +18,7 @@ vsxParams = load([topDirMaster,'/VSXoutput.mat']);
 %% Define BSC kernel properties
 lambda = vsxParams.lambda;
 
-dtheta = vsxParams.Angle(2)-vsxParams.Angle(1);
+%dtheta = vsxParams.Angle(2)-vsxParams.Angle(1);
 
 kWidth_BSC_lines = 5;
 kLength_BSC_samples = 120;
@@ -52,7 +52,7 @@ kIdxs = cell(nImages,1);
 
 
 
-for zSelect = (85:5:90).*1e-3
+for zSelect = (15:5:50).*1e-3
 
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
@@ -101,7 +101,7 @@ for zSelect = (85:5:90).*1e-3
         %number of beam translations IN FOLDER
         nTransl = input('Number of beam translations in folder : ');
         %number of frames/Sets 
-        nFrames = input('Number of frames : ');
+        nFrames = input('Number of Repeats : ');
         %increment between images
         incZ = 5e-3;
         %image idxs within frame
@@ -113,9 +113,9 @@ for zSelect = (85:5:90).*1e-3
         
         
         %reject if the analysis kernel is on the water or on the edge 
-        edgeBoolFile = zSelect./incZ > imageIdxsFrame;
+        edgeBoolFile = imageIdxsFrame < zSelect./incZ ;
         %reject if the analysis kernel includes a reverb
-        revbBoolFile = 0.5*zSelect./incZ ~= imageIdxsFrame;
+        revbBoolFile = 0.5.*zSelect./incZ ~= imageIdxsFrame;
         
         %which numbers in 1:nTransl are neither half or equal to the selected depth
         %or in the water path
@@ -123,9 +123,12 @@ for zSelect = (85:5:90).*1e-3
         imageIdxsFrameKeep = imageIdxsFrame(boolFile);
         %duplicate to get enough rows for all frames
         imageIdxsFrameKeep2 = repmat(imageIdxsFrameKeep,nFrames,1);
+
         %add iFrame*nTransl to each row to get all available images
-        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + (nTransl).*(0:(nTransl))'.*ones(nFrames,length(imageIdxsFrameKeep));
+        vec1 = nTransl.*[0:(nFrames-1)]';
+        mat1 = repmat(vec1,[1,size(imageIdxsFrameKeep2,2)]);
         
+        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + mat1
         %Apply across nFrames to find all the indices
         imageIdxsAll = sort(imageIdxsFrameKeep3(:));
     
@@ -137,9 +140,9 @@ for zSelect = (85:5:90).*1e-3
 
     end
     
-    nImages = length(imageIdxsAll);
+    nImages2 = length(imageIdxsAll);
     
-    for iImage = 1:nImages
+    for iImage = 1:nImages2
         
         iImage
     
