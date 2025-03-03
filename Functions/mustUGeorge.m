@@ -276,8 +276,8 @@ for k = 1:Nchunks
     bfSIG(idx(k):idx(k+1)-1,:) = M*SIG;
 
     %-- Just-Delay
-    %channelData = getElementData(M,SIG,Npoints);
-    channelData = [0];
+    channelData = getElementData(M,SIG,Npoints);
+    %channelData = [0];
 
 end
 

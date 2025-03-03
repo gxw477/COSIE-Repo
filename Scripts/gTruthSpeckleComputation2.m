@@ -60,7 +60,7 @@ for zSelect = (15:5:50).*1e-3
     
     
     
-    wOption = 4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+    wOption = 3;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
     
     if wOption == 1 
         win = [0,ones(1,kLength_BSC_samples-2),0];
@@ -99,9 +99,9 @@ for zSelect = (15:5:50).*1e-3
         imageIdxsAll = 1:nImages;
         
         %number of beam translations IN FOLDER
-        nTransl = input('Number of beam translations in folder : ');
+        nTransl = 4%input('Number of beam translations in folder : ');
         %number of frames/Sets 
-        nFrames = input('Number of Repeats : ');
+        nFrames = 5%input('Number of Repeats : ');
         %increment between images
         incZ = 5e-3;
         %image idxs within frame

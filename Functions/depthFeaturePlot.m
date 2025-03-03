@@ -31,11 +31,16 @@ function [] = depthFeaturePlot(cosieStructCOH,cosieStructSNR,EMLidx,lWidth,cohTe
     xlabel('Lateral position (m)')
     ylabel('SNR Value')
     
- 
+    %get unique values out 
+    [~,IA,~] = unique(cosieStructCOH.thVector);
+
+    thVectorPlot = cosieStructCOH.thVector(IA);
+    surfPlot = cosieStructCOH.segSurface(IA,IA);
+
     subplot(2,2,3)
     plot(cosieStructCOH.redEML(1,:),cosieStructCOH.redEML(2,:),'k-.')
     hold on 
-    contour(cosieStructCOH.thVector,cosieStructCOH.thVector,abs(1-cosieStructCOH.segSurface),2.^(0.5:-0.5:-10));    
+    contour(thVectorPlot,thVectorPlot,abs(1-surfPlot),2.^(0.5:-0.5:-10));    
     %xLimsC1 = [min(c1(1,:)) max(c1(1,:))];
     ax = gca;
     xLimsC1 = ax.XLim;

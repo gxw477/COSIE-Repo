@@ -1,10 +1,10 @@
 function [iqOut,rfOut,zOut] = demodulateIQfn(PData,IQData,interpFactor)
     
     
-    l = PData.Size(1);
+    l = size(IQData{1},1);
+    nr = size(IQData{1},2);
     
     dz=2*PData.PDelta(3);
-    nr = PData.Size(2);
     phasor=repmat([0:l-1]'*2*pi*dz,1,nr);
     phasor=reshape(phasor,l,nr);
     %IQ=interp1([0:l-1],IQData{1}(1:l,:,:),[0:0.25/dz:l-1],'cubic');

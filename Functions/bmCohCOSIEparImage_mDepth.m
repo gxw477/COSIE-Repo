@@ -15,6 +15,7 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
     
     rawIQ{1} = bfImgData.IData{1}+1i.*bfImgData.QData{1};
     iqV = demodulateIQfn(bfImgData.PData,rawIQ);
+    iqV = iqV(:,:,1);
 
     bModeViq = bmode(iqV,75);
 

@@ -6,14 +6,14 @@ topDir = [uigetdir,'\'];
 cd(topDir)
 
 %fileIdxs = 5:5:50;
-fileNames = ls('Liver*');
+fileNames = ls('All*');
 %fileNames = fileNames(3:end,:);
 
 %load(uigetfile)
 
 SOS = input('Speed of sound :')
 
-for iFrame = 1:size(fileNames,1)
+for iFrame = 2:size(fileNames,1)
 
     VSXfileOption = 2 ;
     
@@ -147,15 +147,38 @@ for iFrame = 1:size(fileNames,1)
         bformY =  linspace(Receive(i).startDepth,Receive(i).endDepth,samplesPerAcq2);
     
         params.Nelements  = length(tDelay(~omitBool));
-        [bfSig,channelData,~] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,'quadratic');
-         
+        
+        mFileName =  ['MatrixFolder/M',num2str(i),'.mat'];
+
+        method = 'quadratic';
+
+        if ~isfile(mFileName)
+            [bfSig,channelData,~,M] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,method);
+            save(mFileName,'M')
+        else
+            load(mFileName)
+            tmp = strcmpi(method,{'nearest','linear','quadratic','lanczos3','5points','lanczos5'});
+        
+            if ~any(tmp)
+                error(['METHOD must be ''nearest'', ''linear'', ''quadratic'',',...
+                    ' ''Lanczos3'', ''5points'' or ''Lanczos5''.'])
+            end
+
+            Npoints = find(tmp);
+    
+            [nl,nc,~] = size(acqI);
+            SIG = reshape(acqI,nl*nc,[]);
+            bfSig = M*SIG;
+            %-- Just-Delay
+            channelData = getElementData(M,SIG,Npoints);
+
+        end
+
         fullIM(i,:) = bfSig;
-       
         channelStack(i,:,1:size(channelData,2)) = channelData;
         
     end
-    
-    
+     
     iq = rf2iq(fullIM,params.fs);
     
     I = IData{1};
@@ -225,8 +248,8 @@ for iFrame = 1:size(fileNames,1)
 
     B = bmode(iq(:,startIdx:endIdx),20);
         
-    save([topDir,'\BFimgData',num2str(SOS),'.mat'])
+    save([topDir,'\BFimgData',num2str(iFrame),'.mat'])
 
-    clearvars -except iFrame topDir fileNames
+    clearvars -except iFrame topDir fileNames SOS
 
 end

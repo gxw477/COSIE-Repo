@@ -12,7 +12,7 @@ phtBool = 0;
 %planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
 %load verasonics param's2
-vsxParams = load([testDir,'\VSXoutput.mat']);
+vsxParams = load([testDir,'\VSXoutput_SFormat.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
@@ -31,13 +31,15 @@ else
     adaptStr = '';
 end
 
-wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+wOption = 3;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
 
 if wOption == 1 
     wName = 'Rect';
 elseif wOption == 2
     wName = 'Tukey';
 elseif wOption == 3
+    wName = 'Hann';
+elseif wOption == 4
     wName = 'Welch';
 end
 
@@ -88,7 +90,7 @@ if ~exist([testDir,'/data_edgeCorr.mat'])
     R0_test = planarReflectorEstimates(testDir,planeDir,0);
     Ttest = (1-mean(R0_test));
     
-    R0_speckle= planarReflectorEstimates(speckleDir,planeDir,1);
+    R0_speckle= planarRefl1ectorEstimates(speckleDir,planeDir,1);
     Tspeckle = (1-mean(R0_speckle));
 
     edgecorr = (Tspeckle/Ttest)^2;
@@ -149,7 +151,7 @@ end
 
 
 %regions of image with full aperture in effect
-xBool = 17:111;
+xBool = cInput.rayIdxs;
 
 %calculate coherence properties
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.yVals));
@@ -184,7 +186,7 @@ segBool1 = cohTest > speckleCOSIE.redEML(1,EMLidx) & cohTest < speckleCOSIE.redE
 %bmCohCOSIEparImage takes segBool not indices as an argument, so we'll
 %convert to idx and back to bool to give a segbool that reflects the actual
 %useable lines. We want the second output argument of idxsClustering to 
-%just get the unique lines instead of a cell array (output 1).
+%just get the unique lines instead of a1 cell array (output 1).
 
 %All lines
 rayIdxs = (1:128);
@@ -196,7 +198,7 @@ rayIdxs2 = rayIdxs(xBool);
 segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
 
 
-bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
+bmCohCOSIEparImage(vsxParams.Angle,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH.jpg'])
 

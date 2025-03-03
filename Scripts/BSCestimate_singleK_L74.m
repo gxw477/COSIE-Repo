@@ -8,10 +8,13 @@ path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Sc
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht1\';
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver_NHV_NTGC\';
-testDir = [cd,'\'];
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
+%testDir = [cd,'\'];
 
-for iImage = 1:8
+fNames = ls([testDir,'BFImg*']);
+nImage = size(fNames,1)
+
+for iImage = 2:7
     
     liverBool = 1;
     phtBool = 0;
@@ -37,7 +40,7 @@ for iImage = 1:8
             adaptStr = '';
         end
         
-        wOption = 4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+        wOption = 4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning : \n ');
         
         if wOption == 1 
             wName = 'Rect';
@@ -110,10 +113,10 @@ for iImage = 1:8
         %input('Check which attenuation value you are using')
         
         %QA phantom
-        attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
+        %attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
         
         %Emma Liver 
-        %attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+        attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
         
         
         attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
@@ -160,7 +163,7 @@ for iImage = 1:8
         xBool = 17:112;
         
         %calculate coherence properties
-        [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.yVals));
+        [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - yVals));
         
         RMatTest = zeros(length(xBool),sumIdx);
         axIdxsCOH = (cohTestKernelIdx- cohKlength/2):(cohTestKernelIdx+cohKlength/2-1);
@@ -204,7 +207,7 @@ for iImage = 1:8
         segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
         
         
-        bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
+        bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxs,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx))
         saveas(gcf,[saveDir_SEG,'ParametricImage_COH'])
         saveas(gcf,[saveDir_SEG,'ParametricImage_COH.jpg'])
         
@@ -261,10 +264,10 @@ for iImage = 1:8
         legendCell(5) = {'\epsilon(\mu_{R})'};
         
         
-        figure 
-        pie(errs(1,orderSlices)./sum(errs(1,1:5)),[0 5 0 5 0])
+        %figure 
+        %pie(errs(1,orderSlices)./sum(errs(1,1:5)),[0 5 0 5 0])
         %legend({'\epsilon(\alpha_{T})','\epsilon(\alpha_R)','\epsilon(S_p)','\epsilon(\mu_{T})','\epsilon({S_i})'})
-        legend(legendCell(orderSlices))
+        %legend(legendCell(orderSlices))
         
         
         %savefig(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx)])
@@ -339,11 +342,8 @@ for iImage = 1:8
         title('Coherence COSIE Segmentation')
         saveas(gcf,[saveDir_SEG,'\bscEstimationSegFigure_COH.fig'])
         saveas(gcf,[saveDir_SEG,'\bscEstimationSegFigure_COH.jpg'])
-        
-        
-        
+ 
         %bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool1_cluster,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence')
-        
         
         bscEstimationSegFigure(bscSpeckleBf_test,bscSpeckleSTD_test,bscEstimate_ENV_COSE)
         title('SNR COSIE Segmentation')

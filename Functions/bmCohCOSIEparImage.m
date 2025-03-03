@@ -15,11 +15,9 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     
     rawIQ{1} = bfImgData.IData{1}(:,:,1) +1i.*bfImgData.QData{1}(:,:,1);
 
-    [iqV ,rfV , zOut] = demodulateIQfn(bfImgData.PData,rawIQ,2);
-
-    nSamps = 6e3;
-
-    bModeViq = bmode(iqV(1:nSamps,:),70);
+    [iqV , ~ , zOut] = demodulateIQfn(bfImgData.PData,rawIQ,2);
+    nSamps = length(zOut);
+    bModeViq = bmode(iqV,70);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
@@ -31,19 +29,20 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     %bmYVals = (bfImgData.PData.Origin(3) + (1:size(bModeViq,1)).*bfImgData.PData.PDelta(3))*bfImgData.lambda;
    
 
-    bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ zOut(1:nSamps).*bfImgData.PData.PDelta(3));
 
+    %bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ zOut(1:nSamps).*bfImgData.PData.PDelta(3));
+    
     
     figure
     ax1 = axes;
-    imagesc(ax1,bmXVals,bmZvals,bModeViq);
+    imagesc(ax1,xVals,yVals,bModeViq);
     hold on 
     plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
     plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], [yVals(axIdxsBSC(1)) yVals(axIdxsBSC(end))],'r^-','MarkerFaceColor','red','LineWidth',2)
     plot(ax1,[xVals(rayIdxs(1)-5) xVals(rayIdxs(1)-5)], [yVals(axIdxsCOH(1)) yVals(axIdxsCOH(end))],'ro-','MarkerFaceColor','red','LineWidth',2)
     
     xlabel('Lateral Position (mm)')
-    axis equal
+    %axis equal
     ylabel('Axial Position (mm)')
      
     
@@ -75,7 +74,7 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
 
     %title(ax1,[titleString,' Speckle Score = ',num2str(round(speckleScore))])
     axis tight 
-    axis equal
+    %axis equal
 
     %input('Resize : ')
 
@@ -93,8 +92,8 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
     cB.Location = 'eastoutside';
     cB.Location = 'manual';
 
-    ylim([5 45])
-    xlim([-17 17])
+    %ylim([5 45])
+    %xlim([-17 17])
     axis tight
 
 end 
