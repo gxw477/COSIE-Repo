@@ -281,6 +281,8 @@ end
 %close all
 
 testEnvelope = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
+
+edgecorr = 1;
     
 
 

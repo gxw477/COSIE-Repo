@@ -1,7 +1,7 @@
 
 clear 
 
-close all 
+%close all 
 
 topDir = [uigetdir,'\'];
 cd(topDir)
@@ -9,7 +9,16 @@ cd(topDir)
 fileStub = 'AllImgData'; 
 fileNames = ls(['RawImgData/',fileStub,'*']);
 
-for iFile = 1:size(fileNames,1)
+
+
+for iFile = 2:size(fileNames,1)
+
+    if exist([topDir,'\Mall.mat']) 
+        matData = load([topDir,'\Mall.mat']);
+        matBool = true;
+    else
+        matBool = false;
+    end
     
     disp(['iFile = ',num2str(iFile)])
     VSXfileOption = 2;
@@ -19,7 +28,8 @@ for iFile = 1:size(fileNames,1)
         samplesPerAcq = size(RfFrame1,1)/P.numRays;
     
     elseif VSXfileOption == 2
-        load([topDir,'VSXoutput.mat'])
+        load([topDir,'VSXoutput_SFormat.mat'])
+        %load([cd,'/VSXoutput_slid1.mat'])
         samplesPerAcq = Receive(1).endSample - Receive(1).startSample + 1;
         
     end
@@ -80,7 +90,7 @@ for iFile = 1:size(fileNames,1)
     %% set up TGC gain profile
     fitResults = load('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\FitResults.mat');
     
-    tgc = load([topDir,'/VSXoutput.mat'],'TGC')
+    %tgc = load([topDir,'/VSXoutput_slid1.mat'],'TGC');
     %tgc = load([topDir,'/TGC_1t9.mat'],'TGC')
 
     nTGCsamples = 128;
@@ -90,7 +100,7 @@ for iFile = 1:size(fileNames,1)
     
     wFormT2 = linspace(wFormT1(1),wFormT1(end),nTimeSamples);
     
-    wForm = tgc.TGC.Waveform;
+    wForm = TGC.Waveform;
     wForm2 = interp1(wFormT1,wForm(1:nTGCsamples),wFormT2);
 
     wForm2Pad = [wForm2(1).*ones(1,50), wForm2(1:(nTimeSamples-50))];
@@ -107,8 +117,6 @@ for iFile = 1:size(fileNames,1)
     
     %period of f0
     tau = 1/(Trans.frequency*1e6);
-    
-    %Pre-allocate memory for channel stack variable 
     
     apLengths = zeros(1,P.numRays);
     
@@ -139,7 +147,7 @@ for iFile = 1:size(fileNames,1)
         [~, cIdx ] = max(TX(i).Delay);
     
         tDelay = (TX(i).Delay) .*tau;
-        %omitBool = tDelay == 0;
+        %omitBool = tDeclay == 0;
         omitBool = TX(i).Apod == 0;
       
         tDelay(omitBool) = nan;
@@ -162,9 +170,16 @@ for iFile = 1:size(fileNames,1)
         bformY =  linspace(Receive(i).startDepth,Receive(i).endDepth,samplesPerAcq2);
    
         params.Nelements  = length(tDelay(~omitBool));
-        [~,channelData,~] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,'quadratic');
         
-
+        if matBool
+            M = matData.Mall{i};
+            SIG = reshape(acqI,size(acqI,1)*size(acqI,2),[]);
+            channelData = getElementData(M,SIG,3);        
+        else
+            [~,channelData,~,M] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,'quadratic');
+            Mall{i} = M;
+        end
+    
         channelData2 = channelData.*gainFn';
 
         fullIM(i,:) = sum(channelData2,2);
@@ -173,6 +188,9 @@ for iFile = 1:size(fileNames,1)
         
     end
     
+    if ~matBool 
+        save([topDir,'Mall'],'Mall')
+    end
     
     iq = rf2iq(fullIM,params.fs);
     %iqUncorr = rf2iq(fullIMunCorr,params.fs);

@@ -13,7 +13,8 @@ function [] = bmCohCOSIEparImage(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxs
 %   rayIdxs     vector (1xM' lines) lines to keep
 %   segEML      matrix (2xS seg points) 
     
-    rawIQ{1} = bfImgData.IData{1}(:,:,1) +1i.*bfImgData.QData{1}(:,:,1);
+    %rawIQ{1} = bfImgData.IData{1}(:,:,1) +1i.*bfImgData.QData{1}(:,:,1);
+    rawIQ{1} = bfImgData.iq';
 
     [iqV , ~ , zOut] = demodulateIQfn(bfImgData.PData,rawIQ,2);
     nSamps = length(zOut);

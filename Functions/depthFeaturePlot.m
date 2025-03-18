@@ -32,10 +32,10 @@ function [] = depthFeaturePlot(cosieStructCOH,cosieStructSNR,EMLidx,lWidth,cohTe
     ylabel('SNR Value')
     
     %get unique values out 
-    [~,IA,~] = unique(cosieStructCOH.thVector);
+    [~,IA1,~] = unique(cosieStructCOH.thVector);
 
-    thVectorPlot = cosieStructCOH.thVector(IA);
-    surfPlot = cosieStructCOH.segSurface(IA,IA);
+    thVectorPlot = cosieStructCOH.thVector(IA1);
+    surfPlot = cosieStructCOH.segSurface(IA1,IA1);
 
     subplot(2,2,3)
     plot(cosieStructCOH.redEML(1,:),cosieStructCOH.redEML(2,:),'k-.')
@@ -51,11 +51,15 @@ function [] = depthFeaturePlot(cosieStructCOH,cosieStructSNR,EMLidx,lWidth,cohTe
     ylabel('Upper Threshold')
     axis equal
 
+    [~,IA2,~] = unique(cosieStructSNR.EML(1,:));
+
+    snrVectorPlot = cosieStructSNR.EML(1,IA2);
+    surfPlot = cosieStructCOH.segSurface(IA2,IA2);
 
     subplot(2,2,4)
     plot(cosieStructSNR.redEML(1,:),cosieStructSNR.redEML(2,:),'k-.')
     hold on 
-    contour(cosieStructSNR.EML(1,:),cosieStructSNR.EML(1,:),abs(1-cosieStructSNR.segSurface),2.^(0.5:-0.5:-10));
+    contour(snrVectorPlot,snrVectorPlot,abs(1-surfPlot),2.^(0.5:-0.5:-10));
     ax = gca;
     xLimsC2 = ax.XLim;plot(xLimsC2,xLimsC2,'k-')
     xlim(xLimsC2)
