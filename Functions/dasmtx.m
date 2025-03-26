@@ -470,6 +470,7 @@ end
 %-- f-number (determined automatically if not given)
 % The f-number is determined from the element directivity
 % See the paper "So you think you can DAS?"
+
 if isempty(param.fnumber)
     lambdaMIN = c/(param.fc*(1+param.bandwidth/200));
     RXa = abs(param.RXangle);

@@ -12,7 +12,7 @@ phtBool = 0;
 %planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
 %load verasonics param's2
-vsxParams = load([testDir,'\VSXoutput_SFormat.mat']);
+vsxParams = load([testDir,'VSXoutput_SFormat.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
@@ -107,8 +107,10 @@ input('Check which attenuation value you are using')
 %attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
 
 %Emma Liver 
-attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+%attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
 
+%Volunteer 
+attDataTest = load([testDir,'/',]);
 
 attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
 %attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;

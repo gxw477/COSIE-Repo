@@ -148,7 +148,12 @@ for iFrame = 2:size(fileNames,1)
     
         params.Nelements  = length(tDelay(~omitBool));
         
+        mDir = ['MatrixFolder'];
         mFileName =  ['MatrixFolder/M',num2str(i),'.mat'];
+
+        if ~exist(mDir)
+            mkdir(mDir)
+        end
 
         method = 'quadratic';
 
