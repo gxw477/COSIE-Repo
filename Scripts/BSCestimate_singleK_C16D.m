@@ -110,7 +110,15 @@ input('Check which attenuation value you are using')
 %attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
 
 %Volunteer 
-attDataTest = load([testDir,'/',]);
+
+    %livDist = [topDir,'BFimgDataTGCcorr\AttDataTestFolderLiverDist\'];
+%theory = load([testDir,'BFimgDataTGCcorr\AttDataTestFolderLiverDist\AttAnalysis.mat')
+
+attDataTest = load([testDir,'AttDataTestFolderExtrap/attFit',num2str(iImage),'.mat']);
+[~,depthIdxAtt] = min(abs(attDataTest.xEst - depthSelect*.1));
+[~,fIdxAtt] = min(abs(vsxParams.Trans.frequency - attDataTest.f));
+attTest = attDataTest.a0(depthIdxAtt) + attDataTest.alpha(depthIdxAtt)*attDataTest.f(fIdxAtt);
+
 
 attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
 %attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
@@ -118,7 +126,7 @@ attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
 
 
 dzT = depthSelect*0.1 - edgeYVal*100;
-attTest_DB = 2*(dzT)*attTest(1);
+attTest_DB = 2*(dzT)*attTest;
 attComp_Test =   10^(attTest_DB/10);
 
 %mean speckle power
@@ -147,7 +155,7 @@ end
 if liverBool 
     a = 3.15e-4; %(cm^{-1}sr^{-1})
     b =  1.38;
-    bscSpeckleBf_test =  a * 100 * vsxParams.Trans.frequency^b; %(m^{-1}sr^{-1})
+    bscSpeckleBf_test =  0.047; %(m^{-1}sr^{-1})
     bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
 end    
 
@@ -235,15 +243,15 @@ bscEstimate(:,4) = powerSeg(4,:);
 bscEstimate(:,1) = (powerSeg(1,:)./specklePOWER_MEAN) * bscSpeckleBf_ref *edgecorr*attComp_Test;
 bscEstimate(:,2) = ((powerSeg(2,:))./specklePOWER_MEAN) * bscSpeckleBf_ref *edgecorr*attComp_Test;
 
-errs = zeros(size(bscEstimate,1),6);
+%errs = zeros(size(bscEstimate,1),6);
 %[perrSi,perrSp,perralphaT,perralphaR,perrbscR , TOTAL] x nSegmentations
 
-for i = 1:size(bscEstimate,1)
-
-    errs(i,:) = errorPropagationBSC(powerSeg(1,i),powerSeg(2,i),specklePOWER_MEAN,speckle_STD,dzT,attTest(2),2e-2,attSpeckle(2),bscSpeckleBf_ref,0.2*bscSpeckleBf_ref,bscEstimate(i,1));
+%for i = 1:size(bscEstimate,1)
+%
+%    errs(i,:) = errorPropagationBSC(powerSeg(1,i),powerSeg(2,i),specklePOWER_MEAN,speckle_STD,dzT,attTest(2),2e-2,attSpeckle(2),bscSpeckleBf_ref,0.2*bscSpeckleBf_ref,bscEstimate(i,1));
     %bscEstimate(i,3) = errs(i,6);
 
-end
+%end
 
 
 
@@ -258,9 +266,9 @@ legendCell(5) = {'\epsilon(\mu_{R})'};
 
 
 figure 
-pie(errs(1,orderSlices)./sum(errs(1,1:5)),[0 5 0 5 0])
+%pie(errs(1,orderSlices)./sum(errs(1,1:5)),[0 5 0 5 0])
 %legend({'\epsilon(\alpha_{T})','\epsilon(\alpha_R)','\epsilon(S_p)','\epsilon(\mu_{T})','\epsilon({S_i})'})
-legend(legendCell(orderSlices))
+%legend(legendCell(orderSlices))
 
 
 %savefig(gcf,['BSC_EstimateFigure/S_',num2str(sumIdx)])

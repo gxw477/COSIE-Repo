@@ -64,7 +64,7 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 kCount = 1; 
 rayCount= 0; 
 
-wOption = 4% input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Hann \n 4 for Welch : \n ');
+wOption = 3;% input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Hann \n 4 for Welch : \n ');
 
 if wOption == 1 
     win = ones(1,kLength_BSC_samples);

@@ -17,7 +17,7 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
     iqV = demodulateIQfn(bfImgData.PData,rawIQ);
     iqV = iqV(:,:,1);
 
-    bModeViq = bmode(iqV,75);
+    bModeViq = bmode(iqV,100);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
@@ -32,7 +32,7 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
 
     figure
     ax1 = axes;
-    imagesc(ax1,bmXVals,bmZvals,bModeViq);
+    imagesc(ax1,bmXVals,bmZvals,interp2(double(bModeViq),2));
     hold on 
     %plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
     %plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], 10.*[1 1],'r^-','MarkerFaceColor','red','LineWidth',2)

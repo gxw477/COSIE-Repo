@@ -60,7 +60,7 @@ for zSelect = (15:5:50).*1e-3
     
     
     
-    wOption = 3;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
+    wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
     
     if wOption == 1 
         win = [0,ones(1,kLength_BSC_samples-2),0];
@@ -262,7 +262,7 @@ for zSelect = (15:5:50).*1e-3
         
         thVector = sort(cohSum);
     
-        save([saveDir2,'/COSIEoutput',num2str(sumIdx),'.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector','powf0','cohSum')
+        save([saveDir2,'/COSIEoutput',num2str(sumIdx),'_1t1300.mat'],'EML','bscSurface','pctSeg1','pctSeg2','redEML','segSurface','thVector','powf0','cohSum')
     
         %plot(EML(1,:),EML(2,:),'.')
         %close all

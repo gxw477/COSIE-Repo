@@ -14,7 +14,7 @@ testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver
 fNames = ls([testDir,'BFImg*']);
 nImage = size(fNames,1)
 
-for iImage = 2:7
+for iImage = 1:7
     
     liverBool = 1;
     phtBool = 0;
@@ -186,7 +186,7 @@ for iImage = 2:7
         
         
         
-        EMLidx = 1;
+        EMLidx = 5;
         kWidth = 5; 
         oLap = 0.8;
         
