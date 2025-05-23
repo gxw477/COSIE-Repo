@@ -1,4 +1,4 @@
-function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,kLength,powf0,segBool,rayIdxs,segEML,titleString)
+function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth_C16D(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,kLength,powf0,segBool,rayIdxs,segEML,titleString)
 % bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML,titleString)
 %
 %   I 
@@ -13,11 +13,9 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
 %   rayIdxs     vector (1xM' lines) lines to keep
 %   segEML      matrix (2xS seg points) 
     
-    rawIQ{1} = bfImgData.IData{1}+1i.*bfImgData.QData{1};
-    iqV = demodulateIQfn(bfImgData.PData,rawIQ);
-    iqV = iqV(:,:,1);
-
-    bModeViq = bmode(iqV,100);
+    
+    iqV = rf2iq(bfImgData.fullIM,bfImgData.fs);
+    bModeViq = bmode(iqV',100);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));
@@ -32,7 +30,7 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
 
     figure
     ax1 = axes;
-    imagesc(ax1,bmXVals,bmZvals,interp2(double(bModeViq),2));
+    imagesc(ax1,xVals,yVals,interp2(double(bModeViq),2));
     hold on 
     %plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
     %plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], 10.*[1 1],'r^-','MarkerFaceColor','red','LineWidth',2)

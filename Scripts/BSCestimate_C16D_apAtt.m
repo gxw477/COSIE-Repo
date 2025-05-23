@@ -6,20 +6,22 @@ speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\
 
 testDir = [uigetdir,'\'];
 
+testDir2 = [testDir,'\BFimgDataTGCcorr\'];
+
 liverBool = 1;
 phtBool = 0;
 
 %planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
 %load verasonics param's2
-vsxParams = load([testDir,'\VSXoutput.mat']);
+vsxParams = load([testDir2,'\VSXoutput_SFormat.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
 sumIdx = 28;
 iImage = input('Which Image ? : ');
 %load test data
-bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
+bfImgData = load([testDir2,'\BFimgData',num2str(iImage),'.mat']);
 
 depthSelect = input('Depth of interest (mm) : ');
     
@@ -56,9 +58,9 @@ speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\
 speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
 
 
-dataDir = [testDir,wName,'\Z',num2str(depthSelect),'\'];
+dataDir = [testDir2,wName,'\Z',num2str(depthSelect),'\'];
 cInput = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
-qaSNRdata = load([testDir,wName,'\Z',num2str(depthSelect),'\EnvStats',num2str(iImage),'.mat']);
+qaSNRdata = load([testDir2,wName,'\Z',num2str(depthSelect),'\EnvStats',num2str(iImage),'.mat']);
 
 
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample  + 1;
@@ -85,9 +87,10 @@ nF = round(vsxParams.Trans.frequency*1e6/df);
 
 %centre frequency of test data
 powf0 = abs(cInput.spectAll(:,nF));
+rayIdxs = cInput.rayIdxs;
 
 
-if ~exist([testDir,'/data_edgeCorr.mat'])
+if ~exist([testDir2,'/data_edgeCorr.mat'])
     
     %Calculate edge correction factor
     R0_test = planarReflectorEstimates(testDir,planeDir,0);
@@ -97,15 +100,14 @@ if ~exist([testDir,'/data_edgeCorr.mat'])
     Tspeckle = (1-mean(R0_speckle));
 
     edgecorr = (Tspeckle/Ttest)^2;
-    save([testDir,'/data_edgeCorr.mat'],'edgecorr')
+    save([testDir2,'/data_edgeCorr.mat'],'edgecorr')
     
 else
-    load([testDir,'/data_edgeCorr.mat'])
-    %
+    load([testDir2,'/data_edgeCorr.mat'])
 end
 
 
-sThick = load([testDir,'/MRI_seg/Set_1/Skin/SkinSegData.mat'])
+sThick = load([testDir,'/MRI_seg/Set_1/Skin/SkinSegData.mat']);
 sThickMedian = median(sThick.thicknessMM(:),'omitnan');
 sThickSTD = std(sThick.thicknessMM(:),1,'omitnan');
 
@@ -113,7 +115,7 @@ fThick = load([testDir,'/MRI_seg/Set_1/Fat/FatSegData.mat']);
 fThickMedian = median(fThick.thicknessMM(:),'omitnan');
 fThickSTD = std(fThick.thicknessMM(:),1,'omitnan');
 
-distSkinLiverMAT = load([testDir,'/MRI_seg/Set_1/SkinLiverDist.mat'])
+distSkinLiverMAT = load([testDir,'/MRI_seg/Set_1/SkinLiverDist.mat']);
 
 for i = 1:size(distSkinLiverMAT.distCell,1)
     d1(i,1:3) = [distSkinLiverMAT.lUnique(i) ,mean(distSkinLiverMAT.distCell{i}),std(distSkinLiverMAT.distCell{i})];
@@ -123,10 +125,8 @@ distSkinLiver = median(d1(:,2));
 
 muscleThick = distSkinLiver - sThickMedian - fThickMedian;
 
-
-
-
 attSpeckle  = [0.524 , 0.09].*vsxParams.Trans.frequency;
+attTest = [0.5, 0.09].*vsxParams.Trans.frequency; 
 
 dzT = depthSelect*0.1 - edgeYVal*100;
 attTest_DB = 2*(dzT)*attTest(1);
@@ -164,7 +164,9 @@ end
 
 
 %regions of image with full aperture in effect
-xBool = 17:111;
+xBool = min(rayIdxs):max(rayIdxs);
+
+
 
 %calculate coherence properties
 [~ , cohTestKernelIdx] = min(abs(depthSelect*1e-3 - bfImgData.yVals));
@@ -182,15 +184,13 @@ snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
 
 %% Generate parametric images using first 3 segmentation points on EML
 
-saveDir_SEG = [testDir,wName,'\Z',num2str(depthSelect),'\SegResults_',num2str(iImage),adaptStr,num2str(cohKlength),'\SumIdx_',num2str(sumIdx),'\'];
+saveDir_SEG = [testDir2,wName,'\Z',num2str(depthSelect),'\SegResults_',num2str(iImage),adaptStr,num2str(cohKlength),'\SumIdx_',num2str(sumIdx),'\'];
   
 if ~exist(saveDir_SEG,'dir')
     mkdir(saveDir_SEG)
 end
 
-
-
-EMLidx = 1;
+EMLidx = 10;
 kWidth = 5; 
 oLap = 0.8;
 
@@ -219,7 +219,7 @@ saveas(gcf,[saveDir_SEG,'ParametricImage_COH.jpg'])
 
 
 segBool2 = snrTest > speckleSNRdata.redEML(1,EMLidx) & snrTest < speckleSNRdata.redEML(2,EMLidx);
-bmCohCOSIEparImage(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx),'SNR')
+bmCohCOSIEparImage(rayIdxs2.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs,axIdxsCOH,powf0,segBool2,xBool,speckleSNRdata.pctSeg2(EMLidx),'SNR')
 saveas(gcf,[saveDir_SEG,'ParametricImage_SNR'])
 saveas(gcf,[saveDir_SEG,'ParametricImage_SNR.jpg'])
 

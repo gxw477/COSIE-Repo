@@ -3,11 +3,9 @@ clear
 close all 
 
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht2\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
 
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
 
 planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
@@ -22,7 +20,7 @@ path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Sc
 sumIdx = 33;
 
 
-iImage = input('Which Image ? : ');
+iImage = 1;%$input('Which Image ? : ');
 
 
 %load test data
@@ -38,7 +36,7 @@ else
     adaptStr = '';
 end
 
-wOption =2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
+wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
 
 if wOption == 1 
     wName = 'Rect';
@@ -50,11 +48,7 @@ elseif wOption == 4
     wName = 'Hann';
 end
 
-saveDir_SEG = [testDir,'\',wName,'\Img',num2str(iImage),'\'];
-
-if ~exist(saveDir_SEG)
-    mkdir(saveDir_SEG)
-end
+saveDir_SEG = [testDir,'\',wName,'\'];
 
 cohKlength = 120;
 cohKlength_Length = 0.5*cohKlength*vsxParams.sPerWaveInit*vsxParams.lambda;
@@ -103,12 +97,35 @@ end
 %input('Check which attenuation value you are using : ')
 %load('C:\Users\gwest\Documents\COSIE paper 1\EmmaLiver\RejIdxs.mat')
 
-%QA phantom
-%attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
+skinThick = 2e-3;
+fatThick = 2.5e-3; 
+muscleThick = 9e-3;
 
 %Emma Liver 
-attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+skin.att = [21.158	1]; %Np/m/MHz
+skin.rho = [1109]; %kg/m3
+skin.c = [1624]; %m/s
 
+
+
+muscle.att = [7.166	0.600441504]; %Np/m/MHz
+muscle.rho = [1090];
+muscle.c = [1588];
+
+fat.att = [9.3191	1] ;%Np/m/MHz
+fat.rho = [911];
+fat.c = [1477];
+
+r1 = abs((skin.rho*skin.c - fat.rho*fat.c)/(skin.rho*skin.c + fat.rho*fat.c));
+r2 = abs((muscle.rho*muscle.c - fat.rho*fat.c)/(muscle.rho*muscle.c + fat.rho*fat.c));
+
+sAtt = skin.att(1)*8.6860000037 * vsxParams.Trans.frequency;
+mAtt = muscle.att(1)*8.6860000037 * vsxParams.Trans.frequency;
+fAtt = fat.att(1)*8.6860000037 * vsxParams.Trans.frequency;
+
+attSubCut = skinThick*sAtt + fatThick*fAtt + muscleThick*mAtt;
+
+attMeasures = load([testDir,'/AttData/attFit',num2str(iImage),'.mat'])
 
 attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;
 %attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
@@ -119,10 +136,6 @@ mu0_ref = 3.86e-4/(3^3.5); %(cm^{-1}sr^{-1})
 bscSpeckleBf_ref = mu0_ref * 100 * vsxParams.Trans.frequency^3.5 ; %(m^{-1}sr^{-1})
 bscSpeckleSTD_ref = 0.2*bscSpeckleBf_ref;
 
-%ground truth BSC values: test
-mu0_test = 3.25e-4/(3^3.6);%(cm^{-1}sr^{-1}) 
-bscSpeckleBf_test = mu0_test * 100 * vsxParams.Trans.frequency^3.6; %(m^{-1}sr^{-1})
-bscSpeckleSTD_test = 0.2*bscSpeckleBf_test;
 
 
 
@@ -159,7 +172,15 @@ for iDepths = 1:length(allDepths)
     
 
     dzT = allDepths(iDepths)*0.1 - edgeYVal*100; %cm 
-    attTest_DB = 2*(dzT)*attTest(1);
+    
+    
+    [~,attCoeffIDX] =  min(abs(dzT- attMeasures.xEst));
+    
+    liverThick = allDepths(iDepths)*1e-3 - fatThick - muscleThick - skinThick
+
+    attLiver = liverThick*100*(attMeasures.a0+attMeasures.alpha)
+    
+    attTest_DB = attSubCut + attLiver;
     attComp_Test =   10^(attTest_DB/10);
 
     [~ , cohTestKernelIdx] = min(abs(allDepths(iDepths)*1e-3 - bfImgData.yVals));
@@ -219,7 +240,7 @@ for iDepths = 1:length(allDepths)
   
     %% 
 
-    if 0
+    if 1
 
         hCohSpeckle = histogram(speckleCOSIE.thVector,'Normalization','probability');
         binCentreCoh = hCohSpeckle.BinEdges(2:end)-hCohSpeckle.BinWidth;
@@ -243,7 +264,7 @@ for iDepths = 1:length(allDepths)
 
     
 
-    if 1% iDepths == 7 
+    if 0% iDepths == 7 
 
         %bscSegPlotter(powerSeg,convFactor,bscSpeckleBf_test,bscSpeckleSTD_ref,dzT)
         bscSegPlotter(powerSeg,convFactor,0.1,bscSpeckleSTD_ref,dzT)

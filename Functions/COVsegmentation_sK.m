@@ -46,3 +46,7 @@ function bscEstimate = COVsegmentation_sK(vble,EML,spectAll,kWidth,oLap)
     end    
     
 end
+
+
+
+
