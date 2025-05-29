@@ -40,7 +40,7 @@ function [] = bscSegPlotter(powerSeg,convFactor,mubsTH,mubsTH_STD,z)
     set(gca,'YScale','log')
     
     %yticks(0.125.*[1,2,4,8,16,5/0.125,10/0.125])
-    yticks(0.05.*2.^[-1:6])
+    %yticks(0.05.*2.^[-1:6])
 
     xticks([0 : 25: 100])
     xlabel('Segmentation (%)')
