@@ -2,7 +2,7 @@
 clear 
 close all 
 
-for volNumber = 1:10
+for volNumber = 6:10
 
     %volNumber = input('Volunteer number : ')
     testDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\CCR5912_0',num2str(volNumber),'V\BFimgDataTGCcorr\'];
@@ -53,7 +53,7 @@ for volNumber = 1:10
         fat.rho = [911];
         fat.c =   [1477];
         
-        EMLidx = 20;
+        EMLidx = 10;
         saveDir_SEG = [testDir,'\',wName,'\Img',num2str(iImage),'\E',num2str(EMLidx),'\'];
         
         if ~exist(saveDir_SEG)
@@ -300,7 +300,7 @@ for volNumber = 1:10
         
             
         
-            if 1 % iDepths == 7 
+            if 0 % iDepths == 7 
     
                 bscSegDir = [testDir,'\BSCDepthPlots\'];
     

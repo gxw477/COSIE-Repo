@@ -100,7 +100,7 @@ bscSpeckleSTD_ref = 0.2*bscSpeckleBf_ref;
 xBool = 17:112;
 rayIdxs = (1:128);    
 rayIdxs2 = rayIdxs(xBool);  
-EMLidx = 10;
+EMLidx = 5;
 allDepths = 15:5:50;
 nDepths = length(allDepths);
 
@@ -108,9 +108,9 @@ fNames = ls([testDir,'BFimg*']);
 
 nImages = size(fNames,1);
 
-
-
 bscResults = cell(nImages,nDepths);
+
+axIdxs_BIG = [];
 
 
 for iImage = 1:nImages
@@ -159,20 +159,39 @@ for iImage = 1:nImages
     
         dzT = allDepths(iDepths)*0.1 - edgeYVal*100; %cm 
         
-        [~,idx] = min(abs(attData.xEst-dzT));
-
-        attTest_DB = 2*(dzT)*attTest(idx);
-        attComp_Test =   10^(attTest_DB/10);
-    
+        [~,attCoeffIDX] =  min(abs(dzT- attMeasures.xEst));
+        
+        liverThick = allDepths(iDepths)*1e-3 - (fatThick + muscleThick + skinThick)
+        
+        
+        attLiver = (attMeasures.a0(attCoeffIDX)+attMeasures.alpha(attCoeffIDX)*vsxParams.Trans.frequency)
+        
+        attInLiver = liverThick * attLiver; 
+        
+        
+        if attLiver < 0 || isnan(attLiver)
+            attLiver = liverThick * 100 * 0.5 * vsxParams.Trans.frequency ;
+        end
+        
+        attTest_DB = attSubCut + attLiver;
+        attComp_Test =  10^(attTest_DB/10);
+        
+        allAtt(iDepths) = attTest_DB;
+        
         [~ , cohTestKernelIdx] = min(abs(allDepths(iDepths)*1e-3 - bfImgData.yVals));
-    
+        
         RMatTest = zeros(length(xBool),sumIdx);
         axIdxs = (cohTestKernelIdx- cohKlength/2):(cohTestKernelIdx+cohKlength/2-1);
         
         for iLine = 1:length(xBool)
            RMatTest(iLine,:) =  CoherenceAnalysisFN(squeeze(bfImgData.channelStack(xBool(iLine),axIdxs,:)));
         end 
+        axIdxs_BIG = [axIdxs_BIG,axIdxs];
+
+        %% Coh Analysis
         
+        cohTest = sum(RMatTest(:,1:sumIdx),2);
+
         cInput_Depth = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
         powf0 = abs(cInput_Depth.spectAll(:,nF));
         
@@ -183,23 +202,21 @@ for iImage = 1:nImages
         bscEstimate = (powf0.*convFactor);
         powf0_BIG(:,iDepths) = bscEstimate;
         
-        
-        %% Coh analysis
-        
-        cohTest = sum(RMatTest(:,1:sumIdx),2);    
-        cInput = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
-        cohSeg = COVsegmentation_sK(cohTest,speckleCOSIE.EML,bscEstimate,kWidth,oLap);
-
 
         %% SNR analysis 
         
-        %load COSIE data
-        speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
         qaSNRdata = load([testDir,wName,'\Z',num2str(allDepths(iDepths)),'\EnvStats',num2str(iImage),'.mat']);
         snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
         
-        snrSeg = COVsegmentation_sK(snrTest,speckleSNRdata.EML,bscEstimate,kWidth,oLap);
-
+        %load COSIE data
+        speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
+    
+        
+        segBool2 = snrTest > speckleSNRdata.redEML(1,EMLidx) & snrTest < speckleSNRdata.redEML(2,EMLidx);
+        segBool2_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool2),kWidth,oLap))))';
+        segBoolBIG2(:,iDepths) = segBool2_cluster;
+       
+        allThValsSNR(:,iDepths) = [speckleSNRdata.redEML(1,EMLidx),speckleSNRdata.redEML(2,EMLidx)];
         
       
         %% Weighting analysis 
@@ -219,6 +236,11 @@ for iImage = 1:nImages
         close all
 
         %% Store results
+
+        cohSeg= COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
+        snrSeg = COVsegmentation_sK(snrTest,speckleSNRdata.redEML,powf0,kWidth,oLap);
+        
+
         
         bscResultsIdepth.coherenceCOSIE = cohSeg;
         bscResultsIdepth.snrCOSIE = snrSeg;
@@ -260,35 +282,52 @@ for iDepth = 1:nDepths
         snrCOSIEtemp(iImage,:)  = (bscResults{iImage,iDepth}.snrCOSIE([1,2],EMLidx));
         cohWEIGHTtemp(iImage,:) = (bscResults{iImage,iDepth}.coherenceWEIGHT([1,2],2));
         snrWEIGHTtemp(iImage,:) = (bscResults{iImage,iDepth}.snrWEIGHT([1,2],2));
-        unsegTemp(iImage,:)     = (bscResults{iImage,iDepth}.snrWEIGHT([1,2],1));
+        unsegTemp(iImage,:)     = (bscResults{iImage,iDepth}.coherenceCOSIE([1,2],1));
         
     end
    
-    cohCOSIEdepth(iDepth,:) = [mean(cohCOSIEtemp(:,1),'omitnan'),mean(cohCOSIEtemp(:,2),'omitnan')];
-    snrCOSIEdepth(iDepth,:) = [mean(snrCOSIEtemp(:,1),'omitnan'),mean(snrCOSIEtemp(:,2),'omitnan')];
+    cohCOSIEdepth(iDepth,:) = [mean(cohCOSIEtemp(:,1),'omitnan'),mean(cohCOSIEtemp(:,2),'omitnan')].*convFactor;
+    snrCOSIEdepth(iDepth,:) = [mean(snrCOSIEtemp(:,1),'omitnan'),mean(snrCOSIEtemp(:,2),'omitnan')].*convFactor;
     cohWEIGHTdepth(iDepth,:) = [mean(cohWEIGHTtemp(:,1),'omitnan'),mean(cohWEIGHTtemp(:,2),'omitnan')];
     snrWEIGHTdepth(iDepth,:) = [mean(snrWEIGHTtemp(:,1),'omitnan'),mean(snrWEIGHTtemp(:,2),'omitnan')];
-    unseg(iDepth,:) = [mean(unsegTemp(:,1),'omitnan'),mean(unsegTemp(:,2),'omitnan')];
+    unseg(iDepth,:) = [mean(unsegTemp(:,1),'omitnan'),mean(unsegTemp(:,2),'omitnan')].*convFactor;
     
 end
 
 
+mubsTH = 0.1;
+dBSTD = 2.4;
+posErr = mubsTH*(1+10^(dBSTD./10));
+negErr = -mubsTH*(1-10^(dBSTD./10));
+
+bscSpeckleSTD_ref = [0.04 2.2]
+
+fillColor = [140, 222, 162]./256;
+xShade = [-15 -15 110 110 ];
+yShade = mubsTH + [- negErr posErr posErr -negErr ];
+    
+
+
+%%
+
 figure 
-errorbar((15:5:50)-1,cohCOSIEdepth(:,1),cohCOSIEdepth(:,2),'k.','MarkerSize',10)
+area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',mubsTH-negErr,'ShowBaseLine','off');    
 hold on 
-errorbar((15:5:50)-0.5,snrCOSIEdepth(:,1),snrCOSIEdepth(:,2),'b.','MarkerSize',10)
-errorbar((15:5:50)+0.5,cohWEIGHTdepth(:,1),cohWEIGHTdepth(:,2),'k*','MarkerSize',10)
-errorbar((15:5:50)+1,snrWEIGHTdepth(:,1),snrWEIGHTdepth(:,2),'b*','MarkerSize',10)
-
-fillColor = [140, 222, 162]./256; 
-xShade = [5 5 60 60 ];
-yShade = bscSpeckleBf_test.*[0.8 1.2 1.2 0.8];
-area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',bscSpeckleBf_test*.8,'ShowBaseLine','off');
-errorbar((15:5:50),unseg(:,1),unseg(:,2),'ro','MarkerSize',2,'MarkerFaceColor','r')
+plot([-15 110],mubsTH.*[1,1],'-.','Color',[255 171 0]./256,'LineWidth',2)
+errorbar(allDepths,unseg(:,1),unseg(:,2),'r.')
+errorbar(allDepths-1,cohCOSIEdepth(:,1),cohCOSIEdepth(:,2),'k.')
+errorbar(allDepths-0.5,snrCOSIEdepth(:,1),snrCOSIEdepth(:,2),'b.')
+errorbar(allDepths+0.5,cohWEIGHTdepth(:,1),cohWEIGHTdepth(:,2),'kx','MarkerFaceColor','k','MarkerSize',5)
+errorbar(allDepths+1,snrWEIGHTdepth(:,1),snrWEIGHTdepth(:,2),'bx','MarkerFaceColor','b','MarkerSize',5)
 set(gca,'YScale','log')
-legend({'CohCOSIE','SNRCOSIE','CohWeight','SNRWeight','G.T.','Unseg'})
+xlim([10 55])
 
-
+xlabel('Depth (mm)')
+ylabel('log_{10}(BSC)')
+set(gca,'FontSize',20)
+ylim([1e-5-1e-6 1e1])
+%yticklabels({'-5','-4','-3','-2','-1','0','1'})
+yticks([10.^[-5: 1]])
 
 %% Comparison between SNR COSIE and coherent COSIE
 

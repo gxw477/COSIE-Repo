@@ -1,4 +1,4 @@
-
+ 
 clear 
 close all 
 
@@ -38,7 +38,7 @@ else
     adaptStr = '';
 end
 
-wOption =2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
+wOption = 4 ;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
 
 if wOption == 1 
     wName = 'Rect';
@@ -100,14 +100,14 @@ else
     %
 end
  
-%input('Check which attenuation value you are using : ')
+input('Check which attenuation value you are using : ')
 %load('C:\Users\gwest\Documents\COSIE paper 1\EmmaLiver\RejIdxs.mat')
 
 %QA phantom
-%attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
+attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
 
 %Emma Liver 
-attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+%attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
 
 
 attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;
@@ -131,7 +131,7 @@ xBool = 17:112;
 
 rayIdxs = (1:128);    
 rayIdxs2 = rayIdxs(xBool);  
-EMLidx = 10;
+EMLidx = 2;
 kWidth = 5; 
 oLap = 0.8;
 
@@ -184,19 +184,26 @@ for iDepths = 1:length(allDepths)
 
     powf0 = abs(cInput_Depth.spectAll(:,nF));
     specklePOWER_MEAN = mean(speckleCOSIE.powf0);
+
+   
+    %temp(iDepths) = specklePOWER_MEAN;
     
-    convFactor = .1./specklePOWER_MEAN * bscSpeckleBf_ref *edgecorr*attComp_Test;
+    convFactor = 1./specklePOWER_MEAN * bscSpeckleBf_ref *edgecorr*attComp_Test;
+
+   
+
 
     bscEstimate = (powf0.*convFactor);
     powf0_BIG(:,iDepths) = bscEstimate;
 
-    powerSeg = COVsegmentation_sK(cohTest,speckleCOSIE.EML,powf0,kWidth,oLap);
+    powerSegCOH = COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
+    
 
-    segBool1 = cohTest > speckleCOSIE.redEML(1,EMLidx) & cohTest < speckleCOSIE.redEML(2,EMLidx);    
+    segBool1 = cohTest > speckleCOSIE.EML(1,EMLidx) & cohTest < speckleCOSIE.EML(2,EMLidx);    
     segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
     
     segBoolBIG1(:,iDepths) = segBool1_cluster;
-    allThValsCOH(:,iDepths) = [speckleCOSIE.redEML(1,EMLidx),speckleCOSIE.redEML(2,EMLidx)];
+    allThValsCOH(:,iDepths) = [speckleCOSIE.EML(1,EMLidx),speckleCOSIE.EML(2,EMLidx)];
 
 
    
@@ -207,15 +214,18 @@ for iDepths = 1:length(allDepths)
     snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
     
     %load COSIE data
-    speckleSNRdata= load([speckleDir2 , 'envData_COSIE' ]) ;
+    speckleSNRdata = load([speckleDir2 , 'envData_COSIE' ]) ;
 
+    %snrCOSIE = load([saveDir,'envData_COSIE.mat']);
+
+    powerSegSNR = COVsegmentation_sK(qaSNRdata.envMean./qaSNRdata.envStd,speckleSNRdata.EML,powf0,kWidth,oLap);
     
-    segBool2 = snrTest > speckleSNRdata.redEML(1,EMLidx) & snrTest < speckleSNRdata.redEML(2,EMLidx);
+    segBool2 = snrTest > speckleSNRdata.EML(1,EMLidx) & snrTest < speckleSNRdata.EML(2,EMLidx);
     segBool2_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool2),kWidth,oLap))))';
     segBoolBIG2(:,iDepths) = segBool2_cluster;
    
     
-    allThValsSNR(:,iDepths) = [speckleSNRdata.redEML(1,EMLidx),speckleSNRdata.redEML(2,EMLidx)];
+    allThValsSNR(:,iDepths) = [speckleSNRdata.EML(1,EMLidx),speckleSNRdata.EML(2,EMLidx)];
   
     %% 
 
@@ -227,7 +237,7 @@ for iDepths = 1:length(allDepths)
         bscEstimate_weighted_COH = COVWeighting(cohTest,binCentreCoh,pCoh,bscEstimate,kWidth,oLap);
         
         weightingCOH(iDepths,:) = bscEstimate_weighted_COH(1:2,2);
-        unseg(iDepths,:) = bscEstimate_weighted_COH(1:2,1);
+        unseg(iDepths,:) = powerSegCOH(1:2,1).*convFactor;
 
         hEnvSpeckle = histogram(speckleSNRdata.snr,'Normalization','probability');
         binCentreEnv = hEnvSpeckle.BinEdges(2:end)-hEnvSpeckle.BinWidth;
@@ -243,33 +253,44 @@ for iDepths = 1:length(allDepths)
 
     
 
-    if 1% iDepths == 7 
+    if iDepths == 5
 
-        %bscSegPlotter(powerSeg,convFactor,bscSpeckleBf_test,bscSpeckleSTD_ref,dzT)
-        bscSegPlotter(powerSeg,convFactor,0.1,bscSpeckleSTD_ref,dzT)
-        
-        %saveas(gcf,['BSCSeg',num2str(dzT*10),'.fig'])
-        %exportgraphics(gcf,['BSCSeg',num2str(dzT*10),'.pdf'], 'ContentType', 'vector');
+        %bscSegPlotter(powerSegCOH,convFactor*10,bscSpeckleBf_test,bscSpeckleSTD_ref,dzT)
+
+        %close all
+
+        %bscSegPlotter(powerSegSNR,convFactor,bscSpeckleBf_test,bscSpeckleSTD_ref,dzT)
           
+        %close all
+        
+        bscSegPlotterDual(powerSegCOH,powerSegSNR,convFactor,bscSpeckleBf_test,bscSpeckleSTD_ref,0)
+
         close all
+    
     end
 
-    %segDepthBoolIdxs = find(segBoolBIG1(:,iDepths));
-    %segDepthBoolIdxs2 = find(~segBoolBIG1(:,iDepths));
+    segDepthBoolIdxs = find(segBoolBIG1(:,iDepths));
+    segDepthBoolIdxs2 = find(~segBoolBIG1(:,iDepths));
 
 
     %fancySwarmPlotter(swarmAx,10*dzT,cohTest,segDepthBoolIdxs,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
+    
     %fancySwarmPlotter(swarmAx,10*dzT,cohTest,segDepthBoolIdxs,segDepthBoolIdxs2,[],[])
     
+
     %fancySwarmPlotter(swarmAx,10*dzT,snrTest,segBool2_cluster,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
 
     if 0
         %f1 = figure;
         %a1 = axes;
+
+        close all
+
         xPlot = xVals(xBool);
         xPlot = xPlot - mean(xPlot);
         xPlot = xPlot.*1e3;    
-        a1 = subplot(2,4,iDepths)
+        a1 = axes;
+
         plot(a1,xPlot,cohTest,'r-','LineWidth',2)
         hold on 
         plot(a1,[-16 16], [1 1].*speckleCOSIE.redEML(1,EMLidx),'k-.','LineWidth',2)
@@ -286,13 +307,13 @@ for iDepths = 1:length(allDepths)
         close all
     end
 
-     if 0
+     if 1
         %f1 = figure;
         close all
 
         a1 = axes;
         xPlot = xVals(xBool);
-        xPlot = xPlot - mean(xPlot);allThValsCOH
+        xPlot = xPlot - mean(xPlot);
         xPlot = xPlot.*1e3;    
         %a1 = subplot(2,4,iDepths)
         plot(a1,xPlot,snrTest,'r-','LineWidth',2)
@@ -300,9 +321,9 @@ for iDepths = 1:length(allDepths)
         plot(a1,[-16 16], [1 1].*speckleSNRdata.redEML(1,EMLidx),'k-.','LineWidth',2)
         plot(a1,[-16 16], [1 1].*speckleSNRdata.redEML(2,EMLidx),'k-.','LineWidth',2)
         xlim(a1,[-16 16])
-        ylim(a1,[0 3])
+        ylim(a1,[0 3.5])
         xlabel(a1,'Lateral Position (mm)')
-        ylabel(a1,'Coherence')
+        ylabel(a1,'SNR')
         set(a1,'FontSize',14)
 
         saveas(gcf,['SNR',num2str(dzT*10),'mm.fig'])
@@ -321,23 +342,24 @@ end
 %plot(swarmAx,allDepths,allThValsSNR(1,:),'k-.','LineWidth',2)
 %plot(swarmAx,allDepths,allThValsSNR(2,:),'k-.','LineWidth',2)
 
-errorbar(15:5:50,unseg(:,1),unseg(:,2),'r.','MarkerSize',10)
-hold on 
-errorbar((15:5:50)-0.5,weightingCOH(:,1),weightingCOH(:,2),'k.','MarkerSize',10)
-errorbar((15:5:50)+0.5 ,weightingENV(:,1),weightingENV(:,2),'b.','MarkerSize',10)
-fillColor = [140, 222, 162]./256;
-xShade = [5 5 60 60 ];
-%yShade = bscSpeckleBf_test.*[0.8 1.2 1.2 0.8];
-yShade = 0.1.*[0.8 1.2 1.2 0.8];
-%area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',bscSpeckleBf_test*.8,'ShowBaseLine','off');
-area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',0.08,'ShowBaseLine','off');
-plot([10 55],0.1.*[1 1],'-.','Color','b','LineWidth',2)
-set(gca,'YScale','log')
-set(gca,'FontSize',14)
-xlabel('Depth (mm)')
-xlim tight
-ylabel('BSC (m^{-1}sr^{-1})')
-
+if 0 
+    fillColor = [140, 222, 162]./256;
+    xShade = [5 5 60 60 ];
+    yShade = bscSpeckleBf_test.*[0.8 1.2 1.2 0.8];
+    %yShade = 0.1.*[0.8 1.2 1.2 0.8];
+    %area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',0.08,'ShowBaseLine','off');
+    plot([10 55],bscSpeckleBf_test.*[1 1],'-.','Color',[255 171 0]./256','LineWidth',2)
+    hold on 
+    area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',bscSpeckleBf_test*.8,'ShowBaseLine','off');
+    errorbar(15:5:50, unseg(:,1),unseg(:,2),'r.','MarkerSize',10)
+    errorbar((15:5:50)-0.5,weightingCOH(:,1),weightingCOH(:,2),'k.','MarkerSize',10)
+    errorbar((15:5:50)+0.5 ,weightingENV(:,1),weightingENV(:,2),'b.','MarkerSize',10)
+    set(gca,'YScale','log')
+    set(gca,'FontSize',14)
+    xlabel('Depth (mm)')
+    xlim tight
+    ylabel('BSC (m^{-1}sr^{-1})')
+end
 
 
 [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG1,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence');

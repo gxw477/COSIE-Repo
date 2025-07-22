@@ -17,7 +17,7 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
     iqV = demodulateIQfn(bfImgData.PData,rawIQ);
     iqV = iqV(:,:,1);
 
-    bModeViq = bmode(iqV,100);
+    bModeViq = bmode(iqV,80);
 
     transpData = zeros(size(bfImgData.fullIM));
     colorData = nan.*zeros(size(bfImgData.fullIM));

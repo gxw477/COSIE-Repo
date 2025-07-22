@@ -26,7 +26,7 @@ function [bscEstimate] = COVWeighting(inVble,binCentre,pDist,powf0,kWidth,oLap)
 
 
     for iKernels = 1:nKernels1
-        bscValuesIK(iKernels) = abs(mean(powf0(kIdxs1{iKernels})));
+        bscValuesIK(iKernels) = mean(abs(powf0(kIdxs1{iKernels})));
     end
 
     bscEstimate(:,1) = [mean(bscValuesIK) ;std(bscValuesIK); 0; skewness(bscValuesIK);kurtosis(bscValuesIK)];
@@ -51,7 +51,7 @@ function [bscEstimate] = COVWeighting(inVble,binCentre,pDist,powf0,kWidth,oLap)
         end
 
         %bsc value per kernel
-        bscValuesIK(iKernel) = abs(mean(weightFactor.*powf0(kIdxs2{iKernel})));
+        bscValuesIK(iKernel) = mean(abs(weightFactor.*powf0(kIdxs2{iKernel})));
     end
 
 

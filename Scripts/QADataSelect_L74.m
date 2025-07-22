@@ -48,7 +48,7 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 
   
 %% 
-nImages =  12;
+nImages =  3;
 kIdxs = cell(nImages,1);
 
 
@@ -85,6 +85,8 @@ end
 
 rayIdxs = find(nReceive == mode(nReceive));
 
+sumIdx = 33;
+
 for iImage = 1:nImages
 
     iImage
@@ -115,7 +117,7 @@ for iImage = 1:nImages
         plot([xVals(1) xVals(end)],zSelect.*[1 1],'-','color','green')
         plot(120*lWidth.*[1 1],[rVals(axIdxs(1)) rVals(axIdxs(end))],'-','color','green')
         
-        saveDir = [topDirMaster,wName,'\Z',num2str(round(zSelect*1e3)),'/'];
+        saveDir = [topDirMaster,wName,'\Z',num2str(round(zSelect*1e3)),'\Sum',num2str(sumIdx)];
 
         if ~exist(saveDir)
             mkdir(saveDir)
@@ -135,12 +137,12 @@ for iImage = 1:nImages
         end
     
        
-        cohAll = zeros(length(rayIdxs),size(channelStack,3));
+        cohAll = zeros(length(rayIdxs),sumIdx);
         spectAll = zeros(length(rayIdxs),size(spect,2));
         
         for iLine2 = 1:length(rayIdxs)
             
-            cohAll(iLine2,:) = CoherenceAnalysisFN(squeeze(channelStack(rayIdxs(iLine2),axIdxs,:)));
+            cohAll(iLine2,:) = CoherenceAnalysisFN(squeeze(channelStack(rayIdxs(iLine2),axIdxs,1:sumIdx)));
             spectAll(iLine2,:) = spect(iLine2,:);
     
         end

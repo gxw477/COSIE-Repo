@@ -52,7 +52,7 @@ kIdxs = cell(nImages,1);
 
 
 
-for zSelect = (65).*1e-3
+for zSelect = (15:5:50).*1e-3
 
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
@@ -150,20 +150,23 @@ for zSelect = (65).*1e-3
          
         bM = bmode(iq',60);
         
-        [~,edgeIdx1] = min(abs(yVals-3e-2));
+        [~,edgeIdx1] = min(abs(yVals-3e-3));
         [~,edgeIdx2] = min(abs(yVals-3.6e-2));
 
-        [~ , edgeIdxActual] = max(bM(edgeIdx1:edgeIdx2,64));
+        [~ , edgeIdxActual] = max(bM(1:edgeIdx2,64));
         edgeYVal =  yVals(edgeIdxActual+edgeIdx1-1);
 
         figure 
         imagesc(1:128,yVals,bM)
         colormap gray 
+        title(['Edge at ',num2str(edgeYVal*1e3)])
 
         close all
     
         attSpeckle_DB = 2*(zSelect*100 - edgeYVal*100)*attSpeckle(1);
         attComp_Speckle= 10^(attSpeckle_DB/10);
+
+        temp(iImage) = edgeYVal;
         
         if transSwitch == 0
             imagesc((1:128).*lWidthF,yVals,bM); 
@@ -191,16 +194,16 @@ for zSelect = (65).*1e-3
     
         %% BSC + Coherence Calc
     
-        bscLines = fullIM(kIdxs{iImage},axIdxsBSC);
+        bscLines1 = fullIM(kIdxs{iImage},axIdxsBSC);
         
         if wOption == 1 || wOption == 2 || wOption == 4
-            winMatrix = ones(size(bscLines)).*win;
-            bscLines = bscLines.*winMatrix;
-            spect = (fft(bscLines,[],2)).^2;
+            winMatrix = ones(size(bscLines1)).*win;
+            bscLines2 = bscLines1.*winMatrix;
+            spect = (fft(bscLines2,[],2)).^2;
             
         elseif wOption == 3
             h = spectrum.welch;                  % Create a Welch spectral estimator.
-            welchObj = psd(h,bscLines','Fs',fs);
+            welchObj = psd(h,bscLines1','Fs',fs);
             spect = (welchObj.Data').^2; % transpose because spectAveraging takes the vector the other way
         end
         
@@ -216,7 +219,7 @@ for zSelect = (65).*1e-3
             
            cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxsCOH,:)));
            spectAll(iLine2 + rayCount, :) = spect2(iLine2,:);
-           envAll(iLine2 + rayCount,:) = abs(envelope(bscLines(iLine2,:)));
+           envAll(iLine2 + rayCount,:) = abs(envelope(bscLines1(iLine2,:)));
     
         end
         
@@ -247,8 +250,8 @@ for zSelect = (65).*1e-3
         mkdir(saveDir2)
     end
     
-    
-    for sumIdx = size(cohAll,2)
+   
+    for sumIdx = [16 ,size(cohAll,2)]
     
         sumIdx/size(cohAll,2)
     
