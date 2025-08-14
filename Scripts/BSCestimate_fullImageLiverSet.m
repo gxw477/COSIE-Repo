@@ -164,19 +164,19 @@ for iImage = 1:nImages
         liverThick = allDepths(iDepths)*1e-3 - (fatThick + muscleThick + skinThick)
         
         
-        attLiver = (attMeasures.a0(attCoeffIDX)+attMeasures.alpha(attCoeffIDX)*vsxParams.Trans.frequency)
+        attLiver = -1.*(attMeasures.a0(attCoeffIDX)+attMeasures.alpha(attCoeffIDX)*vsxParams.Trans.frequency)
         
-        attInLiver = liverThick * attLiver; 
+        attInLiver = liverThick * 100 * attLiver; 
         
         
         if attLiver < 0 || isnan(attLiver)
-            attLiver = liverThick * 100 * 0.5 * vsxParams.Trans.frequency ;
+            attInLiver = liverThick * 100 * 0.47 * vsxParams.Trans.frequency ;
         end
         
-        attTest_DB = attSubCut + attLiver;
+        attTest_DB = attSubCut + attInLiver;
         attComp_Test =  10^(attTest_DB/10);
         
-        allAtt(iDepths) = attTest_DB;
+        allAtt(iImage,iDepths) = attTest_DB;
         
         [~ , cohTestKernelIdx] = min(abs(allDepths(iDepths)*1e-3 - bfImgData.yVals));
         
@@ -197,7 +197,7 @@ for iImage = 1:nImages
         
         speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
         specklePOWER_MEAN = mean(speckleCOSIE.powf0);
-        convFactor = .1./specklePOWER_MEAN * bscSpeckleBf_ref *edgecorr*attComp_Test;
+        convFactor = 1./specklePOWER_MEAN * bscSpeckleBf_ref *edgecorr*attComp_Test;
     
         bscEstimate = (powf0.*convFactor);
         powf0_BIG(:,iDepths) = bscEstimate;
@@ -226,22 +226,20 @@ for iImage = 1:nImages
         pCoh = hCohSpeckle.Values;
         bscEstimate_weighted_COH = COVWeighting(cohTest,binCentreCoh,pCoh,bscEstimate,kWidth,oLap);
 
-        close all
+        close(gcf)
   
         hEnvSpeckle = histogram(speckleSNRdata.snr,'Normalization','probability');
         binCentreEnv = hEnvSpeckle.BinEdges(2:end)-hEnvSpeckle.BinWidth;
         pEnv = hEnvSpeckle.Values;
         bscEstimate_weighted_ENV = COVWeighting(snrTest,binCentreEnv,pEnv,bscEstimate,kWidth,oLap);
 
-        close all
+        close(gcf)
 
         %% Store results
 
-        cohSeg= COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
+        cohSeg = COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
         snrSeg = COVsegmentation_sK(snrTest,speckleSNRdata.redEML,powf0,kWidth,oLap);
-        
-
-        
+      
         bscResultsIdepth.coherenceCOSIE = cohSeg;
         bscResultsIdepth.snrCOSIE = snrSeg;
         bscResultsIdepth.coherenceWEIGHT = bscEstimate_weighted_COH;
@@ -253,9 +251,11 @@ for iImage = 1:nImages
 
     end
 
+    %plot(allAtt)
+    %hold on 
 end
 
-
+        
 
 %% depth 
 
@@ -346,3 +346,20 @@ yPlot = xPlot.*a + b;
 
 plot(xPlot,yPlot,'k-.')
 
+
+%% 
+
+unsegCOV = unseg(:,2)./unseg(:,1);
+cohCOV = cohCOSIEdepth(:,2)./cohCOSIEdepth(:,1);
+snrCOV = snrCOSIEdepth(:,2)./snrCOSIEdepth(:,1);
+
+
+figure 
+plot(allDepths,unsegCOV,'ro','MarkerFaceColor','r')
+hold on 
+plot(allDepths-1,cohCOV,'ko','MarkerFaceColor','k')
+plot(allDepths-0.5,snrCOV,'bo','MarkerFaceColor','b')
+xlabel('Depth (mm)')
+ylabel('C.O.V.')
+set(gca,'FontSize',20)
+xlim([10 55])

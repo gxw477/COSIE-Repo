@@ -4,8 +4,8 @@ close all
 
 speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
 
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
+%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
+testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
 
 planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
@@ -177,19 +177,19 @@ for iDepths = 1:length(allDepths)
     
     [~,attCoeffIDX] =  min(abs(dzT- attMeasures.xEst));
     
-    liverThick = allDepths(iDepths)*1e-3 - (fatThick + muscleThick + skinThick)
+    liverThick = 2*(allDepths(iDepths)*1e-3 - (fatThick + muscleThick + skinThick))
 
 
-    attLiver = (attMeasures.a0(attCoeffIDX)+attMeasures.alpha(attCoeffIDX)*vsxParams.Trans.frequency)
+    attLiver = -1.*(attMeasures.a0(attCoeffIDX)+attMeasures.alpha(attCoeffIDX)*vsxParams.Trans.frequency)
     
-    attInLiver = liverThick * attLiver; 
+    attInLiver = liverThick * 100 * attLiver; 
 
 
-    if attLiver < 0 || isnan(attLiver)
-        attLiver = liverThick * 100 * 0.5 * vsxParams.Trans.frequency ;
+    if attLiver <= 0 || isnan(attLiver)
+        attInLiver = liverThick * 100 * 0.47 * vsxParams.Trans.frequency ;
     end
     
-    attTest_DB = attSubCut + attLiver;
+    attTest_DB = attSubCut + attInLiver;
     attComp_Test =  10^(attTest_DB/10);
 
     allAtt(iDepths) = attTest_DB;
@@ -250,7 +250,7 @@ for iDepths = 1:length(allDepths)
   
     %% 
 
-    if 1
+    if 0
 
         hCohSpeckle = histogram(speckleCOSIE.thVector,'Normalization','probability');
         binCentreCoh = hCohSpeckle.BinEdges(2:end)-hCohSpeckle.BinWidth;
@@ -274,7 +274,7 @@ for iDepths = 1:length(allDepths)
 
     
 
-    if 1 %iDepths == 7 
+    if 0 %iDepths == 7 
         
         %bscSegPlotter(powerSeg,convFactor,bscSpeckleBf_test,bscSpeckleSTD_ref,dzT)
         dBSTD = 2.4;
@@ -304,7 +304,7 @@ for iDepths = 1:length(allDepths)
     
     %fancySwarmPlotter(swarmAx,10*dzT,snrTest,segBool2_cluster,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
 
-    if 1
+    if 0
         %f1 = figure;
         %a1 = axes;
         close all
