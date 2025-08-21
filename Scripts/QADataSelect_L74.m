@@ -48,7 +48,9 @@ kLength_COH = round(vsxParams.Receive(1).samplesPerWave);
 
   
 %% 
-nImages =  3;
+fNames = ls([topDirMaster,'\BFimgData*']);
+
+nImages = size(fNames,1);
 kIdxs = cell(nImages,1);
 
 
@@ -92,7 +94,7 @@ for iImage = 1:nImages
     iImage
 
     %load([topDirMaster,'\BFimgDataTGCcorr\BFimgData',num2str(iImage),'.mat'])
-    load([topDirMaster,'\BFimgData',num2str(iImage),'.mat'])
+    load([topDirMaster,fNames(iImage,:)])
     
     figure
     imagesc(xVals,yVals,log(abs(fullIM')),[2.5 11]); colormap gray 

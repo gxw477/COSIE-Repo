@@ -274,7 +274,7 @@ for iDepths = 1:length(allDepths)
 
     
 
-    if 0 %iDepths == 7 
+    if 1 %iDepths == 7 
         
         %bscSegPlotter(powerSeg,convFactor,bscSpeckleBf_test,bscSpeckleSTD_ref,dzT)
         dBSTD = 2.4;

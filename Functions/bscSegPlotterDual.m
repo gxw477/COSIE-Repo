@@ -1,5 +1,17 @@
 function [] = bscSegPlotterDual(powerSegCOH,powerSEGSNR,convFactor,mubsTH,mubsTH_STD,logSwitch)
 
+    % bscSegPlotterDual(powerSegCOH,powerSEGSNR,convFactor,mubsTH,mubsTH_STD,logSwitch)
+    % powerSeg_(1) mean(bscValues) 
+    % powerSeg_(2) std(bscValuesIK) 
+    % powerSeg_(3) segPctLines
+    % powerSeg_(4) segPctKernels 
+    % powerSeg_(5) skewness(bscValues)
+    % powerSeg_(6) kurtosis(bscValues)];
+
+    %convFactor for power+attenuation normalisation
+    %mubsTH     theoretical mubs (if avo)
+    %mubsTH_Std [SD- SD+]
+    %logSwitch  display on log scale
 
     %% Coherence Section
     
@@ -50,9 +62,6 @@ function [] = bscSegPlotterDual(powerSegCOH,powerSEGSNR,convFactor,mubsTH,mubsTH
     figure 
     xShade = [-15 -15 110 110 ];
     yShade = [ neg pos pos neg ];
-    area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',neg,'ShowBaseLine','off');
-    
-    
     area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',neg,'ShowBaseLine','off');
     hold on 
     plot([-15 110],mubsTH.*[1,1],'-.','Color',[255 171 0]./256,'LineWidth',2)

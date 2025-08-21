@@ -278,7 +278,7 @@ for iDepths = 1:length(allDepths)
     %fancySwarmPlotter(swarmAx,10*dzT,cohTest,segDepthBoolIdxs,segDepthBoolIdxs2,[],[])
     
 
-    %fancySwarmPlotter(swarmAx,10*dzT,snrTest,segBool2_cluster,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
+    fancySwarmPlotter(swarmAx,10*dzT,snrTest,segBool2_cluster,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
 
     if 0
         %f1 = figure;
@@ -307,7 +307,7 @@ for iDepths = 1:length(allDepths)
         close all
     end
 
-     if 1
+     if 0
         %f1 = figure;
         close all
 
@@ -339,8 +339,8 @@ end
 %plot(swarmAx,allDepths,allThValsCOH(1,:),'k-.','LineWidth',2)
 %plot(swarmAx,allDepths,allThValsCOH(2,:),'k-.','LineWidth',2)
 
-%plot(swarmAx,allDepths,allThValsSNR(1,:),'k-.','LineWidth',2)
-%plot(swarmAx,allDepths,allThValsSNR(2,:),'k-.','LineWidth',2)
+plot(swarmAx,allDepths,allThValsSNR(1,:),'k-.','LineWidth',2)
+plot(swarmAx,allDepths,allThValsSNR(2,:),'k-.','LineWidth',2)
 
 if 0 
     fillColor = [140, 222, 162]./256;

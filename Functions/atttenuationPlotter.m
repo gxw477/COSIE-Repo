@@ -1,42 +1,48 @@
 function [] = atttenuationPlotter(allDepths,unsegData,segArray,liverStart,liverAtt,attSubCut)
     
     
-    nEMLidx = size(segArray,1);
-    greenValues = round(linspace(255,0,nEMLidx));
-    cmap = [255.*ones(nEMLidx,1),greenValues',zeros(nEMLidx,1)]./255;
-  
-    figure 
-   
-    plot(allDepths,attSubCut + 10.*log10(unsegData(:,1)),'k-o','MarkerFaceColor','k')
+    nEML = size(segArray,1);
+    cmap = [
+            0.1216 0.4667 0.7059;  % Strong Blue
+            0.8510 0.3725 0.0078;  % Vivid Orange
+            0.5569 0.2667 0.6784; 
+            0.7922 0.1176 0.5686;  % Magenta
+            0.4980 0.4980 0.4980;  % Dark Gray
+        ];
+
+    figure
+    plot(allDepths,-attSubCut + 10.*log10(unsegData(:,1)),'k-o','MarkerFaceColor','k')
     hold on 
-    for i = 1:nEMLidx
-        plot(allDepths,attSubCut + 10.*log10(segArray(i,:,1)),'-o','Color',cmap(i,:))
+    for i = 1:nEML
+        plot(allDepths,-attSubCut + 10.*log10(segArray(i,:,1)),'-o','Color',cmap(i,:),'MarkerFaceColor',cmap(i,:))
     end
     
-    plot(allDepths,attSubCut + (allDepths-liverStart*1e3).*1e-3*liverAtt,'k-.')
+    plot(allDepths,(allDepths-liverStart*1e3).*1e-3*liverAtt,'k-.')
     xlabel('Depth (mm)')
     ylabel('Attenuation (dB)')
     set(gca,'FontSize',20)
-    xlim padded
+    xlim([10 60])
     
     
     
     figure
     plot(allDepths,10.*log10(unsegData(:,2)),'k-o','MarkerFaceColor','k')
     hold on 
-    for i = 1:nEMLidx
-        plot(allDepths,10.*log10(segArray(i,:,2)),'-o','Color',cmap(i,:))
+    for i = 1:nEML
+        plot(allDepths,10.*log10(segArray(i,:,2)),'-o','Color',cmap(i,:),'MarkerFaceColor',cmap(i,:))
     end
     
     xlabel('Depth (mm)')
     ylabel('RMSE (dB)')
-    xlim padded
+    xlim([10 60])
     set(gca,'FontSize',20)
-    colormap(cmap)
+    colormap([cmap])
+    
+    colormap([0,0,0;cmap])
     cB = colorbar;
-    set(cB,'XTick',0.05:0.1:1)
-    set(cB,'XTickLabel',1:10)
-    %saveas(gcf,[imgDir,'\AttCorr.fig'])
-    %exportgraphics(gcf,[imgDir,'\AttCorr.pdf'])
+    set(cB,'XTick',(1:2:(2*(nEML+1)))./(2*(nEML+1)))
+    set(cB,'TickLabels',0:nEML)
+
+
 
 end

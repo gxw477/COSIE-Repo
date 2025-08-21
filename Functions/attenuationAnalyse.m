@@ -120,7 +120,7 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDist,endDepth,segBool,IDF,
         %[a2(iF),b2(iF),c2(iF),e2(iF,:),re2(iF)] = lsqn(xFit2,yFit2,options1);
         
 
-        if iF ==  21
+        if 0%iF ==  21
             figure 
             subplot(1,2,1)
             plot(xFit1(:),yFit1(:),'k.','MarkerFaceColor','k')
@@ -142,7 +142,7 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDist,endDepth,segBool,IDF,
     [a0,  alpha ,corr] = lsqn(f(fL:fU), b(fL:fU),[f(iF0) 5e5 2]); 
     [a02, alpha2,corr2] = lsqn(f(fL:fU), b2(fL:fU),[f(iF0) 5e5 2]); 
     
-    if 1
+    if 0
         subplot(1,2,2)
         plot(f(fL:fU),b(fL:fU),'ko','MarkerFaceColor','k')
         hold on
