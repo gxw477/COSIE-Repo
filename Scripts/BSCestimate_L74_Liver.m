@@ -2,20 +2,20 @@
 clear 
 close all 
 
-speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
+speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\';
 
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
+testDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
 
-planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
+%planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
 %load verasonics param's2
 vsxParams = load([testDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
 
 sumIdx = input('Sum Idx: ');
 
@@ -24,7 +24,7 @@ iImage = input('Which Image ? : ');
 
 
 %load test data
-bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
+bfImgData = load([testDir,'\BFimgData',num2str(iImage),'.mat']);
 
 depthSelect = 25;%input('Depth of interest (mm) : ');
     
@@ -125,8 +125,12 @@ fAtt = fat.att(1)*8.6860000037 * vsxParams.Trans.frequency;
 
 attSubCut = skinThick*sAtt + fatThick*fAtt + muscleThick*mAtt;
 
-attMeasures = load([testDir,'/AttDataTestFolderLiverDist/attFit',num2str(iImage),'.mat'])
+attMeasures = load([testDir,'/AttData/Frame',num2str(iImage),'.mat'])
+%add variable converting the filter window position (in wavel) into single
+%path distance from transd to ROI
+attMeasures.xEst = attMeasures.Filt.wpos * lambda * vsxParams2.Receive(1).samplesPerWave / 2;
 
+%Previously estimated attenuation estimate for the 
 attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;
 %attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
 
@@ -147,7 +151,7 @@ xBool = 17:112;
 rayIdxs = (1:128);    
 rayIdxs2 = rayIdxs(xBool);  
 EMLidx = 10;
-kWidth = 5; 
+kWidth = 5;
 oLap = 0.8;
 
 allDepths = 15:5:50;

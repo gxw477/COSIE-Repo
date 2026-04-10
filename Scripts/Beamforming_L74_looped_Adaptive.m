@@ -2,7 +2,12 @@ clear
 
 close all 
 
-topDir = [uigetdir,'\'];
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions')
+
+
+%topDir = ['C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Set5\'];
+topDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\'
 cd(topDir)
 
 %fileIdxs = 5:5:50;
@@ -11,9 +16,9 @@ fileNames = ls('All*');
 
 %load(uigetfile)
 
-SOS = input('Speed of sound :')
+SOS = 1540;%input('Speed of sound :')
 
-for iFrame = 3:size(fileNames,1)
+for iFrame = [1:size(fileNames,1)]
 
     VSXfileOption = 2 ;
     
@@ -114,6 +119,7 @@ for iFrame = 3:size(fileNames,1)
     omitChannel = channelCheck == 0;
     
     channelStack = zeros(P.numRays, samplesPerAcq , max(apLengths));
+    channelStack2 = zeros(P.numRays, samplesPerAcq , max(apLengths));
     
     if VSXfileOption ==1 
         iPix = 1; 
@@ -140,7 +146,7 @@ for iFrame = 3:size(fileNames,1)
         %dz = Trans.radius * (1-cos(chordAngle/2))*lambda;
             
         acqI = RfFrame2(:,~omitChannel);
-        %acqI = acqI(Receive(i).startSample:Receive(i).endSample,~omitBool);
+        acqI = acqI(Receive(i).startSample:Receive(i).endSample,:);
         
         samplesPerAcq2 = Receive(i).endSample - Receive(i).startSample + 1;
         
@@ -152,8 +158,8 @@ for iFrame = 3:size(fileNames,1)
     
         params.Nelements  = size(Trans.ElementPos,1);
         
-        mDir = ['MatrixFolderAdaptive'];
-        mFileName =  [mDir,'\M',num2str(i),'.mat'];
+        mDir = ['C:\Users\gwest\Documents\MATLAB\ElastPhtL74\MatrixFolderAdaptive\'];
+        mFileName =  [mDir,'\M.mat'];
 
         if ~exist(mDir)
             mkdir(mDir)
@@ -161,31 +167,31 @@ for iFrame = 3:size(fileNames,1)
 
         method = 'quadratic';
 
-        if ~isfile(mFileName)
-            [bfSig,channelData,~,M] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay,params,method);
-            save(mFileName,'M')
-        else
-            load(mFileName)
-            tmp = strcmpi(method,{'nearest','linear','quadratic','lanczos3','5points','lanczos5'});
-        
-            if ~any(tmp)
-                error(['METHOD must be ''nearest'', ''linear'', ''quadratic'',',...
-                    ' ''Lanczos3'', ''5points'' or ''Lanczos5''.'])
-            end
-
-            Npoints = find(tmp);
-    
-            [nl,nc,~] = size(acqI);
-            SIG = reshape(acqI,nl*nc,[]);
-            bfSig = M*SIG;
-            %-- Just-Delay
-            channelData = getElementData(M,SIG,Npoints);
-
+        if i == 1
+            [~,channelData,~,M] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay,params,method);
+            %save(mFileName,'M')
         end
 
-        fullIM(i,:) = bfSig;
-        channelStack(i,:,1:size(channelData,2)) = channelData;
+        tmp = strcmpi(method,{'nearest','linear','quadratic','lanczos3','5points','lanczos5'});
+    
+        if ~any(tmp)
+            error(['METHOD must be ''nearest'', ''linear'', ''quadratic'',',...
+                ' ''Lanczos3'', ''5points'' or ''Lanczos5''.'])
+        end
+
+        Npoints = find(tmp);
+        [nl,nc,~] = size(acqI);
+        SIG = reshape(acqI,nl*nc,[]);
+        %bfSig = M*SIG;
         
+        %-- Just-Delay
+        tempChData = getElementData2(M,SIG,Npoints);
+        channelStack(i,:,1:size(channelData,2)) = tempChData;
+        fullIM(i,:) = sum(tempChData,2);
+        
+        % temp = M.*SIG';
+        %channelStack2(i,:,1:size(channelData,2)) = reshape(temp,nl,nc);
+
     end
      
     iq = rf2iq(fullIM,params.fs);
@@ -218,7 +224,8 @@ for iFrame = 3:size(fileNames,1)
         for iK = 1:nKernels
             
             scatData = squeeze(channelStack(iRay,iPix:(iPix + kLength-1),:));
-            RMat(iRay,iK,:) = CoherenceAnalysisFN(scatData);
+            temp = CoherenceAnalysisFN(scatData);
+            RMat(iRay,iK,1:apLengths(iRay)) = temp(1:apLengths(iRay));
             iPix = iPix + kLength;
             
         end

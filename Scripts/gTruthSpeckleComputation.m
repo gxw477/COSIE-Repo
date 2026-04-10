@@ -7,7 +7,7 @@ close all
 transSwitch = input('0 for L74 \n1 for C1-6D \n :');
 
 if transSwitch == 0
-    topDirMaster =  'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
+    topDirMaster =  'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\';
 elseif transSwitch == 1 
     topDirMaster =  'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\ElastPht\';
 end
@@ -96,7 +96,7 @@ for zSelect = (25:5:50).*1e-3
         %number of beam translations IN FOLDER
         nTransl = 4;%input('Number of beam translations in folder : ');
         %number of frames/Sets 
-        nFrames = 20;%input('Number of frames : ');
+        nFrames = nImages;%input('Number of frames : ');
         %increment between images
         incZ = 5e-3;
         %image idxs within frame
@@ -108,7 +108,7 @@ for zSelect = (25:5:50).*1e-3
         
         
         %reject if the analysis kernel is on the water or on the edge 
-        edgeBoolFile = zSelect./incZ > imageIdxsFrame*;
+        edgeBoolFile = zSelect./incZ > imageIdxsFrame;
         %reject if the analysis kernel includes a reverb
         revbBoolFile = 0.5*zSelect./incZ ~= imageIdxsFrame;
         
@@ -119,7 +119,7 @@ for zSelect = (25:5:50).*1e-3
         %duplicate to get enough rows for all frames
         imageIdxsFrameKeep2 = repmat(imageIdxsFrameKeep,nFrames,1);
         %add iFrame*nTransl to each row to get all available images
-        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + (nTransl).*(0:(nTransl-1)).*ones(nFrames,length(imageIdxsFrameKeep));
+        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + (nTransl).*(0:(nTransl-1)).*ones(nFrames,length(imageIdxsFrameKeep2));
         
         %Apply across nFrames to find all the indices
         imageIdxsAll = sort(imageIdxsFrameKeep3(:));

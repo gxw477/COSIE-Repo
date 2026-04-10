@@ -7,7 +7,7 @@ close all
 transSwitch = input('0 for L74 \n1 for C1-6D \n : ');
 
 if transSwitch == 0
-    topDirMaster =  'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
+    topDirMaster =  'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\';
 elseif transSwitch == 1 
     topDirMaster =  'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\ElastPht\BFimgDataTGCCorr\';
 end
@@ -101,7 +101,7 @@ for zSelect = (15:5:50).*1e-3
         %number of beam translations IN FOLDER
         nTransl = 4%input('Number of beam translations in folder : ');
         %number of frames/Sets 
-        nFrames = 5%input('Number of Repeats : ');
+        nFrames = nImages/nTransl;%input('Number of Repeats : ');
         %increment between images
         incZ = 5e-3;
         %image idxs within frame

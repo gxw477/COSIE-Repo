@@ -47,9 +47,11 @@ function [ channels] = getElementData(M,SIG,methodIdx)
 
     lVec = zeros(1,nSamples);
 
+    mPlier = 1;
+
     for iSample = 1:nSamples
-        
-        %add small amount to signal to avoid zero values being ignored in
+
+        %add small amount to signal to avoid zero crossing values being ignored in
         %next line 
         SIG = SIG + 1e-11; 
         
@@ -60,8 +62,8 @@ function [ channels] = getElementData(M,SIG,methodIdx)
 
         %sum the scaled values
         for i = 2:methodIdx
-            size(vec(1:methodIdx:end));
-            size(vec(i:methodIdx:end));
+            %size(vec(1:methodIdx:end));
+            %size(vec(i:methodIdx:end));
 
             vec2 = vec2 + vec(i:methodIdx:end); 
 

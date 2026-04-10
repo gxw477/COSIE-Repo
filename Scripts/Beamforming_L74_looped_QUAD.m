@@ -13,7 +13,7 @@ fileNames = ls('All*');
 
 SOS = input('Speed of sound :')
 
-for iFrame = 2:size(fileNames,1)
+for iFrame = 8:size(fileNames,1)
 
     VSXfileOption = 2 ;
     
@@ -251,9 +251,15 @@ for iFrame = 2:size(fileNames,1)
     %xPolar2 = xPolar(:,startIdx:endIdx);.
 
 
-    B = bmode(iq(:,startIdx:endIdx),20);
+    B = bmode(iq(:,startIdx:endIdx),50);
         
-    save([topDir,'\BFimgData',num2str(iFrame),'.mat'])
+    saveDir = [topDir,'\QUAD\'];
+
+    if ~exist(saveDir)
+        mkdir(saveDir)
+    end
+
+    save([saveDir,'\BFimgData',num2str(iFrame),'.mat'])
 
     clearvars -except iFrame topDir fileNames SOS
 

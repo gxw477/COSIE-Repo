@@ -42,7 +42,7 @@ function [bscSurface,segmentSurface] = threshSurfaceGen_adaptive(cohValues,bscVa
     segmentSurface = zeros(length(lTH),length(uTH));
 
 
-    
+     
      
     for ilTH = 1:length(lTH)
         for iuTH = ilTH:length(uTH)
