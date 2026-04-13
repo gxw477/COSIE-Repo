@@ -70,7 +70,7 @@ for zSelect = (25:5:50).*1e-3
         wName = 'Welsh';
     end
     
-    saveDir = [topDirMaster,'/',wName,'/Z',num2str(round(zSelect*1e3)),'/'];
+    saveDir = [topDirMaster,'\',wName,'\Z',num2str(round(zSelect*1e3)),'\'];
     
     if ~exist(saveDir)
         mkdir(saveDir)

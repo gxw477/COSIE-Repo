@@ -53,7 +53,8 @@ function [] = bscSegPlotterDual(powerSegCOH,powerSEGSNR,convFactor,mubsTH,mubsTH
         neg = mubsTH_STD(1);
         pos = mubsTH_STD(2);
     else
-        error('Dickhead')
+        neg = mubsTH_STD;
+        pos = mubsTH_STD;
     end
 
 

@@ -2,12 +2,15 @@
 clear 
 close all 
 
-%Image Analysis
+%Add COSIE-repo paths
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions')
 
+%select transducer, comment out and hard code to preserve sanity
 transSwitch = input('0 for L74 \n1 for C1-6D \n : ');
 
 if transSwitch == 0
-    topDirMaster =  'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\';
+    topDirMaster =  'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\QUAD\';
 elseif transSwitch == 1 
     topDirMaster =  'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE_StudyData\ElastPht\BFimgDataTGCCorr\';
 end
@@ -20,17 +23,20 @@ lambda = vsxParams.lambda;
 
 %dtheta = vsxParams.Angle(2)-vsxParams.Angle(1);
 
+%kernel parameters
 kWidth_BSC_lines = 5;
 kLength_BSC_samples = 120;
 oLap = .80;
 
+%linewidth
 lWidthF = lambda*(vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1)) ;
-
+%samples per TX/RX event
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample + 1;
 
 %already defined, but to remind you
 rVals = lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
 
+%Focus index
 [~, bscFocIdx] = min(abs(rVals - vsxParams.TX(1).focus*lambda));
 
 
@@ -50,6 +56,24 @@ clearvars fNames
 
 kIdxs = cell(nImages,1);
 
+wOption = input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Hann \n 4 for Welsh : \n ');
+
+if wOption == 1 
+    win = [0,ones(1,kLength_BSC_samples-2),0];
+    wName = 'Rect';
+elseif wOption == 2
+    win = tukeywin(kLength_BSC_samples,0.1)';
+    wName = 'Tukey';
+elseif wOption == 3
+    win = hann(kLength_BSC_samples)';
+    wName = 'Hann';
+    
+elseif wOption == 4 
+    wName = 'Welsh';
+end
+
+
+input('Check the attenuation values on line 92! ')
 
 
 for zSelect = (15:5:50).*1e-3
@@ -59,23 +83,7 @@ for zSelect = (15:5:50).*1e-3
     axIdxsCOH = zIdx-round(kLength_COH/2) : zIdx + round(kLength_COH/2) -1 ;
     
     
-    
-    wOption = 4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch : \n ');
-    
-    if wOption == 1 
-        win = [0,ones(1,kLength_BSC_samples-2),0];
-        wName = 'Rect';
-    elseif wOption == 2
-        win = tukeywin(kLength_BSC_samples,0.1)';
-        wName = 'Tukey';
-    elseif wOption == 3
-        wName = 'Welsh';
-    elseif wOption == 4 
-        win = hann(kLength_BSC_samples)';
-        wName = 'Hann';
-    end
-    
-    saveDir = [topDirMaster,'/',wName,'/Z',num2str(round(zSelect*1e3)),'/'];
+    saveDir = [topDirMaster,'\',wName,'\Z',num2str(round(zSelect*1e3)),'\'];
     
     if ~exist(saveDir)
         mkdir(saveDir)
@@ -88,6 +96,7 @@ for zSelect = (15:5:50).*1e-3
     df = fVals(2)-fVals(1);
     nF = round(vsxParams.Trans.frequency*1e6/df);
      
+    
     attSpeckle   = [0.524 , 0.09].*vsxParams.Trans.frequency;
     %attWater = 0.00217*vsxParams.Trans.frequency^2; 
     
@@ -98,8 +107,13 @@ for zSelect = (15:5:50).*1e-3
         %all possible image idxs
         imageIdxsAll = 1:nImages;
         
+        % This snippet utilises the ABT data you've already collected to
+        % negate the need to do an extra experiment with the transducer at
+        % a fixed distance to the phantom but in different positions. Don't
+        % worry, the attenuation gets accounted for
+
         %number of beam translations IN FOLDER
-        nTransl = 4%input('Number of beam translations in folder : ');
+        nTransl = 4;%input('Number of beam translations in folder : ');
         %number of frames/Sets 
         nFrames = nImages/nTransl;%input('Number of Repeats : ');
         %increment between images
@@ -125,10 +139,10 @@ for zSelect = (15:5:50).*1e-3
         imageIdxsFrameKeep2 = repmat(imageIdxsFrameKeep,nFrames,1);
 
         %add iFrame*nTransl to each row to get all available images
-        vec1 = nTransl.*[0:(nFrames-1)]';
+        vec1 = nTransl.*(0:(nFrames-1))';
         mat1 = repmat(vec1,[1,size(imageIdxsFrameKeep2,2)]);
         
-        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + mat1
+        imageIdxsFrameKeep3 = imageIdxsFrameKeep2 + mat1;
         %Apply across nFrames to find all the indices
         imageIdxsAll = sort(imageIdxsFrameKeep3(:));
     
@@ -146,18 +160,18 @@ for zSelect = (15:5:50).*1e-3
         
         iImage
     
-        load([topDirMaster,'\BFimgData',num2str(imageIdxsAll(iImage)),'.mat'])
+        bfData = load([topDirMaster,'\BFimgData',num2str(imageIdxsAll(iImage)),'.mat']);
          
-        bM = bmode(iq',60);
+        bM = bmode(bfData.iq',60);
         
-        [~,edgeIdx1] = min(abs(yVals-3e-3));
-        [~,edgeIdx2] = min(abs(yVals-3.6e-2));
+        [~,edgeIdx1] = min(abs(bfData.yVals-3e-3));
+        [~,edgeIdx2] = min(abs(bfData.yVals-3.6e-2));
 
         [~ , edgeIdxActual] = max(bM(1:edgeIdx2,64));
-        edgeYVal =  yVals(edgeIdxActual+edgeIdx1-1);
+        edgeYVal =  bfData.yVals(edgeIdxActual+edgeIdx1-1);
 
         figure 
-        imagesc(1:128,yVals,bM)
+        imagesc(1:128,bfData.yVals,bM)
         colormap gray 
         title(['Edge at ',num2str(edgeYVal*1e3)])
 
@@ -169,7 +183,7 @@ for zSelect = (15:5:50).*1e-3
         temp(iImage) = edgeYVal;
         
         if transSwitch == 0
-            imagesc((1:128).*lWidthF,yVals,bM); 
+            imagesc((1:128).*lWidthF,bfData.yVals,bM); 
             colormap gray; 
     
             pause(0.5)
@@ -194,7 +208,8 @@ for zSelect = (15:5:50).*1e-3
     
         %% BSC + Coherence Calc
     
-        bscLines1 = fullIM(kIdxs{iImage},axIdxsBSC);
+        
+        bscLines1 = bfData.fullIM(kIdxs{iImage},axIdxsBSC);
         
         if wOption == 1 || wOption == 2 || wOption == 4
             winMatrix = ones(size(bscLines1)).*win;
@@ -217,7 +232,7 @@ for zSelect = (15:5:50).*1e-3
         
         for iLine2 = 1:length(kIdxs{iImage})
             
-           cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN(squeeze(channelStack(kIdxs{iImage}(iLine2),axIdxsCOH,:)));
+           cohAll(iLine2 + rayCount ,:) = CoherenceAnalysisFN(squeeze(bfData.channelStack(kIdxs{iImage}(iLine2),axIdxsCOH,:)));
            spectAll(iLine2 + rayCount, :) = spect2(iLine2,:);
            envAll(iLine2 + rayCount,:) = abs(envelope(bscLines1(iLine2,:)));
     

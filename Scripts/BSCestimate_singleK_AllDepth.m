@@ -2,27 +2,33 @@
 clear 
 close all 
 
-speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\QAPht2\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\G218L74_1\';
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\Ozawa\FigureMakingScripts')
 
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
+%Reference phantom data
+speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\QUAD\';
 
+%Test data
+testDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
+testDir2 = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\UsampleQUAD\';
+
+
+%Data with planar reflector data in 
 planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
-%load verasonics param's2
+%load verasonics params files
 vsxParams = load([testDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
 
 sumIdx = 33;
 
 
-iImage = input('Which Image ? : ');
+iImage = 6;%input('Which Image ? : ');
 
 
 %load test data
@@ -38,7 +44,7 @@ else
     adaptStr = '';
 end
 
-wOption = 4 ;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
+wOption = 2; %input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
 
 if wOption == 1 
     wName = 'Rect';
@@ -100,7 +106,7 @@ else
     %
 end
  
-input('Check which attenuation value you are using : ')
+%input('Check which attenuation value you are using : ')
 %load('C:\Users\gwest\Documents\COSIE paper 1\EmmaLiver\RejIdxs.mat')
 
 %QA phantom
@@ -131,7 +137,7 @@ xBool = 17:112;
 
 rayIdxs = (1:128);    
 rayIdxs2 = rayIdxs(xBool);  
-EMLidx = 2;
+EMLidx = 10;
 kWidth = 5; 
 oLap = 0.8;
 
@@ -155,7 +161,7 @@ allThValsSNR = zeros(2,length(allDepths));
 for iDepths = 1:length(allDepths)
 
     speckleDir2 = [speckleDir,wName,'\Z',num2str(allDepths(iDepths)),'\'];  
-    dataDir = [testDir,wName,'\Z',num2str(allDepths(iDepths)),'\'];
+    dataDir = [testDir,wName,'\Z',num2str(allDepths(iDepths)),'\COSIEoutput_adaptive',num2str(cohKlength),'\Sum',num2str(sumIdx),'\'];
     
 
     dzT = allDepths(iDepths)*0.1 - edgeYVal*100; %cm 
@@ -177,9 +183,8 @@ for iDepths = 1:length(allDepths)
 
     cohTest = sum(RMatTest(:,1:sumIdx),2);
 
-    cInput = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
-
-    speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
+   
+    speckleCOSIE =  load([speckleDir2,'COSIEoutput_adaptive',num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
     cInput_Depth = load([dataDir,'COSIEinput',num2str(iImage),'.mat']);
 
     powf0 = abs(cInput_Depth.spectAll(:,nF));
@@ -199,18 +204,18 @@ for iDepths = 1:length(allDepths)
     powerSegCOH = COVsegmentation_sK(cohTest,speckleCOSIE.redEML,powf0,kWidth,oLap);
     
 
-    segBool1 = cohTest > speckleCOSIE.EML(1,EMLidx) & cohTest < speckleCOSIE.EML(2,EMLidx);    
+    segBool1 = cohTest > speckleCOSIE.redEML(1,EMLidx) & cohTest < speckleCOSIE.redEML(2,EMLidx);    
     segBool1_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool1),kWidth,oLap))))';
     
     segBoolBIG1(:,iDepths) = segBool1_cluster;
-    allThValsCOH(:,iDepths) = [speckleCOSIE.EML(1,EMLidx),speckleCOSIE.EML(2,EMLidx)];
+    allThValsCOH(:,iDepths) = [speckleCOSIE.redEML(1,EMLidx),speckleCOSIE.redEML(2,EMLidx)];
 
 
    
 
     %% SNR analysis 
 
-    qaSNRdata = load([testDir,wName,'\Z',num2str(allDepths(iDepths)),'\EnvStats',num2str(iImage),'.mat']);
+    qaSNRdata = load([dataDir,'\EnvStats',num2str(iImage),'.mat']);
     snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
     
     %load COSIE data
@@ -220,7 +225,7 @@ for iDepths = 1:length(allDepths)
 
     powerSegSNR = COVsegmentation_sK(qaSNRdata.envMean./qaSNRdata.envStd,speckleSNRdata.EML,powf0,kWidth,oLap);
     
-    segBool2 = snrTest > speckleSNRdata.EML(1,EMLidx) & snrTest < speckleSNRdata.EML(2,EMLidx);
+    segBool2 = snrTest > speckleSNRdata.redEML(1,EMLidx) & snrTest < speckleSNRdata.redEML(2,EMLidx);
     segBool2_cluster = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBool2),kWidth,oLap))))';
     segBoolBIG2(:,iDepths) = segBool2_cluster;
    
@@ -253,7 +258,7 @@ for iDepths = 1:length(allDepths)
 
     
 
-    if iDepths == 5
+    if 0 
 
         %bscSegPlotter(powerSegCOH,convFactor*10,bscSpeckleBf_test,bscSpeckleSTD_ref,dzT)
 
@@ -272,15 +277,13 @@ for iDepths = 1:length(allDepths)
     segDepthBoolIdxs = find(segBoolBIG1(:,iDepths));
     segDepthBoolIdxs2 = find(~segBoolBIG1(:,iDepths));
 
+    %Uncomment to produce some of the finest plots ever seen
 
-    %fancySwarmPlotter(swarmAx,10*dzT,cohTest,segDepthBoolIdxs,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
-    
-    %fancySwarmPlotter(swarmAx,10*dzT,cohTest,segDepthBoolIdxs,segDepthBoolIdxs2,[],[])
-    
+    %fancySwarmPlotter(10*dzT,cohTest,segDepthBoolIdxs,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
+    %fancySwarmPlotter(10*dzT,cohTest,segDepthBoolIdxs,segDepthBoolIdxs2,[],[])
+    %fancySwarmPlotter(10*dzT,snrTest,segBool2_cluster,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
 
-    fancySwarmPlotter(swarmAx,10*dzT,snrTest,segBool2_cluster,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
-
-    if 0
+    if 1
         %f1 = figure;
         %a1 = axes;
 
@@ -301,8 +304,8 @@ for iDepths = 1:length(allDepths)
         ylabel(a1,'Coherence')
         set(a1,'FontSize',14)
 
-        saveas(gcf,['Coh',num2str(dzT*10),'mm.fig'])
-        exportgraphics(gcf, ['Coh',num2str(dzT*10),'mm.pdf'], 'ContentType', 'vector');
+        %saveas(gcf,['Coh',num2str(dzT*10),'mm.fig'])
+        %exportgraphics(gcf, ['Coh',num2str(dzT*10),'mm.pdf'], 'ContentType', 'vector');
       
         close all
     end
@@ -339,8 +342,10 @@ end
 %plot(swarmAx,allDepths,allThValsCOH(1,:),'k-.','LineWidth',2)
 %plot(swarmAx,allDepths,allThValsCOH(2,:),'k-.','LineWidth',2)
 
-plot(swarmAx,allDepths,allThValsSNR(1,:),'k-.','LineWidth',2)
-plot(swarmAx,allDepths,allThValsSNR(2,:),'k-.','LineWidth',2)
+%plot(swarmAx,allDepths,allThValsSNR(1,:),'k-.','LineWidth',2)
+%plot(swarmAx,allDepths,allThValsSNR(2,:),'k-.','LineWidth',2)
+
+bfImgData2 = load([testDir2,'/BFimgData',num2str(iImage),'Usample.mat']);
 
 if 0 
     fillColor = [140, 222, 162]./256;
@@ -362,7 +367,7 @@ if 0
 end
 
 
-[ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG1,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence');
+[ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData2,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG1,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence');
 xlim([-15 15])
 ax1.XTick = [-15:5:15];
 ax1.YTick = [2,5:10:55];
@@ -371,10 +376,10 @@ set(ax1,'FontSize',14)
 set(ax1,'FontWeight','normal')
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage),'.jpg'])
-savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
+%savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
 
 
-[ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG2,xBool,speckleSNRdata.pctSeg2(EMLidx),'Coherence');
+[ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData2,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG2,xBool,speckleSNRdata.pctSeg2(EMLidx),'Coherence');
 xlim([-15 15])
 ax1.XTick = [-15 :5:15];
 ax1.YTick = [2 ,5:10:55];
@@ -383,7 +388,7 @@ set(ax1,'FontSize',14)
 set(ax1,'FontWeight','normal')
 saveas(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage)])
 saveas(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage),'.jpg'])
-savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage)])
+%savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage)])
 
 
 

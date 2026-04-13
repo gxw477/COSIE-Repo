@@ -119,7 +119,7 @@ for iImage = 1:nImages
         plot([xVals(1) xVals(end)],zSelect.*[1 1],'-','color','green')
         plot(120*lWidth.*[1 1],[rVals(axIdxs(1)) rVals(axIdxs(end))],'-','color','green')
         
-        saveDir = [topDirMaster,wName,'\Z',num2str(round(zSelect*1e3)),'\Sum',num2str(sumIdx)];
+        saveDir = [topDirMaster,wName,'\Z',num2str(round(zSelect*1e3)),'\COSIEoutput_adaptive',num2str(kLength_BSC_samples),'\Sum',num2str(sumIdx),'\'];
 
         if ~exist(saveDir)
             mkdir(saveDir)

@@ -13,19 +13,19 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
 %   rayIdxs     vector (1xM' lines) lines to keep
 %   segEML      matrix (2xS seg points) 
     
-    rawIQ{1} = bfImgData.IData{1}+1i.*bfImgData.QData{1};
-    iqV = demodulateIQfn(bfImgData.PData,rawIQ);
-    iqV = iqV(:,:,1);
-
-    bModeViq = bmode(iqV,80);
-
-    transpData = zeros(size(bfImgData.fullIM));
-    colorData = nan.*zeros(size(bfImgData.fullIM));
     
+    bModeViq = bmode(bfImgData.iq',75);
+
+    
+    colorData = nan.*zeros(size(xVals,2),size(bfImgData.fullIM,2));
+    transpData = zeros(size(colorData));
+
+
     xVals = xVals - mean(xVals);
     
 
-    bmXVals = 1e3.*(bfImgData.PData.Origin(1) + (1:size(bModeViq,2)).*bfImgData.PData.PDelta(1))*bfImgData.lambda;
+    bmXVals = (1:size(bfImgData.fullIM,1)).*bfImgData.dX.*1e3;
+    bmXVals = bmXVals - mean(bmXVals);
     bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ (1:2*bfImgData.PData.Size-1).*0.5*bfImgData.PData.PDelta(3));
 
     
