@@ -5,10 +5,12 @@ close all
 
 path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
 path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
 
 
-speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\';
-testDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\Adaptive\';
+
+speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\QUAD\';
+testDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
 %planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
 %load verasonics param's2
@@ -101,7 +103,7 @@ xBool = 17:112;
 rayIdxs = (1:128);    
 rayIdxs2 = rayIdxs(xBool);  
 EMLidx = 5;
-allDepths = 15:5:50;
+allDepths = 20:5:55;
 nDepths = length(allDepths);
 
 fNames = ls([testDir,'BFimg*']);
@@ -120,8 +122,8 @@ for iImage = 1:nImages
     %load test data
     bfImgData = load([testDir,fNames(iImage,:)]);
     
-    attMeasures = load([testDir,'/AttDataTestFolderLiverDist/attFit',num2str(iImage),'.mat'])
-
+    %attMeasures = load([testDir,'/AttData/Frame',num2str(iImage),'.mat'])
+    attMeasures = load([testDir,'\AttDataTestFolderLiverDist\attFit',num2str(iImage),'.mat']);
 
     adaptBool = 1;%input('Adaptive grid sizing? : ');
     
@@ -131,7 +133,7 @@ for iImage = 1:nImages
         adaptStr = '';
     end
     
-    wOption =4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
+    wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
     
     if wOption == 1 
         wName = 'Rect';
@@ -154,7 +156,7 @@ for iImage = 1:nImages
     for iDepths = 1:nDepths
 
         speckleDir2 = [speckleDir,wName,'\Z',num2str(allDepths(iDepths)),'\'];  
-        dataDir = [testDir,wName,'\Z',num2str(allDepths(iDepths)),'\'];
+        dataDir = [testDir,wName,'\Z',num2str(allDepths(iDepths)),'\COSIEoutput_adaptive120\Sum33\'];
         
     
         dzT = allDepths(iDepths)*0.1 - edgeYVal*100; %cm 
@@ -202,10 +204,11 @@ for iImage = 1:nImages
         bscEstimate = (powf0.*convFactor);
         powf0_BIG(:,iDepths) = bscEstimate;
         
+        
 
         %% SNR analysis 
         
-        qaSNRdata = load([testDir,wName,'\Z',num2str(allDepths(iDepths)),'\EnvStats',num2str(iImage),'.mat']);
+        qaSNRdata = load([testDir,wName,'\Z',num2str(allDepths(iDepths)),'\COSIEoutput_adaptive',num2str(cohKlength),'\Sum',num2str(sumIdx),'\EnvStats',num2str(iImage),'.mat']);
         snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
         
         %load COSIE data
@@ -260,7 +263,7 @@ end
 %% depth 
 
 %already set but leaving here to allow change
-EMLidx = 10; 
+EMLidx = 5 
 
 cohCOSIEdepth = zeros(nDepths,2);
 snrCOSIEdepth = zeros(nDepths,2);

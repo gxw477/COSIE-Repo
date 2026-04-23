@@ -1,52 +1,61 @@
 function [aeStruct ] = attenuationAnalyse(bfImgData,slDist,endDepth,segBool,IDF,rayIdxs,allDepths)
 
-    %attenuationAnalyse(BAE,slDist,endDepth,segBool) 
-    % BAE - output from BAE_GUI 
-    % slDist - start depth (start of liver) cm
-    % endDepth - depth of interest  cm 
-    % segBool - segmentation    
     
     if nargin == 0
         load('C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\test.mat')
     end
 
+    %Window size
     wSize = 2*size(IDF.Filt.F,1);
+    %conversion sample 2 cm 
     samp2cm= bfImgData.lambda/(4*2)*1e2;
-    wPosCM = IDF.Filt.wpos*samp2cm;
+    %window size in cm
     wSizeCM = wSize*samp2cm;
-
-    f =  (0:(wSize-1)).*(bfImgData.fs/(wSize));
-
-    IDFfilt = IDF.Filt.F;
-    IDFfilt = IDFfilt./max(IDFfilt(:));
+    %Window positions in cm
+    wPosCM = IDF.Filt.wpos*samp2cm;
     
+    %frequencies
+    f =  (0:(wSize-1)).*(bfImgData.fs/(wSize));
+    
+    IDFfilt = IDF.Filt.F;
+    
+    %Hann window function
     win = sqrt(8/3).*hann(wSize);
 
+    %Start window index, greater than the distance from skin to liver
     nStartwPos = find(wPosCM>=slDist+ wSizeCM/2,1,'first');
+    %End window index, less than the defined depth
     nEndwPos =   find(wPosCM>=endDepth + wSizeCM/2,1,'first');
 
+    %number of window positions to work with
     nDepth = nEndwPos - nStartwPos + 1;
         
+    %available window positions
     wPosCM2 = wPosCM(nStartwPos:nEndwPos);
-
+    
+    %power spectrum variables for the backscattered data
     spect = zeros(nDepth,length(rayIdxs),wSize/2);
     spectCorr = spect;
 
+    %this is is nan unless filled
     spectCorrFilt = nan(size(spectCorr));
-
+    
+    %boolean variable for segmentation
     segBoolAtt = false(length(wPosCM),length(rayIdxs));
 
     for iDepth2 = 1:length(allDepths)
         
-        [~,idxs] = find(abs(wPosCM + wSizeCM/2 - allDepths(iDepth2)/10) < 0.5/2);
-
+        %select fast time indices that correspond to each depth
+        idxBool = (abs(wPosCM + wSizeCM/2 - allDepths(iDepth2)/10) < wSizeCM/2);
+        
+        %segmentation boolean for this depth
         boolTemp = segBool(:,iDepth2);
 
-        segBoolAtt(idxs,:) = repmat(boolTemp,[1,length(idxs)])';
+        segBoolAtt(idxBool,:) = repmat(boolTemp,[1,length(find(idxBool))])';
 
     end
 
-    xAtt = repmat(wPosCM2',[1,length(rayIdxs)]);
+    xAtt = repmat(wPosCM2,[1,length(rayIdxs)]);
 
     xAtt_mask = nan(size(xAtt));
 
@@ -70,8 +79,6 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDist,endDepth,segBool,IDF,
             if (segBoolAtt(iDepth,iLine))
                 xAtt_mask(iDepth,iLine) = xAtt(iDepth,iLine);
                 spectCorrFilt(iDepth,iLine,:) = squeeze(spectCorr(iDepth,iLine,:));
-
-          
             end
         
         

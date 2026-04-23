@@ -1,16 +1,20 @@
 
 clear 
 %close all 
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
+path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
+
 
 for volNumber = 1
     
-    topDir = ['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\'];
+    topDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\'];
     
-    FiltData = load([topDir,'IDFinterp.mat']);
+    FiltData = load([topDir,'IDFfilt.mat']);
     vsxParams = load([topDir,'\VSXoutput.mat']);
     
 
-    analFolder = [topDir,'\AttDataInterp\'];
+    analFolder = [topDir,'\AttData\'];
     %analFolder = [topDir,'\AttData\'];
     
     saveFolder =  [topDir,'\AttDataTestFolderLiverDist\'];
@@ -28,7 +32,7 @@ for volNumber = 1
     myfittype = fittype("a0*f^b",dependent="y",independent="f",coefficients=["a0" "b"]);
     
     
-    for frameIdx= 1:nFrames  
+    for frameIdx= 1:7  
     
         %close all
     

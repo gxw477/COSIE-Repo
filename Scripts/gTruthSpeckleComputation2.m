@@ -73,10 +73,10 @@ elseif wOption == 4
 end
 
 
-input('Check the attenuation values on line 92! ')
+input('Check the attenuation values on line 100! ')
 
 
-for zSelect = (15:5:50).*1e-3
+for zSelect = (55).*1e-3
 
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;
@@ -266,7 +266,7 @@ for zSelect = (15:5:50).*1e-3
     end
     
    
-    for sumIdx = [16 ,size(cohAll,2)]
+    for sumIdx = [size(cohAll,2)]
     
         sumIdx/size(cohAll,2)
     

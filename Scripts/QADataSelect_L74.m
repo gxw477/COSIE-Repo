@@ -106,7 +106,7 @@ for iImage = 1:nImages
 
     pause(0.5)
 
-    for zVals = 15:5:50
+    for zVals = 15:5:55
 
         zSelect = zVals*1e-3;
         [~, zIdx] = min(abs(rVals - zSelect));

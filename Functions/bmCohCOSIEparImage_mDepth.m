@@ -1,4 +1,4 @@
-function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,kLength,powf0,segBool,rayIdxs,segEML,titleString)
+function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,iqBool,axIdxsBSC,kLength,powf0,segBool,rayIdxs,segEML,titleString)
 % bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx,axIdxsBSC,axIdxsCOH,powf0,segBool,rayIdxs,segEML,titleString)
 %
 %   I 
@@ -13,45 +13,75 @@ function [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(xVals,yVals,bfImgData,depthIdx
 %   rayIdxs     vector (1xM' lines) lines to keep
 %   segEML      matrix (2xS seg points) 
     
-    
-    bModeViq = bmode(bfImgData.iq',75);
+    if iqBool
+        
+        Itemp = bfImgData.IData{1}(:,:,1);
+        Qtemp = bfImgData.QData{1}(:,:,1);
+        PData = bfImgData.PData;
 
-    
+        %axial pix sep'n 
+        dz = PData.PDelta(3); 
+
+        %number of lines
+        nr = size(Itemp,2);
+        %number of time samples
+        l  = size(Itemp,1);
+
+        interpFactor = 8;
+        phasor=repmat([0:l-1]'*2*pi*dz,1,nr);
+        phasor=reshape(phasor,l,nr);
+        %IQ=interp1([0:l-1],IQData{1}(1:l,:,:),[0:0.25/dz:l-1],'cubic');
+        IQa=interp1([0:l-1],abs(Itemp),[0:(dz/interpFactor):l-1],'cubic');
+        IQp=interp1([0:l-1],unwrap(angle(Qtemp)-phasor),[0:(dz/interpFactor):l-1],'cubic');
+        IQ=IQa.*exp(sqrt(-1)*IQp);        
+        bModeViq = bmode(IQ,80);
+        
+        bmXvals = ((0:nr-1)).*bfImgData.lambda*PData.PDelta(1)*1e3;
+        bmZvals = (PData.Origin(3)+ (0:dz/interpFactor:l-1)).*bfImgData.lambda*PData.PDelta(3)*1e3;
+
+    else
+
+        bModeViq = bmode(bfImgData.iq',75);
+
+        bmXvals = (1:size(bfImgData.fullIM,1)).*bfImgData.dX.*1e3;
+        bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ (1:2*bfImgData.PData.Size-1).*0.5*bfImgData.PData.PDelta(3));
+
+    end
+
+    bmXvals = bmXvals - mean(bmXvals);
+        
     colorData = nan.*zeros(size(xVals,2),size(bfImgData.fullIM,2));
     transpData = zeros(size(colorData));
 
-
     xVals = xVals - mean(xVals);
-    
-
-    bmXVals = (1:size(bfImgData.fullIM,1)).*bfImgData.dX.*1e3;
-    bmXVals = bmXVals - mean(bmXVals);
-    bmZvals = 1e3.*bfImgData.lambda.*(bfImgData.PData.Origin(3)+ (1:2*bfImgData.PData.Size-1).*0.5*bfImgData.PData.PDelta(3));
-
-    
+        
+    %bModeViq2 = sigmoidEnhance(bModeViq,5,0.5);
+    bModeViq2 = interp2(double(bModeViq),2);%claheEnhance(bModeViq,'Distribution', 'rayleigh', 'Alpha', 0.1,'ClipLimit',0.5);
+  
+    figure
+    imagesc(bmXvals,bmZvals,bModeViq2);
+    xlabel('Lateral Position (mm)')
+    ylabel('Axial Position (mm)')
+    axis equal
+    axis tight 
+    ylim([5 55])
 
     figure
     ax1 = axes;
-    imagesc(ax1,bmXVals,bmZvals,interp2(double(bModeViq),2));
-    hold on 
-    %plot(ax1,[xVals(rayIdxs(1)) xVals(rayIdxs(end))],yVals(depthIdx).*[1 1],'-','color','red')
-    %plot(ax1,[xVals(rayIdxs(end)+5) xVals(rayIdxs(end)+5)], 10.*[1 1],'r^-','MarkerFaceColor','red','LineWidth',2)
-    %plot(ax1,[xVals(rayIdxs(1)-5) xVals(rayIdxs(1)-5)], [yVals(axIdxsCOH(1)) yVals(axIdxsCOH(end))],'ro-','MarkerFaceColor','red','LineWidth',2)
-    
+    imagesc(ax1,bmXvals,bmZvals,bModeViq2);   
     xlabel('Lateral Position (mm)')
-    axis equal
     ylabel('Axial Position (mm)')
-     
+    axis equal
     
     ax2 = axes;
     powfLong = repelem(powf0,1,kLength);
     hideVectorLong = repelem(segBool,1,kLength);
-    colorData(rayIdxs,axIdxsBSC) = log(powfLong); 
+    colorData(rayIdxs,axIdxsBSC) = log10(powfLong); 
     transpData(rayIdxs,axIdxsBSC) = 0.5.*hideVectorLong; 
 
     imagesc(ax2,xVals , yVals, colorData','AlphaData',transpData')    
     cB = colorbar;
-    cB.Label.String = 'Log(\kappa)';
+    cB.Label.String = 'log_{10}(\kappa)';
     cB.Label.FontSize= 20;
     cB.Position(3) = 0.02;
     

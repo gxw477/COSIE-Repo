@@ -203,9 +203,7 @@ for iFrame = 1:2%size(fileNames,1)
     
     I = IData{1};
     Q = QData{1};
-    IQ = abs(I + 1i.*Q);
-    
-    
+        
     %Coherence weighted IQ image
     
     %% Plots 

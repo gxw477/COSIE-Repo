@@ -2,26 +2,22 @@
 clear 
 close all 
 
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
+
+
 speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\';
 
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiverReducedSet\';
-
-
-
-planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
+testDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
 
 %load verasonics params2
 vsxParams = load([testDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Scripts\')
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\AttenuationTesting\AttenuationAlgorithm\AttenuationGUI')
 
-allDepths = 15:5:50;
+allDepths = 20:5:55;
 
 nImages = 6;
 nDepths = length(allDepths);
@@ -33,7 +29,8 @@ powerSegSNR = powerSegCOH;
 
 for iImage = 1:nImages
 
-    imgDir = ['C:\Users\gwest\Documents\COSIE paper 1\EmmaLiver\Img',num2str(iImage),'\AttSeg\'];
+   
+    imgDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\'];
     s1 = load([imgDir,'\SegmResults.mat']);
     
     for iDepth = 1:8

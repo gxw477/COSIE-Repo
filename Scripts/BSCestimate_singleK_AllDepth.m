@@ -1,5 +1,5 @@
  
-clear 
+clear all
 close all 
 
 path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
@@ -28,14 +28,15 @@ path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
 sumIdx = 33;
 
 
-iImage = 6;%input('Which Image ? : ');
+iImage = 1;%%input('Which Image ? : ');
 
 
 %load test data
 bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
 
 depthSelect = 25;%input('Depth of interest (mm) : ');
-    
+maxDepth = 55;
+
 adaptBool = 1;%input('Adaptive grid sizing? : ');
 
 if adaptBool 
@@ -110,10 +111,10 @@ end
 %load('C:\Users\gwest\Documents\COSIE paper 1\EmmaLiver\RejIdxs.mat')
 
 %QA phantom
-attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
+%attTest     = [0.579 , 0.955].*vsxParams.Trans.frequency;
 
 %Emma Liver 
-%attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
+attTest     = [0.562 , 0.8].*vsxParams.Trans.frequency;
 
 
 attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;
@@ -137,11 +138,11 @@ xBool = 17:112;
 
 rayIdxs = (1:128);    
 rayIdxs2 = rayIdxs(xBool);  
-EMLidx = 10;
+EMLidx = 12;
 kWidth = 5; 
 oLap = 0.8;
 
-allDepths = 15:5:50;
+allDepths = 20:5:55;
 
 segBoolBIG1 = zeros(length(rayIdxs2),length(allDepths));
 powf0_BIG = segBoolBIG1;
@@ -283,7 +284,7 @@ for iDepths = 1:length(allDepths)
     %fancySwarmPlotter(10*dzT,cohTest,segDepthBoolIdxs,segDepthBoolIdxs2,[],[])
     %fancySwarmPlotter(10*dzT,snrTest,segBool2_cluster,speckleRej{iDepths},wireRej{iDepths},cystRej{iDepths})
 
-    if 1
+    if 0
         %f1 = figure;
         %a1 = axes;
 
@@ -304,13 +305,13 @@ for iDepths = 1:length(allDepths)
         ylabel(a1,'Coherence')
         set(a1,'FontSize',14)
 
-        %saveas(gcf,['Coh',num2str(dzT*10),'mm.fig'])
-        %exportgraphics(gcf, ['Coh',num2str(dzT*10),'mm.pdf'], 'ContentType', 'vector');
+        saveas(gcf,[saveDir_SEG,'\Coh',num2str(dzT*10),'mm.fig'])
+        exportgraphics(gcf, [saveDir_SEG,'\Coh',num2str(dzT*10),'mm.pdf'], 'ContentType', 'vector');
       
         close all
     end
 
-     if 0
+     if 1%iDepths == 5%length(allDepths)
         %f1 = figure;
         close all
 
@@ -319,7 +320,7 @@ for iDepths = 1:length(allDepths)
         xPlot = xPlot - mean(xPlot);
         xPlot = xPlot.*1e3;    
         %a1 = subplot(2,4,iDepths)
-        plot(a1,xPlot,snrTest,'r-','LineWidth',2)
+        plot(a1,xPlot,snrTest,'b-','LineWidth',2)
         hold on 
         plot(a1,[-16 16], [1 1].*speckleSNRdata.redEML(1,EMLidx),'k-.','LineWidth',2)
         plot(a1,[-16 16], [1 1].*speckleSNRdata.redEML(2,EMLidx),'k-.','LineWidth',2)
@@ -329,8 +330,8 @@ for iDepths = 1:length(allDepths)
         ylabel(a1,'SNR')
         set(a1,'FontSize',14)
 
-        saveas(gcf,['SNR',num2str(dzT*10),'mm.fig'])
-        exportgraphics(gcf, ['SNR',num2str(dzT*10),'mm.pdf'], 'ContentType', 'vector');
+        saveas(gcf,[saveDir_SEG,'\SNR',num2str(dzT*10),'mm.fig'])
+        exportgraphics(gcf, [saveDir_SEG,'\SNR',num2str(dzT*10),'mm.pdf'], 'ContentType', 'vector');
       
         close all
     end
@@ -367,26 +368,28 @@ if 0
 end
 
 
-[ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData2,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG1,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence');
+
+[ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData2,1,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG1,xBool,speckleCOSIE.pctSeg2(EMLidx),'Coherence');
 xlim([-15 15])
-ax1.XTick = [-15:5:15];
-ax1.YTick = [2,5:10:55];
-ax1.YLim = [2 55];
+ax1.XTick = [-15 :5:15];
+ax1.YTick = [2 ,5:10:maxDepth+10];
+ax1.YLim = [2 maxDepth+10];
+set(ax1,'FontSize',14)
 set(ax1,'FontSize',14)
 set(ax1,'FontWeight','normal')
-saveas(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
+%saveas(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
 saveas(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage),'.jpg'])
-%savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
+savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_COH',num2str(iImage)])
 
 
 [ax1,ax2,cB] = bmCohCOSIEparImage_mDepth(rayIdxs.*lWidth*1e3,yVals.*1e3,bfImgData2,depthIdx,axIdxs_BIG,kLength_BSC_samples,powf0_BIG,segBoolBIG2,xBool,speckleSNRdata.pctSeg2(EMLidx),'Coherence');
 xlim([-15 15])
-ax1.XTick = [-15 :5:15];
-ax1.YTick = [2 ,5:10:55];
-ax1.YLim = [2 55];
+ax1.XTick = [-15:5:15];
+ax1.YTick = [2 ,5:10:maxDepth+10];
+ax1.YLim = [2 maxDepth+10];
 set(ax1,'FontSize',14)
 set(ax1,'FontWeight','normal')
-saveas(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage)])
+%saveas(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage)])
 saveas(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage),'.jpg'])
 %savefigPDF_Crop(gcf,[saveDir_SEG,'ParametricImage_SNR',num2str(iImage)])
 

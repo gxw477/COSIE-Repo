@@ -2,34 +2,36 @@
 clear 
 close all 
 
-speckleDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Img1-4Dir\';
+
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
+path(path,'C:\Users\gwest\Documents\MATLAB\Temp\')
+
+speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\QUAD\';
 
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
 %testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
-testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiverReducedSet\';
+testDir =  'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
 
 
-planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
+%planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
 
 %load verasonics params2
 vsxParams = load([testDir,'\VSXoutput.mat']);
 vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\COSIE\COSIE-Repo\Scripts\')
-path(path,'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\AttenuationTesting\AttenuationAlgorithm\AttenuationGUI')
-
 iImage = input('Which Image ? : ');
 %attStruct = load(['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\AttDataInterp2\Frame',num2str(iImage),'.mat']);
-attStruct = load([ 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\IDFFiltAverage.mat']);
+attStruct = load(['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\IDFfilt.mat']);
 
 sumIdx = 33;%input('Sum Idx: ');
 kWidth = 5; 
 oLap = 0.8;
 
 
-imgDir = ['C:\Users\gwest\Documents\COSIE paper 1\EmmaLiver\Img',num2str(iImage),'\AttSeg\'];
+imgDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\'];
 
 if ~exist(imgDir,'dir')
     mkdir(imgDir)
@@ -47,7 +49,7 @@ else
     adaptStr = '';
 end
 
-wOption = 4;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
+wOption = 2;%input('Window Type \n 1 for rectangular \n 2 for tukey \n 3 for Welch \n 4 for Hanning: \n ');
 
 if wOption == 1 
     wName = 'Rect';
@@ -167,12 +169,12 @@ rayIdxs2 = rayIdxs(xBool);
 kWidth = 5; 
 oLap = 0.8;
 
-allDepths = 15:5:50;
+allDepths = 20:5:55;
 
 segBoolBIG1 = true(length(rayIdxs2),length(allDepths));%zeros(length(rayIdxs2),length(allDepths));
 segBoolBIG2 = segBoolBIG1;
 
-analFolder = [testDir,'\AttDataInterp2\'];
+analFolder = [testDir,'\AttData\'];
 frameNames = ls([analFolder,'\Frame*']);
 %BAEdata = load([analFolder,frameNames(iImage,:)]);
 
@@ -219,7 +221,7 @@ for iDepth = 1:length(allDepths)
     %cInput = load([dataDir,'/Sum',num2str(sumIdx),'/COSIEinput',num2str(iImage),'.mat']);
 
     speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
-    cInput_Depth = load([dataDir,'\Sum',num2str(sumIdx),'\COSIEinput',num2str(iImage),'.mat']);
+    cInput_Depth = load([dataDir,'\COSIEoutput',adaptStr,num2str(cohKlength),'\Sum',num2str(sumIdx),'\COSIEinput',num2str(iImage),'.mat']);
 
     powf0 = abs(cInput_Depth.spectAll(:,nF));
     specklePOWER_MEAN = mean(speckleCOSIE.powf0);
@@ -239,7 +241,7 @@ for iDepth = 1:length(allDepths)
 
     %% SNR analysis 
 
-    qaSNRdata = load([testDir,wName,'\Z',num2str(allDepths(iDepth)),'\Sum',num2str(sumIdx),'\EnvStats',num2str(iImage),'.mat']);
+    qaSNRdata = load([testDir,wName,'\Z',num2str(allDepths(iDepth)),'\COSIEoutput_adaptive',num2str(cohKlength),'\Sum',num2str(sumIdx),'\EnvStats',num2str(iImage),'.mat']);
     snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
     
     %load COSIE data
@@ -293,7 +295,7 @@ for iEMLidx = 1:nEMLidx
         
         %reproduce the coherence segmentation bool across 'n' depths (kernels
         %set within attenuation calculation) 
-        segBoolCOH = allCOH(:,iDepth) > speckleCOSIE.redEML(1,(iEMLidx-1)*idxFactor+1) & cohTest < speckleCOSIE.redEML(2,(iEMLidx-1)*idxFactor+1);    
+        segBoolCOH = allCOH(:,iDepth) > speckleCOSIE.redEML(1,(iEMLidx-1)*idxFactor+1) &  allCOH(:,iDepth) < speckleCOSIE.redEML(2,(iEMLidx-1)*idxFactor+1);    
         segBoolCluster_COH = ismember(rayIdxs2, unique(cell2mat(idxClustering(rayIdxs2(segBoolCOH),kWidth,oLap))))';
         
         %which depths does the coherence segmentation apply to? 
