@@ -180,5 +180,4 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
     
     end
 
-
 end
