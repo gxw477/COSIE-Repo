@@ -1,4 +1,4 @@
-function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool,segBoolZValsCM,IDF,rayIdxs,allDepthsCM)
+function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,IDF,rayIdxs,allDepthsCM)
     
     if nargin == 0
         load('C:\Users\gwest\Documents\MATLAB\Temp\data.mat')
@@ -41,7 +41,7 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
     %frequencies
     f = (0:(wSize-1)).*(bfImgData.fs/(wSize));
     
-    IDFfilt = IDF.Filt.F;
+    %IDFfilt = IDF.Filt.F;
     
     %Hann window function
     win = sqrt(8/3).*hann(wSize);
@@ -59,12 +59,12 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
 
 
 
-    %ensure that the lengths are deivisible  (might not be due to placement of segmentation windows and fast time sampling)
-    while round(length(zVals)/length(segBoolZValsCM)) ~= length(zVals)/length(segBoolZValsCM)
+    %ensure that the lengths are divisible  (might not be due to placement of segmentation windows and fast time sampling)
+    while round(length(zVals)/length(allDepthsCM)) ~= length(zVals)/length(allDepthsCM)
         zVals = zVals(1:end-1);
     end
 
-    interpRatio = length(zVals)/length(segBoolZValsCM);
+    interpRatio = length(zVals)/length(allDepthsCM);
    
     %[segBoolRep] = interp2(1:size(segBool,1),segBoolZVals./100,  )
     segBool2 = false(length(rayIdxs),length(zVals));
@@ -75,13 +75,13 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
     
     %Start fast time index
     startIdxRF = find(idxBool,1);
-    endIdxRF =    find(idxBool,1,'last');
+    endIdxRF   = find(idxBool,1,'last');
   
     %window position indices 
     startIdxWin = startIdxRF + wSize/2;
-    endIdxWin = endIdxRF - wSize/2;
+    endIdxWin = endIdxRF -wSize/2;
     
-    %window positions cm
+    %fast time posns in cm
     winZvalsCM = bfImgData.yVals(startIdxWin:endIdxWin).*1e2;
 
     
@@ -98,15 +98,16 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
     spect = zeros(nRays,nDepthWin,wSize/2);
     spectCorr = spect;
     spectCorrFilt = spectCorr;
-
-    xAtt = repmat(winZvalsCM,[length(rayIdxs),1]);
-    xAtt_mask = nan(size(xAtt));
+    
+    %zvals for fitting in cm
+    zAtt = repmat(winZvalsCM,[length(rayIdxs),1]);
+    zAtt_mask = nan(size(zAtt));
 
     %match IDF to the image sampling
 
     for iDepth = 1:nDepthWin
         
-        iDepth 
+        iDepth;
 
         %fast time indices for sampling
         depthIdxs = startIdxRF + (iDepth-1) + (0:wSize-1);
@@ -126,7 +127,7 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
             if segBool2(iRay,iDepth)
                 %Unsegmented value
                 spectCorrFilt(iRay,iDepth,:) = spectCorr(iRay,iDepth,:);
-                xAtt_mask(iRay,iDepth) = xAtt(iRay,iDepth);
+                zAtt_mask(iRay,iDepth) = zAtt(iRay,iDepth);
             end
         end
     end
@@ -139,7 +140,7 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
     a2 = b;
     b2 = a2;
 
-    for iF= fL:fU      
+    for iF = fL:fU      
         
         %results are dB , dB/cm, [], y(iF) = a(iF)+b(iF)*2*x
         
@@ -149,35 +150,81 @@ function [aeStruct ] = attenuationAnalyse2(bfImgData,slDistCM,endDepthCM,segBool
     
         %options1 = [2*0.5*(endDepth + slDist) 0 0];
         
-        xFit1 = 2*xAtt;
-        xFit2 = 2*xAtt_mask;
+        zFit1 = 2*zAtt;
+        zFit2 = 2*zAtt_mask;
         yFit1 = Flog;
         yFit2 = FlogFilt;
         
-        coeffs = polyfit(xFit1(:),yFit1(:),1);
+        %results in dB/cm
+        coeffs = polyfit(zFit1(:),yFit1(:),1);
         a(iF) = coeffs(2);
         b(iF) = coeffs(1);
     
+        validIdx  = ~isnan(zFit2) & ~isnan(yFit2);
     
-        validIdx  = ~isnan(xFit2) & ~isnan(yFit2);
-    
-        coeffs = polyfit(xFit2(validIdx),yFit2(validIdx),1);
+        coeffs = polyfit(zFit2(validIdx),yFit2(validIdx),1);
         a2(iF) = coeffs(2);
         b2(iF) = coeffs(1);
     
         %[a2(iF),b2(iF),c2(iF),e2(iF,:),re2(iF)] = lsqn(xFit2,yFit2,options1);
         
     
-        if 0%iF ==  21
+        if iF==26
             figure 
-            plot(xFit1(:),yFit1(:),'k.','MarkerFaceColor','k')
+            subplot(1,2,1)
+            plot(zFit1(:),yFit1(:),'k.','MarkerFaceColor','k')
             hold on 
-            plot(xFit1(:),a(iF)+b(iF).*xFit1(:),'k-.','LineWidth',2)
-            plot(xFit2(:),yFit2(:),'r.')
-            plot(xFit2(validIdx),a2(iF)+b2(iF).*xFit2(validIdx),'r-*','LineWidth',2)
-            close all
+            plot(zFit1(:),a(iF)+b(iF).*zFit1(:),'k-.','LineWidth',2)
+            plot(zFit2(:),yFit2(:),'r.')
+            plot(zFit2(validIdx),a2(iF)+b2(iF).*zFit2(validIdx),'r-*','LineWidth',2)
+            
         end
     
     end
+
+
+    b  = -b; 
+    b2 = -b2;
+
+    [~,iF0 ] = min(abs(f - bfImgData.Trans.frequency*1e6));
+
+    %results are dB/cm, dB/cm/MHz
+    temp  = polyfit(f(fL:fU)./1e6,b(fL:fU),1);
+    temp2 = polyfit(f(fL:fU)./1e6,b2(fL:fU),1);
+    
+    a0 = temp(2);
+    alpha = temp(1);
+    a02 =   temp2(2);
+    alpha2 = temp2(1);
+    
+    %[a0,  alpha  ] = lsqn(f(fL:fU)./1e6, b(fL:fU) ,[f(iF0)./1e6 (f(2)-f(1))./1e6 2]); 
+    %[a02, alpha2 ] = lsqn(f(fL:fU)./1e6, b2(fL:fU),[f(iF0)./1e6 (f(2)-f(1))./1e6 2]); 
+    
+    if 1
+        subplot(1,2,2)
+        plot(f(fL:fU),b(fL:fU),'ko','MarkerFaceColor','k')
+        hold on
+        plot(f(fL:fU), a0+ alpha.*f(fL:fU)./1e6,'k-.')
+        plot(f(fL:fU), b2(fL:fU),'ro','MarkerFaceColor','r')
+        plot(f(fL:fU), a02 + alpha2*f(fL:fU)./1e6,'r-.')
+        close all
+    end
+
+    resid =      a0  + alpha.*f(fL:fU)./1e6 - b(fL:fU);
+    resid_Filt = a02 + alpha2.*f(fL:fU)./1e6 - b2(fL:fU);
+
+    aeStruct = struct;
+    aeStruct.a0 = a0;
+    aeStruct.alpha = alpha; 
+    aeStruct.corr = sqrt(mean(resid.^2 , 2,'omitnan'));
+    aeStruct.fL = fL;
+    aeStruct.fU = fU;
+    
+    aeStruct.a0_filt = a02;
+    aeStruct.alpha_filt = alpha2; 
+    aeStruct.corr_filt = sqrt(mean(resid_Filt.^2 , 2,'omitnan'));
+    aeStruct.fL = fL;
+    aeStruct.fU = fU;
+    
 
 end

@@ -116,19 +116,19 @@ fatThick = 2.5e-3;
 muscleThick = 9e-3;
 
 %Emma Liver 
-skin.att = [21.158	1]; %Np/m/MHz
+skin.att = [0.35	1]; %dB/cm/MHz
 skin.rho = [1109]; %kg/m3
 skin.c = [1624]; %m/s
 
-muscle.att = [7.166	0.600441504]; %Np/m/MHz
+muscle.att = [0.915 1]; %dB/cm/MHz
 muscle.rho = [1090];
 muscle.c = [1588];
 
-fat.att = [9.3191	1] ;%Np/m/MHz
+fat.att = [0.385	1] ;%dB/cm/MHz
 fat.rho = [911];
 fat.c = [1477];
 
-liver.att = [35.958];
+liver.att = [0.47 1 ];
 liver.rho = [1079];
 
 
@@ -137,14 +137,14 @@ r2 = abs((muscle.rho*muscle.c - fat.rho*fat.c)/(muscle.rho*muscle.c + fat.rho*fa
 
 Np2dB = 20/log(10);
 
-sAtt = skin.att(1)*Np2dB* vsxParams.Trans.frequency; %dB/m
-mAtt = muscle.att(1)*Np2dB * vsxParams.Trans.frequency; %dB/m
-fAtt = fat.att(1)*Np2dB* vsxParams.Trans.frequency; %dB/m
+sAtt = skin.att(1)* vsxParams.Trans.frequency; %dB/cm
+mAtt = muscle.att(1)* vsxParams.Trans.frequency; %dB/cm
+fAtt = fat.att(1)* vsxParams.Trans.frequency; %dB/cm
 
-liverAtt = liver.att(1)* Np2dB; %dB/m 
+liverAtt = liver.att(1)*  vsxParams.Trans.frequency; %dB/cm 
 
 
-attSubCut = 2*(skinThick*sAtt + fatThick*fAtt + muscleThick*mAtt); %dB
+attSubCut = 2*(skinThick*1e2*sAtt + fatThick*1e2*fAtt + muscleThick*1e2*mAtt); %dB
 
 attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;
 %attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
@@ -219,14 +219,14 @@ for iDepth = 1:length(allDepths)
 
    
     %cInput = load([dataDir,'/Sum',num2str(sumIdx),'/COSIEinput',num2str(iImage),'.mat']);
-
+    %attenuatio corr for ref pht already calculated
     speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
     cInput_Depth = load([dataDir,'\COSIEoutput',adaptStr,num2str(cohKlength),'\Sum',num2str(sumIdx),'\COSIEinput',num2str(iImage),'.mat']);
 
     powf0 = abs(cInput_Depth.spectAll(:,nF));
     specklePOWER_MEAN = mean(speckleCOSIE.powf0);
 
-    convFactor = 1./specklePOWER_MEAN * bscSpeckleBf_ref *edgecorr;%*attComp_Test;
+    convFactor = 1./specklePOWER_MEAN * bscSpeckleBf_ref *edgecorr;%.*attComp_Test;
 
     bscEstimate = (powf0.*convFactor);
     powf0_BIG(:,iDepth) = bscEstimate;
@@ -290,7 +290,7 @@ for iEMLidx = 1:nEMLidx
         [~ , cohTestKernelIdx] = min(abs(allDepths(iDepth)*1e-3 - bfImgData.yVals));
         axIdxs = (cohTestKernelIdx- cohKlength/2):(cohTestKernelIdx+cohKlength/2-1);
        
-        liverThick = allDepths(iDepth)*1e-3 - liverStart;
+        liverThick = (allDepths(iDepth)*1e-3 - liverStart);
         
         
         %reproduce the coherence segmentation bool across 'n' depths (kernels
@@ -303,21 +303,27 @@ for iEMLidx = 1:nEMLidx
 
         if allDepths(iDepth) > 1e3*(liverStart + 5e-3) 
             
-            attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttCOH,attStruct,rayIdxs2,allDepths);
+            attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttCOH,attStruct,rayIdxs2,allDepths.*0.1);
+            
+            attLiverStruct.a0 ;
+            attLiverStruct.a0_filt;
+            
             close all
  
-            attLiver = attLiverStruct.alpha*1e6*vsxParams.Trans.frequency;
-            attLiverFilt = attLiverStruct.alpha_filt*1e6*vsxParams.Trans.frequency;
+            attLiverCOH     = attLiverStruct.a0 + attLiverStruct.alpha*vsxParams.Trans.frequency;
+            attLiverFiltCOH = attLiverStruct.a0_filt + attLiverStruct.alpha_filt*vsxParams.Trans.frequency;
                 
-            attInLiver = 2*liverThick * attLiver;
-            attInLiverFilt = 2*liverThick * attLiverFilt;
+            
+            %calcn is in [m]x[dB/cm]
+            attInLiver = 2*liverThick * attLiverCOH*100;
+            attInLiverFiltCOH = 2*liverThick * attLiverFiltCOH*100;
             iDepth;
             
             corr = attLiverStruct.corr;
             corrFilt_COH = attLiverStruct.corr_filt;
         else
             attInLiver = nan; 
-            attInLiverFilt = nan;
+            attInLiverFiltCOH = nan;
             corr = nan; 
             corrFilt_COH = nan;
         end
@@ -336,12 +342,13 @@ for iEMLidx = 1:nEMLidx
         
         if allDepths(iDepth) > 1e3*(liverStart + 5e-3) 
             
-            attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttSNR,attStruct,rayIdxs2,allDepths);
+            attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttSNR,attStruct,rayIdxs2,allDepths.*0.1);
+           
             close all
  
-            attLiverFilt = attLiverStruct.alpha_filt*1e6*vsxParams.Trans.frequency;
+            attLiverFiltSNR=  attLiverStruct.alpha_filt*vsxParams.Trans.frequency;
                 
-            attInLiverFilt_SNR = 2*liverThick * attLiverFilt; 
+            attInLiverFilt_SNR = 2*liverThick * attLiverFiltSNR; 
             iDepth;
             
             corr_SNR = attLiverStruct.corr;
@@ -353,15 +360,15 @@ for iEMLidx = 1:nEMLidx
             corrFilt_SNR = nan;
         end
     
-        temp = [attInLiver,attInLiverFilt,attInLiverFilt_SNR;  
+        temp = [attInLiver,attInLiverFiltCOH,attInLiverFilt_SNR;  
             corr,corrFilt_COH,corrFilt_SNR];
         
         if iEMLidx == 8 && iDepth == 2
-            iEMLidx
+            iEMLidx;
         end
 
         for iCheck = 1:size(temp,2)
-            if temp(1,iCheck)<0 || temp(1,iCheck)>10*(allDepths(iDepth)-liverStart*1e3).*1e-3*liverAtt
+            if temp(1,iCheck)<=0 % || temp(1,iCheck)>10*(allDepths(iDepth)-liverStart*1e3).*1e-3*liverAtt
                 temp(:,iCheck) = [nan,nan];
             end
         end

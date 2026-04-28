@@ -120,7 +120,7 @@ Ey2=sum(y2(:),'omitnan');
 xy=x.*y;
 Exy=sum(xy(:),'omitnan');
 d=size(x);
-n=d(1).*d(2),'omitnan';
+n=d(1).*d(2);
 x2=x.*x;
 Ex2=sum(x2(:),'omitnan');
 

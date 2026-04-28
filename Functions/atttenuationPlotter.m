@@ -17,7 +17,7 @@ function [] = atttenuationPlotter(allDepths,unsegData,segArray,liverStart,liverA
         plot(allDepths,-attSubCut + 10.*log10(segArray(i,:,1)),'-o','Color',cmap(i,:),'MarkerFaceColor',cmap(i,:))
     end
     
-    plot(allDepths,(allDepths-liverStart*1e3).*1e-3*liverAtt,'k-.')
+    plot(allDepths,(allDepths-liverStart*1e3).*0.1*liverAtt,'k-.')
     xlabel('Depth (mm)')
     ylabel('Attenuation (dB)')
     set(gca,'FontSize',20)
@@ -36,7 +36,7 @@ function [] = atttenuationPlotter(allDepths,unsegData,segArray,liverStart,liverA
     ylabel('RMSE (dB)')
     xlim([10 60])
     set(gca,'FontSize',20)
-    colormap([cmap])
+    colormap([cmap]);
     
     colormap([0,0,0;cmap])
     cB = colorbar;
