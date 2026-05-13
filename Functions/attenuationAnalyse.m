@@ -104,6 +104,8 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
     zAtt_mask = nan(size(zAtt));
 
     %match IDF to the image sampling
+    [fQ,zQ] = meshgrid(IDF.Filt.f,winZvalsCM);
+    
 
     for iDepth = 1:nDepthWin
         
@@ -111,9 +113,9 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
 
         %fast time indices for sampling
         depthIdxs = startIdxRF + (iDepth-1) + (0:wSize-1);
-
-        idfCorrSpect = interp2(IDF.Filt.f,wPosCM,IDF.Filt.F',IDF.Filt.f,zVals(iDepth)*1e2);
-
+        
+        idfCorrSpect = IDF.Filt.F(:,iDepth)';
+              
         for iRay = 1:nRays
             
             %calculate spectrum

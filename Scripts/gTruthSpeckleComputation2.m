@@ -76,7 +76,7 @@ end
 input('Check the attenuation values on line 100! ')
 
 
-for zSelect = (55).*1e-3
+for zSelect = (50:5:60).*1e-3
 
     [~, zIdx] = min(abs(rVals - zSelect));
     axIdxsBSC = zIdx-round(kLength_BSC_samples/2) : zIdx + round(kLength_BSC_samples/2) -1 ;

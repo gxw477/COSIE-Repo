@@ -76,14 +76,31 @@ fat.att = [9.3191	1] ;%Np/m/MHz
 fat.rho = [911];
 fat.c = [1477];
 
+%Emma Liver 
+skin.att = [0.35	1]; %dB/cm/MHz
+skin.rho = [1109]; %kg/m3
+skin.c = [1624]; %m/s
+
+muscle.att = [0.915 1]; %dB/cm/MHz
+muscle.rho = [1090];
+muscle.c = [1588];
+
+fat.att = [0.385	1] ;%dB/cm/MHz
+fat.rho = [911];
+fat.c = [1477];
+
+liver.att = [0.47 1 ];
+liver.rho = [1079];
+
 r1 = abs((skin.rho*skin.c - fat.rho*fat.c)/(skin.rho*skin.c + fat.rho*fat.c));
 r2 = abs((muscle.rho*muscle.c - fat.rho*fat.c)/(muscle.rho*muscle.c + fat.rho*fat.c));
 
-sAtt = skin.att(1)*8.6860000037 * vsxParams.Trans.frequency;
-mAtt = muscle.att(1)*8.6860000037 * vsxParams.Trans.frequency;
-fAtt = fat.att(1)*8.6860000037 * vsxParams.Trans.frequency;
+%dB / cm
+sAtt = skin.att(1) * vsxParams.Trans.frequency;
+mAtt = muscle.att(1) * vsxParams.Trans.frequency;
+fAtt = fat.att(1) * vsxParams.Trans.frequency;
 
-attSubCut = skinThick*sAtt + fatThick*fAtt + muscleThick*mAtt;
+attSubCut = skinThick*sAtt + fatThick*fAtt + muscleThick*m  Att;
 
 
 attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;

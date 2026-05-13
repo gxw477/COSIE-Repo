@@ -65,7 +65,10 @@ saveDir_SEG = [testDir,'\',wName,'\'];
 
 cohKlength = 120;
 cohKlength_Length = 0.5*cohKlength*vsxParams.lambda/vsxParams.sPerWaveInit;
-
+samp2cm= bfImgData.lambda/(4*2)*1e2;
+  
+wSizeCM = cohKlength*samp2cm/2;
+   
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample  + 1;
 yVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
 
@@ -257,7 +260,14 @@ end
 %% Attenuation correction calculation
 
 %liverStart = fatThick + muscleThick + skinThick;
-liverStart = 0.014;
+
+B = bmode(bfImgData.iq,80);
+
+figure
+imagesc(rayIdxs,bfImgData.yVals,B')
+colormap gray
+
+liverStart = 0.01*input('Liver Start (cm) :');
 
 analFolder = [testDir,'\AttDataInterp\'];
 frameNames = ls([analFolder,'\Frame*']);
@@ -265,7 +275,7 @@ frameNames = ls([analFolder,'\Frame*']);
 %nLines = length(rayIdxs2);
 %nKernels = size(IDF.Filt.F,2);
 
-nEMLidx = 5;
+nEMLidx = 10;
 idxFactor = 1; 
 nDepth = length(allDepths);
 allAtt_COH = zeros(nEMLidx,nDepth,2);
@@ -301,7 +311,7 @@ for iEMLidx = 1:nEMLidx
         %which depths does the coherence segmentation apply to? 
         segBoolAttCOH(:,iDepth) = segBoolCluster_COH;
 
-        if allDepths(iDepth) > 1e3*(liverStart + 5e-3) 
+        if allDepths(iDepth) > 1e3*(liverStart + wSizeCM/2*0.01) 
             
             attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttCOH,attStruct,rayIdxs2,allDepths.*0.1);
             
@@ -340,15 +350,15 @@ for iEMLidx = 1:nEMLidx
         segBoolAttSNR(:,iDepth) = segBoolCluster_SNR;
     
         
-        if allDepths(iDepth) > 1e3*(liverStart + 5e-3) 
+        if allDepths(iDepth) > 1e3*( liverStart + wSizeCM*0.01) 
             
             attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttSNR,attStruct,rayIdxs2,allDepths.*0.1);
            
             close all
  
-            attLiverFiltSNR=  attLiverStruct.alpha_filt*vsxParams.Trans.frequency;
+            attLiverFiltSNR= attLiverStruct.a0 + attLiverStruct.alpha_filt*vsxParams.Trans.frequency;
                 
-            attInLiverFilt_SNR = 2*liverThick * attLiverFiltSNR; 
+            attInLiverFilt_SNR = 2*liverThick * attLiverFiltSNR*100; 
             iDepth;
             
             corr_SNR = attLiverStruct.corr;
@@ -501,4 +511,4 @@ for iDepth = 1:length(allDepths)
 
 end
 
-save([imgDir,'/SegmResults.mat'],'powerSegSNRAll','powerSegCOHAll')
+save([imgDir,'/SegmResults',num2str(iImage),'.mat'],'powerSegSNRAll','powerSegCOHAll','allAtt_SNR','allAtt_COH','allDepths','allAtt_unseg','liverStart','liverAtt','attSubCut')

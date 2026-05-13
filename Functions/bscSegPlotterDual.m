@@ -82,7 +82,7 @@ function [] = bscSegPlotterDual(powerSegCOH,powerSEGSNR,convFactor,mubsTH,mubsTH
     if logSwitch
         set(gca,'YScale','log')
         yticks(10.^([-4:1]))
-        set(gca,'YLim',[1e-4 10])
+        %set(gca,'YLim',[1e-4 10])
     end
 
     %yticks(0.05.*2.^[-1:6])
