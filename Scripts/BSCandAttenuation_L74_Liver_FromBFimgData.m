@@ -68,9 +68,9 @@ cohKlength_Length = 0.5*cohKlength*vsxParams.lambda/vsxParams.sPerWaveInit;
 samp2cm= bfImgData.lambda/(4*2)*1e2;
   
 wSizeCM = cohKlength*samp2cm/2;
-   
+
 samplesPerAcq = vsxParams.Receive(1).endSample - vsxParams.Receive(1).startSample  + 1;
-yVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq)  ;
+yVals = vsxParams.lambda.*linspace(vsxParams.Receive(1).startDepth,vsxParams.Receive(1).endDepth,samplesPerAcq);
 
 lambda = 1540/vsxParams.Trans.frequency*1e-6;
 lWidth = lambda*(vsxParams.Trans.ElementPos(2,1)-vsxParams.Trans.ElementPos(1,1)) ;
@@ -108,7 +108,6 @@ if ~exist([testDir,'/data_edgeCorr.mat'])
     
 else
     load([testDir,'/data_edgeCorr.mat'])
-    %
 end
  
 %input('Check which attenuation value you are using : ')

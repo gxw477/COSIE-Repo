@@ -100,7 +100,7 @@ sAtt = skin.att(1) * vsxParams.Trans.frequency;
 mAtt = muscle.att(1) * vsxParams.Trans.frequency;
 fAtt = fat.att(1) * vsxParams.Trans.frequency;
 
-attSubCut = skinThick*sAtt + fatThick*fAtt + muscleThick*m  Att;
+attSubCut = skinThick*sAtt + fatThick*fAtt + muscleThick*mAtt  ;
 
 
 attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;
