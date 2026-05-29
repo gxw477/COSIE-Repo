@@ -24,7 +24,7 @@ vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
 
 iImage = input('Which Image ? : ');
 %attStruct = load(['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\AttDataInterp2\Frame',num2str(iImage),'.mat']);
-attStruct = load(['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\IDFfilt.mat']);
+attStruct = load(['C:\Users\gwest\Documents\MATLAB\ElastPhtL74\IDF_filt.mat']);
 
 sumIdx = 33;%input('Sum Idx: ');
 kWidth = 5; 
@@ -309,22 +309,20 @@ for iEMLidx = 1:nEMLidx
         
         %which depths does the coherence segmentation apply to? 
         segBoolAttCOH(:,iDepth) = segBoolCluster_COH;
-
         if allDepths(iDepth) > 1e3*(liverStart + wSizeCM/2*0.01) 
             
-            attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttCOH,attStruct,rayIdxs2,allDepths.*0.1);
-            
-            attLiverStruct.a0 ;
-            attLiverStruct.a0_filt;
+            iDepth
+
+            attLiverStruct = attenuationAnalyse_revised(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttCOH,attStruct,rayIdxs2,allDepths.*0.1);
             
             close all
  
-            attLiverCOH     = attLiverStruct.a0 + attLiverStruct.alpha*vsxParams.Trans.frequency;
-            attLiverFiltCOH = attLiverStruct.a0_filt + attLiverStruct.alpha_filt*vsxParams.Trans.frequency;
+            attLiverCOH     =  attLiverStruct.alpha*vsxParams.Trans.frequency;% + attLiverStruct.a0;
+            attLiverFiltCOH =  attLiverStruct.alpha_filt*vsxParams.Trans.frequency;% + attLiverStruct.a0_filt;
                 
             
             %calcn is in [m]x[dB/cm]
-            attInLiver = 2*liverThick * attLiverCOH*100;
+            attInLiver = 2*liverThick *attLiverCOH*100;
             attInLiverFiltCOH = 2*liverThick * attLiverFiltCOH*100;
             iDepth;
             
@@ -351,11 +349,11 @@ for iEMLidx = 1:nEMLidx
         
         if allDepths(iDepth) > 1e3*( liverStart + wSizeCM*0.01) 
             
-            attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttSNR,attStruct,rayIdxs2,allDepths.*0.1);
+            attLiverStruct = attenuationAnalyse_revised(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttSNR,attStruct,rayIdxs2,allDepths.*0.1);
            
             close all
  
-            attLiverFiltSNR= attLiverStruct.a0 + attLiverStruct.alpha_filt*vsxParams.Trans.frequency;
+            attLiverFiltSNR= attLiverStruct.alpha_filt*vsxParams.Trans.frequency;% + attLiverStruct.a0;
                 
             attInLiverFilt_SNR = 2*liverThick * attLiverFiltSNR*100; 
             iDepth;

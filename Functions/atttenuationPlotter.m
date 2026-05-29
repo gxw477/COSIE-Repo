@@ -23,13 +23,13 @@ function [] = atttenuationPlotter(allDepths,unsegData,segArray,liverStart,liverA
 
 
     figure
-    plot(allDepths,-attSubCut + 10.*log10(unsegData(:,1)),'k-o','MarkerFaceColor','k')
+    plot(allDepths,attSubCut + 10.*log10(unsegData(:,1)),'k-o','MarkerFaceColor','k')
     hold on 
     for i = 1:nEML
-        plot(allDepths,-attSubCut + 10.*log10(segArray(i,:,1)),'-o','Color',cmap(i,:),'MarkerFaceColor',cmap(i,:))
+        plot(allDepths,attSubCut + 10.*log10(segArray(i,:,1)),'-o','Color',cmap(i,:),'MarkerFaceColor',cmap(i,:))
     end
     
-    plot(allDepths,2*(allDepths-liverStart*1e3).*0.1*liverAtt,'k-.')
+    plot(allDepths,attSubCut + 2*(allDepths-liverStart*1e2).*0.1*liverAtt,'k-.')
     xlabel('Depth (mm)')
     ylabel('Attenuation (dB)')
     set(gca,'FontSize',20)
