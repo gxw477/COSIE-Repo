@@ -1,5 +1,7 @@
 clear 
 
+test
+
 close all 
 
 path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts')
