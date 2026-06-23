@@ -1,12 +1,9 @@
 clear 
 
-test
-
 close all 
 
 path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts')
 path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions')
-
 
 %topDir = ['C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Set5\'];
 topDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\'
