@@ -46,7 +46,8 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
     %Hann window function
     win = sqrt(8/3).*hann(wSize);
 
-    arrayDepthsLiver = [(allDepthsCM(1)-wSizeCM/2),slDistCM + wSizeCM/2, endDepthCM+wSizeCM/2];
+    arrayDepthsLiver = [slDistCM - wSizeCM/2, endDepthCM+wSizeCM/2];
+
     arrayDepthsIDF = [(IDF.Filt.wpos(1).*samp2cm - wSizeCM/2), (IDF.Filt.wpos(end).*samp2cm +wSizeCM/2)];
 
     %fast time indices within the range of analysis and inside the liver 
@@ -132,7 +133,7 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
             %raw
             spect(iRay,iDepth,:) = temp(1:wSize/2);
             %IDF corrected 
-            spectCorr(iRay,iDepth,:) = temp(1:wSize/2)./idfCorrSpect;
+            spectCorr(iRay,iDepth,:) = temp(1:wSize/2)./(idfCorrSpect);
 
             %fill if segBool2 is true 
             if segBool2(iRay,iDepth)
@@ -143,7 +144,7 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
         end
     end
 
-    [~,fL] = min(abs(4.5e6- f));
+    [~,fL] = min(abs(4.7e6- f));
     [~,fU] = min(abs(5.7e6 - f));
 
     a = zeros(1,nF);
@@ -182,17 +183,26 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
         a(iF) = coeffs(2);
         b(iF) = coeffs(1);
     
+        if b(iF) > 0 
+            b(iF)=nan;
+        end
+
         validIdx  = ~isnan(zFit2) & ~isnan(yFit2);
-        zFit2 = zFit2(validIdx);
+        %zFit2 = zFit2(validIdx);
         
         %bool5 = zFit2 > 5 & zFit2 < 5.008;
 
-        yFit2 = yFit2(validIdx);
+        %yFit2 = yFit2(validIdx);
     
         coeffs = polyfit(zFit2(validIdx),yFit2(validIdx),1);
         a2(iF) = coeffs(2);
         b2(iF) = coeffs(1);
     
+        if b2(iF) > 0 
+            b2(iF) = nan;
+        end
+
+
         %[a2(iF),b2(iF),c2(iF),e2(iF,:),re2(iF)] = lsqn(zFit2,yFit2,options1);
         
     
@@ -216,8 +226,8 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
     [~,iF0 ] = min(abs(f - bfImgData.Trans.frequency*1e6));
 
     %results are dB/cm, dB/cm/MHz
-    temp  = polyfit(f(fL:fU)./1e6,b(fL:fU),1);
-    temp2 = polyfit(f(fL:fU)./1e6,b2(fL:fU),1);
+    temp  = polyfit(f(fL:fU)./1e6,a(fL:fU) ,1);
+    temp2 = polyfit(f(fL:fU)./1e6,a2(fL:fU) ,1);
     
     %a0 = temp(2);
     %alpha = temp(1);
@@ -229,10 +239,10 @@ function [aeStruct ] = attenuationAnalyse(bfImgData,slDistCM,endDepthCM,segBool,
     
     if 1
         subplot(1,4,2)
-        plot(f(fL:fU),b(fL:fU),'ko','MarkerFaceColor','k')
+        plot(f(fL:fU),a(fL:fU) + b(fL:fU).*f(fL:fU)./1e6,'ko','MarkerFaceColor','k')
         hold on
         plot(f(fL:fU), a0+ alpha.*f(fL:fU)./1e6,'k-.')
-        plot(f(fL:fU), b2(fL:fU),'ro','MarkerFaceColor','r')
+        plot(f(fL:fU), b2(fL:fU).*f(fL:fU)./1e6,'ro','MarkerFaceColor','r')
         plot(f(fL:fU), a02 + alpha2*f(fL:fU)./1e6,'r-.')
         title(['End Depth : ',num2str(endDepthCM)])
       

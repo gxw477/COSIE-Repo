@@ -32,7 +32,7 @@ for iImage = 1:7
     oLap = 0.8;
     
     
-    imgDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\'];
+    imgDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults_TH_Att2\'];
     
     if ~exist(imgDir,'dir')
         mkdir(imgDir)
@@ -150,9 +150,6 @@ for iImage = 1:7
     liver.rho = [1079];
     
     
-    liverStart = 2.7e-2;
-
-
     r1 = abs((skin.rho*skin.c - fat.rho*fat.c)/(skin.rho*skin.c + fat.rho*fat.c));
     r2 = abs((muscle.rho*muscle.c - fat.rho*fat.c)/(muscle.rho*muscle.c + fat.rho*fat.c));
     
@@ -165,7 +162,7 @@ for iImage = 1:7
     liverAtt = liver.att(1)*  vsxParams.Trans.frequency; %dB/cm 
     
     
-    attSubCut = 2*(skinThick*1e2*sAtt + fatThick*1e2*fAtt + muscleThick*1e2*mAtt ); %dB
+    attSubCut = 2*(skinThick*1e2*sAtt + fatThick*1e2*fAtt + muscleThick*1e2*mAtt); %dB
     
     attSpeckle  = [0.524 , 0.9].*vsxParams.Trans.frequency;
     %attP        = [0.53  , 0.003].*vsxParams.Trans.frequency;
@@ -285,6 +282,7 @@ for iImage = 1:7
     imagesc(rayIdxs,bfImgData.yVals,B')
     colormap gray
     
+    liverStart = 2.7e-2;
 
     analFolder = [testDir,'\AttDataInterp\'];
     frameNames = ls([analFolder,'\Frame*']);
@@ -335,17 +333,17 @@ for iImage = 1:7
                 
                 %iDepth
     
-                attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttCOH,attStruct,rayIdxs2,allDepths.*0.1);
+                %attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttCOH,attStruct,rayIdxs2,allDepths.*0.1);
                 
                 close all
      
-                attLiverCOH     =   attLiverStruct.a0  + attLiverStruct.alpha*vsxParams.Trans.frequency;% + attLiverStruct.a0;
-                attLiverFiltCOH =  attLiverStruct.a0_filt + attLiverStruct.alpha_filt*vsxParams.Trans.frequency;% + attLiverStruct.a0_filt;
+                %attLiverCOH     =   attLiverStruct.a0  + attLiverStruct.alpha*vsxParams.Trans.frequency;% + attLiverStruct.a0;
+                %attLiverFiltCOH =  attLiverStruct.a0_filt + attLiverStruct.alpha_filt*vsxParams.Trans.frequency;% + attLiverStruct.a0_filt;
                     
                 
                 %calcn is in [m]x[dB/cm]
-                attInLiver        = 2 * liverThick * attLiverCOH     * 100;
-                attInLiverFiltCOH = 2 * liverThick * attLiverFiltCOH * 100;
+                attInLiver        = 2 * liverThick * liver.att *vsxParams.Trans.frequency    * 100;
+                attInLiverFiltCOH = attInLiver;
                 
 
                 if 0%  iDepth ==7 || iDepth ==8
@@ -353,8 +351,8 @@ for iImage = 1:7
                 end
 
                 
-                corr =         attLiverStruct.corr;
-                corrFilt_COH = attLiverStruct.corr_filt;
+                corr =         nan;%attLiverStruct.corr;
+                corrFilt_COH = nan;%attLiverStruct.corr_filt;
             else
                 attInLiver = nan; 
                 attInLiverFiltCOH = nan;
@@ -376,7 +374,7 @@ for iImage = 1:7
             segBoolAttSNR(:,iDepth) = segBoolCluster_SNR;
         
             
-            if allDepths(iDepth) > 1e3*( liverStart + wSizeCM*0.01) 
+            if 0%allDepths(iDepth) > 1e3*( liverStart + wSizeCM*0.01) 
                 
                 attLiverStruct = attenuationAnalyse(bfImgData,liverStart*100,allDepths(iDepth)*0.1,segBoolAttSNR,attStruct,rayIdxs2,allDepths.*0.1);
                
@@ -396,7 +394,7 @@ for iImage = 1:7
                 corrFilt_SNR = nan;
             end
         
-            temp = [attInLiver,attInLiverFiltCOH,attInLiverFilt_SNR;  
+            temp = [attInLiver(1),attInLiverFiltCOH(1),attInLiverFiltCOH(1);  
                 corr,corrFilt_COH,corrFilt_SNR];
             
             if iEMLidx == 8 && iDepth == 2
@@ -449,7 +447,7 @@ for iImage = 1:7
     saveas(1,[imgDir,'/AttenuationSNR',num2str(iImage),'.jpg'])
     saveas(2,[imgDir,'/AttenuationSNRErr',num2str(iImage),'.jpg'])
     
-    close all
+     close all
 
     %% BSC values for all Depths, all EMLidxs 
     
@@ -535,7 +533,7 @@ for iImage = 1:7
         powerSegCOH = [[bscUnseg(1);bscCOH(:,iDepth,1)],[bscUnseg(2); bscCOH(:,iDepth,2)],nan(nEMLidx+1,1), [0;pctCOH'],nan(nEMLidx+1,1),nan(nEMLidx+1,1)]';
         powerSegSNR = [[bscUnseg(1);bscSNR(:,iDepth,1)],[bscUnseg(2); bscSNR(:,iDepth,2)],nan(nEMLidx+1,1), [0;pctSNR'],nan(nEMLidx+1,1),nan(nEMLidx+1,1)]';
     
-        bscSegPlotterDual(powerSegCOH,powerSegSNR,1,0.1,mubsTH_STD,1)
+        bscSegPlotterDual(powerSegCOH,powerSegSNR,1,0.1,mubsTH_STD,0)
         
         saveas(gcf,[imgDir,'/DoubleCorrBSC_',num2str(iImage),'_',num2str(allDepths(iDepth)),'.jpg'])
         %exportgraphics(gcf,[imgDir,'/DoubleCorrBSC_',num2str(allDepths(iDepth)),'.pdf'])
@@ -546,5 +544,4 @@ for iImage = 1:7
     end
     
     save([imgDir,'/SegmResults',num2str(iImage),'.mat'],'powerSegSNRAll','powerSegCOHAll','allAtt_SNR','allAtt_COH','allDepths','allAtt_unseg','liverStart','liverAtt','attSubCut')
-
 end

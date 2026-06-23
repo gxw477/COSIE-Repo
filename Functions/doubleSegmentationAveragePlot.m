@@ -1,4 +1,4 @@
-function [] = doubleSegmentationAveragePlot(powerUnseg,powerSegTest,jitter,xPlot,mubsTH,mubsStd,meanIdx,depthAverageIdxs,imageAverageIdxs,cmap)
+function [powerUnsegMean2,powerUnsegStd2,powerSegMean2,powerSegStd2] = doubleSegmentationAveragePlot(powerUnseg,powerSegTest,jitter,xPlot,mubsTH,mubsStd,meanIdx,depthAverageIdxs,imageAverageIdxs,cmap)
     
     powerUnseg = powerUnseg(imageAverageIdxs,depthAverageIdxs,:);
     powerSegTest = powerSegTest(imageAverageIdxs,depthAverageIdxs,:,:); 
@@ -20,7 +20,7 @@ function [] = doubleSegmentationAveragePlot(powerUnseg,powerSegTest,jitter,xPlot
     %jitter = linspace(-.3,.3,nEML+1);
     
     figure 
-    xShade = [0 0 55 55 ];
+    xShade = [0 0 65 65 ];
     yShade = [ neg pos pos neg ];
     area(xShade, yShade,'FaceAlpha',0.5,'EdgeAlpha',0,'FaceColor',fillColor,'BaseValue',neg,'ShowBaseLine','off');
     hold on 
@@ -43,12 +43,12 @@ function [] = doubleSegmentationAveragePlot(powerUnseg,powerSegTest,jitter,xPlot
         
     if meanIdx == 1 
         xlabel('Depth (mm)')
-        xlim([15 50])
-        set(gca,'XTick',[20:10:50])
+        xlim([20 60])
+        set(gca,'XTick',[20:10:60])
     elseif meanIdx == 2 
         xlabel('Image')
-        xlim([0 7])
-        set(gca,'XTick',[1:6])
+        xlim([0 8])
+        set(gca,'XTick',[1:7])
     end
 
     ylabel('BSC (m^{-1}sr^{-1})')

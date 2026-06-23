@@ -1,7 +1,7 @@
 function [] = atttenuationPlotter(allDepths,unsegData,segArray,liverStart,liverAtt,attSubCut)
     
     
-    nEML = size(segArray,1);
+    nEML = 10;
 
     if 0 
         cmap = [
@@ -34,8 +34,10 @@ function [] = atttenuationPlotter(allDepths,unsegData,segArray,liverStart,liverA
     ylabel('Attenuation (dB)')
     set(gca,'FontSize',20)
     xlim([10 60])
-    
-    
+    cB = colorbar;
+    set(cB,'XTick',(1:2:(2*(nEML+1)))./(2*(nEML+1)))
+    set(cB,'TickLabels',0:nEML)
+    colormap([0,0,0;cmap])
     
     figure
     plot(allDepths,10.*log10(unsegData(:,2)),'k-o','MarkerFaceColor','k')
@@ -48,9 +50,9 @@ function [] = atttenuationPlotter(allDepths,unsegData,segArray,liverStart,liverA
     ylabel('RMSE (dB)')
     xlim([10 60])
     set(gca,'FontSize',20)
-    colormap([cmap]);
+    %colormap([cmap]);
     
-    colormap([0,0,0;cmap])
+    %colormap([0,0,0;cmap])
     cB = colorbar;
     set(cB,'XTick',(1:2:(2*(nEML+1)))./(2*(nEML+1)))
     set(cB,'TickLabels',0:nEML)

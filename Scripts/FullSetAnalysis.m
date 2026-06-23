@@ -1,6 +1,11 @@
 clear 
 close all
 
+
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
+path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
+path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
+
 topDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
 resultsDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\';
 
@@ -56,16 +61,16 @@ stdAttSNR = squeeze(std(allAttSNR,1,1,'omitnan'));
 stdAttUnseg = squeeze(std(allAttUnseg,1,1,'omitnan'));
 
 
-[f1,f2] = AverageAttenuationPlotter(dataAll,meanAttCoh,meanAttUnseg,cmapStruct.cmap);
+%[f1,f2] = AverageAttenuationPlotter(dataAll,meanAttCoh,meanAttUnseg,cmapStruct.cmap);
 
-saveas(f1,[resultsDir,'\MeanAttValuesCOH.fig' ])
-saveas(f2,[resultsDir,'\ResidValuesCOH.fig' ])
+%saveas(f1,[resultsDir,'\MeanAttValuesCOH.fig' ])
+%saveas(f2,[resultsDir,'\ResidValuesCOH.fig' ])
 
 
-[f3,f4] = AverageAttenuationPlotter(dataAll,meanAttSNR,meanAttUnseg,cmapStruct.cmap);
+%[f3,f4] = AverageAttenuationPlotter(dataAll,meanAttSNR,meanAttUnseg,cmapStruct.cmap);
 
-saveas(f3,[resultsDir,'\MeanAttValuesSNR.fig' ])
-saveas(f4,[resultsDir,'\ResidValuesSNR.fig' ])
+%saveas(f3,[resultsDir,'\MeanAttValuesSNR.fig' ])
+%saveas(f4,[resultsDir,'\ResidValuesSNR.fig' ])
 
 close all
 
