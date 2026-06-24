@@ -3,44 +3,52 @@ clear
 close all 
 
 
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
-path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
-path(path,'C:\Users\gwest\Documents\MATLAB\Temp\')
+testDir =  uigetdir([],'Locate test directory containing test data');
+cd(testDir)
 
-speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\QUAD\';
+if ~exist('directoryStrings.mat')
+    
+    cosieFolder = uigetdir([],'Locate COSIE root directory');
+    attFolder = uigetdir([],'Locate attenuation GUI directory');
+    speckleDir = uigetdir([],'Locate folder containing beamformed speckle data');
+    
+    save('directoryStrings.mat','speckleDir','testDir','attFolder','cosieFolder')
+else
+    load('directoryStrings.mat')
+end 
 
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_HV_HTGC\';
-%testDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\';
-testDir =  'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
+addpath(fullfile(cosieFolder,'Functions'))
+addpath(fullfile(cosieFolder,'Scripts'))
+addpath(attFolder)
 
 
-%planeDir = 'C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\ElastPhtL74_1607\Pref\';
+
 
 %load verasonics params2
-vsxParams = load([testDir,'\VSXoutput.mat']);
-vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
+vsxParams = load(fullfile(testDir,'VSXoutput.mat'));
+vsxParams2 = load(fullfile(speckleDir,'\VSXoutput.mat'));
 
 
 for iImage = 1:7
 
-    %attStruct = load(['C:\Users\gwest\Documents\Vantage-4.9.2-2308102000\EmmaLiver\EmmaLiver_NHV_NTGC\AttDataInterp2\Frame',num2str(iImage),'.mat']);
-    attStruct = load(['C:\Users\gwest\Documents\MATLAB\ElastPhtL74\IDF_filt.mat']);
+    
+    attStruct = load(fullfile( testDir,'IDFfilt.mat'));
     
     sumIdx = 33;%input('Sum Idx: ');
     kWidth = 5; 
     oLap = 0.8;
     
+    %imgDir =  ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\'];
     
-    imgDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\'];
-    
+    imgDir = fullfile(testDir,'SegmResutls');
+
     if ~exist(imgDir,'dir')
         mkdir(imgDir)
     end
     
     
     %load test data
-    bfImgData = load([testDir,'BFimgData',num2str(iImage),'.mat']);
+    bfImgData = load(fullfile(testDir,['BFimgData',num2str(iImage),'.mat']));
     depthSelect = 25;%input('Depth of interest (mm) : ');
     adaptBool = 1;%input('Adaptive grid sizing? : ');
 
@@ -64,7 +72,7 @@ for iImage = 1:7
         wName = 'Hann';
     end
     
-    saveDir_SEG = [testDir,'\',wName,'\'];
+    saveDir_SEG = fullfile(testDir,wName);
     
     cohKlength = 120;
     cohKlength_Length = 0.5*cohKlength*vsxParams.lambda/vsxParams.sPerWaveInit;
@@ -98,7 +106,7 @@ for iImage = 1:7
     colormap gray
     ylim([min(yVals) 6])
     xticks([-1.5 -1 -0.5 0  0.5 1 1.5 ])
-    saveas(gcf,[imgDir,'bmodeIm',num2str(iImage),'.jpg'])
+    saveas(gcf,fullfile(imgDir,['bmodeIm',num2str(iImage),'.jpg']))
     close all
 
 
@@ -110,7 +118,9 @@ for iImage = 1:7
     
     %% Ground truth values
     
-    if ~exist([testDir,'/data_edgeCorr.mat'])
+    edgeCorrFile = fullfile(testDir,'data_edgeCorr.mat');
+
+    if ~exist(edgeCorrFile)
         
         %Calculate edge correction factor
         R0_test = planarReflectorEstimates(testDir,planeDir,0);
@@ -120,10 +130,10 @@ for iImage = 1:7
         Tspeckle = (1-mean(R0_speckle));
     
         edgecorr = (Tspeckle/Ttest)^2;
-        save([testDir,'/data_edgeCorr.mat'],'edgecorr')
+        save(edgeCorrFile,'edgecorr')
         
     else
-        load([testDir,'/data_edgeCorr.mat'])
+        load(edgeCorrFile)
     end
      
     %input('Check which attenuation value you are using : ')
@@ -186,27 +196,21 @@ for iImage = 1:7
     
     rayIdxs = (1:128);    
     rayIdxs2 = rayIdxs(xBool);  
-    %EMLidx = 5;
     kWidth = 5; 
     oLap = 0.8;
     
     allDepths = 20:5:55;
     
-    segBoolBIG1 = true(length(rayIdxs2),length(allDepths));%zeros(length(rayIdxs2),length(allDepths));
+    segBoolBIG1 = true(length(rayIdxs2),length(allDepths));
     segBoolBIG2 = segBoolBIG1;
     
-    analFolder = [testDir,'\AttData\'];
-    frameNames = ls([analFolder,'\Frame*']);
-    %BAEdata = load([analFolder,frameNames(iImage,:)]);
     
     nLines = length(rayIdxs2);
     nKernelsAtt = size(attStruct.Filt.F,2);
     nKernelsBSC = length(allDepths);
     
     segBoolAtt1 = true(nLines,nKernelsAtt);
-    %segBoolAtt2 = zeros(size(segBoolAtt1));
-    %segBoolFull2 = true(length(rayIdxs2),length(bfImgData.yVals));
-    
+      
     powf0_BIG =  zeros(nLines,nKernelsBSC);
     
     axIdxs_BIG = [];
@@ -220,8 +224,8 @@ for iImage = 1:7
        
     for iDepth = 1:length(allDepths)
     
-        speckleDir2 = [speckleDir,wName,'\Z',num2str(allDepths(iDepth)),'\'];  
-        dataDir = [testDir,wName,'\Z',num2str(allDepths(iDepth)),'\'];
+        speckleDir2 = fullfile(speckleDir,wName,['Z',num2str(allDepths(iDepth)),]);  
+        dataDir = fullfile(testDir,wName,['Z',num2str(allDepths(iDepth))]);
         
         dzT = allDepths(iDepth)*0.1 - edgeYVal*100; %cm 
     
@@ -241,8 +245,8 @@ for iImage = 1:7
        
         %cInput = load([dataDir,'/Sum',num2str(sumIdx),'/COSIEinput',num2str(iImage),'.mat']);
         %attenuatio corr for ref pht already calculated
-        speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
-        cInput_Depth = load([dataDir,'\COSIEoutput',adaptStr,num2str(cohKlength),'\Sum',num2str(sumIdx),'\COSIEinput',num2str(iImage),'.mat']);
+        speckleCOSIE =  load(fullfile(speckleDir2,['COSIEoutput',adaptStr,num2str(cohKlength)],['COSIEoutput',num2str(sumIdx),'.mat']));
+        cInput_Depth = load(fullfile(dataDir,['COSIEoutput',adaptStr,num2str(cohKlength)],['Sum',num2str(sumIdx)],['COSIEinput',num2str(iImage),'.mat']));
     
         powf0 = abs(cInput_Depth.spectAll(:,nF));
         specklePOWER_MEAN = mean(speckleCOSIE.powf0);
@@ -262,11 +266,11 @@ for iImage = 1:7
     
         %% SNR analysis 
     
-        qaSNRdata = load([testDir,wName,'\Z',num2str(allDepths(iDepth)),'\COSIEoutput_adaptive',num2str(cohKlength),'\Sum',num2str(sumIdx),'\EnvStats',num2str(iImage),'.mat']);
+        qaSNRdata = load(fullfile(testDir,wName,['Z',num2str(allDepths(iDepth))],['COSIEoutput_adaptive',num2str(cohKlength)],['Sum',num2str(sumIdx)],['EnvStats',num2str(iImage),'.mat']));
         snrTest = qaSNRdata.envMean./qaSNRdata.envStd;
         
         %load COSIE data
-        speckleSNRdata= load([speckleDir2 ,'envData_COSIE' ]) ;
+        speckleSNRdata= load(fullfile(speckleDir2 ,'envData_COSIE')) ;
       
         %allThValsSNR(:,iDepth) = [speckleSNRdata.redEML(1,EMLidx),speckleSNRdata.redEML(2,EMLidx)];
         allSNR(:,iDepth) = snrTest;
@@ -285,12 +289,6 @@ for iImage = 1:7
     imagesc(rayIdxs,bfImgData.yVals,B')
     colormap gray
     
-
-    analFolder = [testDir,'\AttDataInterp\'];
-    frameNames = ls([analFolder,'\Frame*']);
-    %BAEdata = load([analFolder,frameNames(iImage,:)]);
-    %nLines = length(rayIdxs2);
-    %nKernels = size(IDF.Filt.F,2);
     
     nEMLidx = 10;
     idxFactor = 1; 
@@ -313,8 +311,8 @@ for iImage = 1:7
     
         for iDepth = 1:nDepth
         
-            speckleDir2 = [speckleDir,wName,'\Z',num2str(allDepths(iDepth)),'\'];  
-            speckleCOSIE =  load([speckleDir2,'\COSIEoutput',adaptStr,num2str(cohKlength),'\COSIEoutput',num2str(sumIdx),'.mat']);
+            speckleDir2 = fullfile(speckleDir,wName,['Z',num2str(allDepths(iDepth))]);  
+            speckleCOSIE =  load(fullfile(speckleDir2,['COSIEoutput',adaptStr,num2str(cohKlength)],['COSIEoutput',num2str(sumIdx),'.mat']));
        
             [~ , cohTestKernelIdx] = min(abs(allDepths(iDepth)*1e-3 - bfImgData.yVals));
             axIdxs = (cohTestKernelIdx- cohKlength/2):(cohTestKernelIdx+cohKlength/2-1);
@@ -362,8 +360,8 @@ for iImage = 1:7
                 corrFilt_COH = nan;
             end
     
-            speckleDir2 = [speckleDir,wName,'\Z',num2str(allDepths(iDepth)),'\'];  
-            speckleCOSIE_SNR =  load([speckleDir2,'\envData_COSIE.mat']);
+            speckleDir2 = fullfile(speckleDir,wName,['Z',num2str(allDepths(iDepth))]);  
+            speckleCOSIE_SNR =  load(fullfile(speckleDir2,'envData_COSIE.mat'));
         
             %reproduce the coherence segmentation bool across 'n' depths (kernels
             %set within attenuation calculation) 
@@ -439,15 +437,15 @@ for iImage = 1:7
     
     atttenuationPlotter(allDepths,allAtt_unseg,allAtt_COH,liverStart,liverAtt,attSubCut)
     
-    saveas(1,[imgDir,'/AttenuationCOH',num2str(iImage),'.jpg'])
-    saveas(2,[imgDir,'/AttenuationCOHErr',num2str(iImage),'.jpg'])
+    saveas(1,fullfile(imgDir,['AttenuationCOH',num2str(iImage),'.jpg']))
+    saveas(2,fullfile(imgDir,['AttenuationCOHErr',num2str(iImage),'.jpg']))
       
     close all
 
     atttenuationPlotter(allDepths,allAtt_unseg,allAtt_SNR,liverStart,liverAtt,attSubCut)
     
-    saveas(1,[imgDir,'/AttenuationSNR',num2str(iImage),'.jpg'])
-    saveas(2,[imgDir,'/AttenuationSNRErr',num2str(iImage),'.jpg'])
+    saveas(1,fullfile(imgDir,['AttenuationSNR',num2str(iImage),'.jpg']))
+    saveas(2,fullfile(imgDir,['AttenuationSNRErr',num2str(iImage),'.jpg']))
     
     close all
 
@@ -537,7 +535,7 @@ for iImage = 1:7
     
         bscSegPlotterDual(powerSegCOH,powerSegSNR,1,0.1,mubsTH_STD,1)
         
-        saveas(gcf,[imgDir,'/DoubleCorrBSC_',num2str(iImage),'_',num2str(allDepths(iDepth)),'.jpg'])
+        saveas(gcf,fullfile(imgDir,['DoubleCorrBSC_',num2str(iImage),'_',num2str(allDepths(iDepth)),'.jpg']))
         %exportgraphics(gcf,[imgDir,'/DoubleCorrBSC_',num2str(allDepths(iDepth)),'.pdf'])
         
         powerSegCOHAll{iDepth} = powerSegCOH;
@@ -545,6 +543,6 @@ for iImage = 1:7
     
     end
     
-    save([imgDir,'/SegmResults',num2str(iImage),'.mat'],'powerSegSNRAll','powerSegCOHAll','allAtt_SNR','allAtt_COH','allDepths','allAtt_unseg','liverStart','liverAtt','attSubCut')
+    save(fullfile(imgDir,['SegmResults',num2str(iImage),'.mat']),'powerSegSNRAll','powerSegCOHAll','allAtt_SNR','allAtt_COH','allDepths','allAtt_unseg','liverStart','liverAtt','attSubCut')
 
 end

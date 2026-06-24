@@ -2,8 +2,21 @@ clear
 
 close all 
 
-topDir = [uigetdir,'\'];
+
+topDir =  uigetdir([],'Locate test directory containing raw image data');
 cd(topDir)
+
+if ~exist('directoryStrings.mat')
+    
+    cosieFolder = uigetdir([],'Locate COSIE root directory');
+    save('directoryStrings.mat','cosieFolder')
+else
+    load('directoryStrings.mat')
+end 
+
+
+addpath(fullfile(cosieFolder,'Functions'))
+addpath(fullfile(cosieFolder,'Scripts'))
 
 %fileIdxs = 5:5:50;
 fileNames = ls('All*');
@@ -11,7 +24,7 @@ fileNames = ls('All*');
 
 %load(uigetfile)
 
-SOS = input('Speed of sound :')
+SOS = 1540;%input('Speed of sound :')
 
 for iFrame = 1:size(fileNames,1)
 
@@ -19,11 +32,11 @@ for iFrame = 1:size(fileNames,1)
     
     if VSXfileOption == 1
         
-        load([topDir,'VSXinit.mat'])
+        load(fullfile(topDir,'VSXinit.mat'))
         samplesPerAcq = (Receive(1).endDepth-Receive(1).startDepth)*4;
     
     elseif VSXfileOption == 2
-        load([topDir,'VSXoutput.mat'])
+        load(fullfile(topDir,'VSXoutput.mat'))
         samplesPerAcq = Receive(1).endSample - Receive(1).startSample + 1;
          
     end
@@ -148,19 +161,22 @@ for iFrame = 1:size(fileNames,1)
     
         params.Nelements  = length(tDelay(~omitBool));
         
-        mDir = ['MatrixFolder'];
-        mFileName =  ['MatrixFolder/M',num2str(i),'.mat'];
+        mDir = fullfile(pwd,'MDir' );
+        mFileName =  [mDir,'\M.mat'];
 
         if ~exist(mDir)
             mkdir(mDir)
         end
 
+
         method = 'quadratic';
 
-        if ~isfile(mFileName)
+        if ~isfile(mFileName) && size(acqI,2) == max(apLengths)
             [bfSig,channelData,~,M] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,method);
             save(mFileName,'M')
-        else
+        
+        elseif isfile(mFileName) && size(acqI,2) == max(apLengths)
+
             load(mFileName)
             tmp = strcmpi(method,{'nearest','linear','quadratic','lanczos3','5points','lanczos5'});
         
@@ -177,6 +193,8 @@ for iFrame = 1:size(fileNames,1)
             %-- Just-Delay
             channelData = getElementData(M,SIG,Npoints);
 
+        elseif size(acqI,2) ~= max(apLengths)
+            [bfSig,channelData] = mustUGeorge(acqI, zeros(1,length(bformY)), bformY.*lambda,tDelay(~omitBool),params,method);
         end
 
         fullIM(i,:) = bfSig;
@@ -253,13 +271,13 @@ for iFrame = 1:size(fileNames,1)
 
     B = bmode(iq(:,startIdx:endIdx),50);
         
-    saveDir = [topDir,'\QUAD\'];
+    saveDir = fullfile(topDir,'QUAD');
 
     if ~exist(saveDir)
         mkdir(saveDir)
     end
 
-    save([saveDir,'\BFimgData',num2str(iFrame),'.mat'])
+    save(fullfile(saveDir,['BFimgData',num2str(iFrame),'.mat']))
 
     clearvars -except iFrame topDir fileNames SOS
 

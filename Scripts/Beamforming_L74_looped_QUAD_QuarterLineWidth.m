@@ -2,20 +2,22 @@ clear
 
 close all 
 
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
+cosieFolder = uigetdir([],'Locate COSIE root directory')
 
-topDir = [uigetdir,'\'];
+addpath(fullfile(cosieFolder,'Functions'))
+addpath(fullfile(cosieFolder,'Scripts'))
+
+%topDir = ['C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Set5\'];
+topDir = uigetdir([],'Select Raw Image directory')
 cd(topDir)
 
 %fileIdxs = 5:5:50;
 fileNames = ls('All*');
 %fileNames = fileNames(3:end,:);
 
-
 %load(uigetfile)
 
-SOS = input('Speed of sound :')
+SOS = 1540;%input('Speed of sound :')
 
 for iFrame = 1:2%size(fileNames,1)
 
@@ -23,12 +25,12 @@ for iFrame = 1:2%size(fileNames,1)
     
     if VSXfileOption == 1
         
-        load([topDir,'VSXinit.mat'])
+        load(fullfile(topDir,'VSXinit.mat'))
         samplesPerAcq = (Receive(1).endDepth-Receive(1).startDepth)*4;
-    
+   
     elseif VSXfileOption == 2
         
-        load([topDir,'VSXoutput.mat'])
+        load(fullfile(topDir,'VSXoutput.mat'))
         samplesPerAcq = Receive(1).endSample - Receive(1).startSample + 1;
          
     end
@@ -154,8 +156,9 @@ for iFrame = 1:2%size(fileNames,1)
     
         params.Nelements  = length(tDelay(~omitBool));
         
-        mDir = [cd,'\MatrixFolder\'];
-       
+        mDir = fullfile(pwd,'MDir' );
+        mFileName =  [mDir,'\M.mat'];
+
         if ~exist(mDir)
             mkdir(mDir)
         end
@@ -168,7 +171,7 @@ for iFrame = 1:2%size(fileNames,1)
             %beamforming x-position relative to centre of aperture
             x0 = (i2-1).*dX;
             
-            mFileName = [mDir,'\M',num2str(i2),'.mat'];
+            mFileName = fullfile(mDir,'\M',num2str(i2),'.mat');
 
             if i <= 17 || i >= 112
                 [~,~,~,M] = mustUGeorge(acqI, x0 + zeros(1,length(bformY)) , bformY.*lambda,tDelay(~omitBool),params,method);
@@ -219,13 +222,13 @@ for iFrame = 1:2%size(fileNames,1)
 
     B = bmode(iq(:,startIdx:endIdx),50);
         
-    saveDir = [topDir,'\UsampleQUAD\'];
+    saveDir = fullfile(topDir,'UsampleQUAD');
 
     if ~exist(saveDir)
         mkdir(saveDir)
     end
 
-    save([saveDir,'\BFimgData',num2str(iFrame),'Usample.mat'])
+    save(fullfile(saveDir,'BFimgData',num2str(iFrame),'Usample.mat'))
 
     clearvars -except iFrame topDir fileNames SOS
 

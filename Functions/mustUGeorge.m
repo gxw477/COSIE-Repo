@@ -254,7 +254,7 @@ factor = 20; % other large variables in DASMTX + ...
 if ispc
     Nchunks = ceil(factor*bytes/MPAB);
 else
-    Nchunks = 10; % arbitrary value
+    Nchunks = 1; % arbitrary value
 end
 
 %---- end of Chunking ----
