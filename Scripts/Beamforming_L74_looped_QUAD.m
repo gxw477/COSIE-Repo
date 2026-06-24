@@ -7,7 +7,6 @@ topDir =  uigetdir([],'Locate test directory containing raw image data');
 cd(topDir)
 
 if ~exist('directoryStrings.mat')
-    
     cosieFolder = uigetdir([],'Locate COSIE root directory');
     save('directoryStrings.mat','cosieFolder')
 else

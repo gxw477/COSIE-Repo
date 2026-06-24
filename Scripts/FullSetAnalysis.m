@@ -1,19 +1,33 @@
 clear 
 close all
 
+topDir =  uigetdir([],'Locate test directory containing beamformed image data');
+cd(topDir)
 
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
-path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
 
-topDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
-resultsDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\';
+if ~exist('directoryStrings.mat')
+    
+    cosieFolder = uigetdir([],'Locate COSIE root directory');
+    attFolder = uigetdir([],'Locate attenuation GUI directory');
+    speckleDir = uigetdir([],'Locate folder containing beamformed speckle data');
+    
+    save('directoryStrings.mat','speckleDir','testDir','attFolder','cosieFolder')
+else
+    load('directoryStrings.mat')
+end 
 
-cmapStruct= load([resultsDir,'\CMap']);
+addpath(fullfile(cosieFolder,'Functions'))
+addpath(fullfile(cosieFolder,'Scripts'))
+addpath(attFolder)
 
-vsxParams = load([topDir,'VSXoutput.mat']);
 
-fNames = ls([resultsDir,'SegmResults*']);
+resultsDir = fullfile(topDir,'SegmResults');
+
+cmapStruct= load(fullfile(resultsDir,'CMap.mat'));
+
+vsxParams = load(fullfile(topDir,'VSXoutput.mat'));
+
+fNames = ls(fullfile(resultsDir,'SegmResults*'));
 
 mubsTH = 0.1;
 mubsTH_STD = [0.04 2.2];
@@ -24,7 +38,7 @@ dataAll = cell(1,nImages);
 
 for iImage = 1 :nImages 
 
-    dataAll{iImage} = load([resultsDir,fNames(iImage,:)]);
+    dataAll{iImage} = load(fullfile(resultsDir,fNames(iImage,:)));
 
 end 
 
@@ -96,7 +110,7 @@ for iDepth = 1 : length(dataAll{1}.allDepths)
     
     bscSegPlotterDual(bscSegCOHmean,bscSegSNRmean,1,mubsTH,mubsTH_STD,1)
     title(['Z = ',num2str(dataAll{1}.allDepths(iDepth))])
-    saveas(gcf,[resultsDir,'\MeanBSC',num2str(iDepth),'.fig'])
+    saveas(gcf,fullfile(resultsDir,['MeanBSC',num2str(iDepth),'.fig']))
 
     unseg(iDepth,:) = bscSegCOHmean(1:2,1);
  

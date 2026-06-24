@@ -2,19 +2,32 @@
 clear 
 close all 
 
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Functions\')
-path(path,'C:\Users\gwest\Documents\MATLAB\COSIE-Repo\Scripts\')
-path(path,'C:\Users\gwest\Documents\MATLAB\AttenuationGUI\')
+topDir =  uigetdir([],'Locate test directory containing beamformed image data');
+cd(topDir)
 
 
-speckleDir = 'C:\Users\gwest\Documents\MATLAB\ElastPhtL74\Img1-4Dir\';
+if ~exist('directoryStrings.mat')
+    
+    cosieFolder = uigetdir([],'Locate COSIE root directory');
+    attFolder = uigetdir([],'Locate attenuation GUI directory');
+    speckleDir = uigetdir([],'Locate folder containing beamformed speckle data');
+    
+    save('directoryStrings.mat','speckleDir','topDir','attFolder','cosieFolder')
+else
+    load('directoryStrings.mat')
+end 
 
-testDir = 'C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\';
+addpath(fullfile(cosieFolder,'Functions'))
+addpath(fullfile(cosieFolder,'Scripts'))
+addpath(attFolder)
+
+
+resultsDir = fullfile(topDir,'SegmResults');
+
 
 %load verasonics params2
-vsxParams = load([testDir,'\VSXoutput.mat']);
-vsxParams2 = load([speckleDir,'\VSXoutput.mat']);
-
+vsxParams = load(fullfile(topDir,'VSXoutput.mat'));
+vsxParams2 = load(fullfile(speckleDir,'VSXoutput.mat'));
 
 
 allDepths = 20:5:55;
@@ -30,8 +43,7 @@ powerSegSNR = powerSegCOH;
 for iImage = 1:nImages
 
    
-    imgDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\'];
-    s1 = load([imgDir,'\SegmResults',num2str(iImage),'.mat']);
+    s1 = load(fullfile(resultsDir,['SegmResults',num2str(iImage),'.mat']));
     
     for iDepth = 1:nDepths
 
@@ -59,7 +71,7 @@ powerSegMean = squeeze(mean(powerSegCOH(:,:,:,1),1,'omitnan'));
 powerSegStd = squeeze(1/nImages.*sqrt(sum(powerSegCOH(:,:,:,2).^2,1,'omitnan')));
 
 
-load('C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\CMap.mat')
+load(fullfile(resultsDir,'CMap.mat'));
 
 
 
@@ -77,7 +89,7 @@ pos = mubsTH_STD(2);
 offSet = 1.5;
 [powerUnsegMean1,powerUnsegStd1,powerSegMean_COH,powerSegStd_COH] = doubleSegmentationAveragePlot(powerUnseg,powerSegCOH,linspace(-offSet,offSet,nEML+1),allDepths,mubsTH, mubsTH_STD,1,1:8,1:7,cmap);
 title('Coherence Segm')
-saveas(gcf,[imgDir,'/COHdepthSeg.jpg' ])
+saveas(gcf,fullfile(resultsDir,'COHdepthSeg.jpg'))
 
 
 % Coherence Segmentation, image plot
@@ -88,13 +100,13 @@ cB = colorbar;
 set(cB,'XTick',(1:2:(2*(nEML+1)))./(2*(nEML+1)))
 set(cB,'TickLabels',0:nEML)
 title('Coherence Segm')
-saveas(gcf,[imgDir,'/COHimageSeg.jpg' ])
+saveas(gcf,fullfile(resultsDir,'COHimageSeg.jpg'))
 
 % SNR segmentation, depth plot 
 doubleSegmentationAveragePlot(powerUnseg,powerSegSNR,linspace(-offSet,offSet,nEML+1),allDepths,mubsTH, mubsTH_STD,1,1:8,1:7,cmap);
 title('SNR Segm')
 
-saveas(gcf,[imgDir,'/SNRdepthSeg.jpg' ])
+saveas(gcf,fullfile(resultsDir,'SNRdepthSeg.jpg'))
 
 
 % SNR segmentation, depth plot
@@ -104,7 +116,7 @@ cB = colorbar;
 set(cB,'XTick',(1:2:(2*(nEML+1)))./(2*(nEML+1)))
 set(cB,'TickLabels',0:nEML)
 title('SNR Segm')
-saveas(gcf,[imgDir,'/SNRimageSeg.jpg' ])
+saveas(gcf,fullfile(resultsDir,'SNRimageSeg.jpg'))
 
 
 
@@ -121,7 +133,7 @@ for iImage = 1:nImages
 
    
     %imgDir = ['C:\Users\gwest\Documents\MATLAB\EmmaLiver_NHV_NTGC\QUAD\SegmResults\'];
-    s1 = load([imgDir,'\SegmResults',num2str(iImage),'.mat']);
+    s1 = load(fullfile(resultsDir,['SegmResults',num2str(iImage),'.mat']));
     
     for iDepth = 1:nDepths
 
@@ -177,5 +189,5 @@ ylabel('BSC (m^{-1}rad^{-1})')
 set(gca,'YScale','log')
 grid on 
 
-saveas(gcf,[imgDir,'/EMLSeg.jpg' ])
+saveas(gcf,fullfile(resultsDir,'EMLSeg.jpg'))
 
